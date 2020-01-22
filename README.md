@@ -1,4 +1,4 @@
-Sample Module Repository
+Projecto Final de la Materia "Data Product Architecture"
 ========================
 
 This simple project is an example repo for Python projects.
