@@ -42,5 +42,5 @@ graph LR
 </div>
 
 <p align="center">
-  <image width="400" height="300" src="https://github.com/dapivei/data-product-architecture-final-project/blob/master/images/web_service_proposal.png">
+  <image width="350" height="250" src="https://github.com/dapivei/data-product-architecture-final-project/blob/master/images/web_service_proposal.png">
 </p>
