@@ -41,7 +41,7 @@ El gobierno de Nueva York, con el fin de proveer a la comunidad *newyorkina* con
 **Gráfica 1.Portal-Web "NYC311 Service Request**
 
 <p align="center">
-<image width="400" height="330" src="https://github.com/dapivei/data-product-architecture-final-project/blob/master/images/nyc_311_sr_website.png">
+<image width="380" height="330" src="https://github.com/dapivei/data-product-architecture-final-project/blob/master/images/nyc_311_sr_website.png">
 </p>
 
 ### II. Problema
@@ -80,6 +80,7 @@ graph LR
     id8((Web Server))
 
 ```
+**Gráfica 2.Data Product Pipeline**
 
 <p align="center">
 <image width="900" height="130" src="https://github.com/dapivei/data-product-architecture-final-project/blob/master/images/mockup.png">
@@ -101,6 +102,7 @@ graph LR
 
 ### VI. Solución Propuesta: Producto Final
 </div>
+**Gráfica 3.Portal-Web "NYC311 Service Request Engagement**
 
 <p align="center">
   <image width="350" height="250" src="https://github.com/dapivei/data-product-architecture-final-project/blob/master/images/web_service_proposal.png">
