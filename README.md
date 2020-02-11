@@ -90,6 +90,7 @@ graph LR
 
 ### V. Datos/variables requeridas
 
++ unique key
 + created date 
 + updated 
 + resolution
