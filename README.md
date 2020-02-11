@@ -12,9 +12,9 @@
 
 ### Contenidos de sitio:
 
-[X] I. Introducción
+- [X] I. Introducción
 
-[X] II. Problema
+- [X] II. Problema
 
 [X] III. Objetivos del producto de datos
 
