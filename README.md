@@ -26,18 +26,18 @@
 
 - [ ] VII. Modelos utilizados
 
-### Introducción:
+### I. Introducción:
 
 El gobierno de Nueva York, con el fin de proveer a la comunidad *newyorkina* con acceso directo a los servicios gubernamentales  y mejorar el seguimiento y control de los servicios gubernamentales, provee el servicio de petición *NYC311*, disponible las 24 horas del día, los 7 días de la semana, los 365 días del año. De esta manera, según el portal web principal de [*NYC311*](https://portal.311.nyc.gov/about-nyc-311/), la misión del servicio de petición es:
 
 >* "es proporcionar al público un acceso rápido y fácil a todos los servicios e información del gobierno de la ciudad de Nueva York al tiempo que ofrece el mejor servicio al cliente. Ayudamos a las agencias a mejorar la prestación de servicios permitiéndoles centrarse en sus misiones principales y administrar su carga de trabajo de manera eficiente. También proporcionamos información para mejorar el gobierno de la Ciudad a través de mediciones y análisis precisos y consistentes de la prestación de servicios".
 
-### Problema
+### II. Problema
 
 
 
 
-### Objetivos del producto de datos
+### III. Objetivos del producto de datos
 
 El desarrollo de este producto de datos tiene los siguientes objetivos:
 
@@ -72,10 +72,17 @@ graph LR
 <p align="center">
 <image width="900" height="130" src="https://github.com/dapivei/data-product-architecture-final-project/blob/master/images/mockup.png">
 </p>
+    
+### IV. Métricas de Desempeño
 
-### Producto Final:
+### V. Datos requeridos
+
+### VI. Solución Propuesta: Producto Final
 </div>
 
 <p align="center">
   <image width="350" height="250" src="https://github.com/dapivei/data-product-architecture-final-project/blob/master/images/web_service_proposal.png">
 </p>
+    
+### VII. Modelos utilizados
+
