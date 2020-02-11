@@ -102,6 +102,7 @@ graph LR
 
 ### VI. Solución Propuesta: Producto Final
 </div>
+
 **Gráfica 3.Portal-Web "NYC311 Service Request Engagement**
 
 <p align="center">
