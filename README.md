@@ -35,7 +35,7 @@ graph LR
 ```
 
 <p align="center">
-<image width="800" height="90" src="https://github.com/dapivei/data-product-architecture-final-project/blob/master/images/mockup.png">
+<image width="900" height="130" src="https://github.com/dapivei/data-product-architecture-final-project/blob/master/images/mockup.png">
 </p>
 
 ### Producto Final:
