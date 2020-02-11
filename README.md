@@ -1,4 +1,4 @@
-# Projecto Final de la Materia "Data Product Architecture
+# 311 NYC Service Request Web-Service
 ***
 <div align="justify">
 
@@ -19,7 +19,7 @@ Tiempo estimado de resolución de un *service request*
 
 
 
-### Product Management Architecture:
+### Data Product Architecture:
 
 ```mermaid
 graph LR
