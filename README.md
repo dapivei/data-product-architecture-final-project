@@ -33,9 +33,14 @@ graph LR
     id8((Web Server))
 
 ```
+
+<p align="center">
+<image width="800" height="200" src="https://github.com/dapivei/data-product-architecture-final-project/blob/master/images/mockup.png">
+</p>
+
 ### Producto Final:
 </div>
 
 <p align="center">
-  <image width="600" height="300" src="https://github.com/dapivei/data-product-architecture-final-project/blob/master/images/web_service_proposal.png">
+  <image width="400" height="300" src="https://github.com/dapivei/data-product-architecture-final-project/blob/master/images/web_service_proposal.png">
 </p>
