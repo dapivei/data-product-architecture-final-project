@@ -18,6 +18,22 @@ El gobierno de Nueva York, con el fin de proveer a la comunidad *newyorkina* con
 
 >* "es proporcionar al público un acceso rápido y fácil a todos los servicios e información del gobierno de la ciudad de Nueva York al tiempo que ofrece el mejor servicio al cliente. Ayudamos a las agencias a mejorar la prestación de servicios permitiéndoles centrarse en sus misiones principales y administrar su carga de trabajo de manera eficiente. También proporcionamos información para mejorar el gobierno de la Ciudad a través de mediciones y análisis precisos y consistentes de la prestación de servicios".
 
+## Problema
+
+
+
+
+### Objetivos del producto de datos
+
+El desarrollo de este producto de datos tiene los siguientes objetivos:
+
+* Proporcionar a todo el público una herramienta de seguimiento y control de las peticiones realizadas a la línea 311 en la ciudad de Nueva York por medio de una estimación en el tiempo de respuesta del problema;
+
+* Proporcionar una herramienta que permita a las agencias estatales reubicar de manera óptima sus recursos para atender mejor a los requerimientos en las llamadas de los ciudadanos;
+
+* Evaluar la efectividad en pronóstico del tiempo de respuesta estimado por las agencias;
+
+* Medir la divergencia en el tiempo de respuesta por distritos de la ciudad, por agencia y por tipo de solicitud.
 
 ### Predicción:
 
