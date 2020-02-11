@@ -10,13 +10,13 @@
 - Villa Lizárraga Diego M., [dvilla88](https://github.com/dvilla88)
 - Pinto Veizaga Daniela, [dapivei](https://github.com/dapivei)
 
+### Contenidos de sitio:
+
+### Introducción:
 
 ### Predicción:
 
 Tiempo estimado de resolución de un *service request*
-
-### Variables:
-
 
 
 ### Data Product Architecture:
