@@ -16,15 +16,15 @@
 
 - [X] II. Problema
 
-[X] III. Objetivos del producto de datos
+- [X] III. Objetivos del producto de datos
 
-[] IV. Métricas de Desempeño
+- [] IV. Métricas de Desempeño
 
-[] V. Datos requeridos
+- [] V. Datos requeridos
 
-[X] VI. Solución Propuesta: Producto final
+- [X] VI. Solución Propuesta: Producto final
 
-[] VII. Modelos utilizados
+- [] VII. Modelos utilizados
 
 ### Introducción:
 
