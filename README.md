@@ -12,13 +12,27 @@
 
 ### Contenidos de sitio:
 
+[X] I. Introducción
+
+[X] II. Problema
+
+[X] III. Objetivos del producto de datos
+
+[] IV. Métricas de Desempeño
+
+[] V. Datos requeridos
+
+[X] VI. Solución Propuesta: Producto final
+
+[] VII. Modelos utilizados
+
 ### Introducción:
 
 El gobierno de Nueva York, con el fin de proveer a la comunidad *newyorkina* con acceso directo a los servicios gubernamentales  y mejorar el seguimiento y control de los servicios gubernamentales, provee el servicio de petición *NYC311*, disponible las 24 horas del día, los 7 días de la semana, los 365 días del año. De esta manera, según el portal web principal de [*NYC311*](https://portal.311.nyc.gov/about-nyc-311/), la misión del servicio de petición es:
 
 >* "es proporcionar al público un acceso rápido y fácil a todos los servicios e información del gobierno de la ciudad de Nueva York al tiempo que ofrece el mejor servicio al cliente. Ayudamos a las agencias a mejorar la prestación de servicios permitiéndoles centrarse en sus misiones principales y administrar su carga de trabajo de manera eficiente. También proporcionamos información para mejorar el gobierno de la Ciudad a través de mediciones y análisis precisos y consistentes de la prestación de servicios".
 
-## Problema
+### Problema
 
 
 
@@ -35,12 +49,12 @@ El desarrollo de este producto de datos tiene los siguientes objetivos:
 
 * Medir la divergencia en el tiempo de respuesta por distritos de la ciudad, por agencia y por tipo de solicitud.
 
-### Predicción:
+#### Predicción:
 
 Tiempo estimado de resolución de un *service request*
 
 
-### Data Product Architecture:
+#### Data Product Architecture:
 
 ```mermaid
 graph LR
