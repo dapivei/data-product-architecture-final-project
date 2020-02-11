@@ -31,7 +31,6 @@
 - [ ] IX. Conclusión
 
 
-### IX. Conclusión]
 
 ### I. Introducción:
 
