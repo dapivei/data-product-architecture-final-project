@@ -26,15 +26,23 @@
 
 - [ ] VII. Modelos utilizados
 
+- [ ] VIII. Implementación
+
+- [ ] IX. Conclusión
+
+
+### IX. Conclusión]
+
 ### I. Introducción:
 
 El gobierno de Nueva York, con el fin de proveer a la comunidad *newyorkina* con acceso directo a los servicios gubernamentales  y mejorar el seguimiento y control de los servicios gubernamentales, provee el servicio de petición *NYC311*, disponible las 24 horas del día, los 7 días de la semana, los 365 días del año. De esta manera, según el portal web principal de [*NYC311*](https://portal.311.nyc.gov/about-nyc-311/), la misión del servicio de petición es:
 
 >* "es proporcionar al público un acceso rápido y fácil a todos los servicios e información del gobierno de la ciudad de Nueva York al tiempo que ofrece el mejor servicio al cliente. Ayudamos a las agencias a mejorar la prestación de servicios permitiéndoles centrarse en sus misiones principales y administrar su carga de trabajo de manera eficiente. También proporcionamos información para mejorar el gobierno de la Ciudad a través de mediciones y análisis precisos y consistentes de la prestación de servicios".
 
+
 ### II. Problema
 
-
+Existe una brecha, aparentemente "infranqueable" entre el Estado y la ciudadanía, dónde los ciudadanos carecen de herramientas adecuadas para monitorear, participar y colaborar en el quehacer público. En este sentido la línea de peticiones NYC311 es una iniciativa para conectar el quehacer gubernamental con los ciudadanos a través de un línea disponible para levantar quejas y peticiones a las diferentes agencias gubernamentales. Sin embargo, este servicio aún es incipiente en el sentido que el ciudadano, hasta el momento, no cuenta con una herramienta eficaz de seguimiento a sus requerimientos, mediante la dotación de un tiempo estimado de resolución de su petición y de una métrica de control de tiempo estimado de respuesta, en comparación con otras peticiones de índole similar. 
 
 
 ### III. Objetivos del producto de datos
@@ -49,12 +57,12 @@ El desarrollo de este producto de datos tiene los siguientes objetivos:
 
 * Medir la divergencia en el tiempo de respuesta por distritos de la ciudad, por agencia y por tipo de solicitud.
 
-#### Predicción:
+#### a. Predicción:
 
 Tiempo estimado de resolución de un *service request*
 
 
-#### Data Product Architecture:
+#### b. Data Product Architecture:
 
 ```mermaid
 graph LR
@@ -75,7 +83,17 @@ graph LR
     
 ### IV. Métricas de Desempeño
 
-### V. Datos requeridos
+### V. Datos/variables requeridas
+
++ created date 
++ updated 
++ resolution
++ closed 
++ due date 
++ agency
++ complaint type
++ demographic variables 
++ status 
 
 ### VI. Solución Propuesta: Producto Final
 </div>
@@ -85,4 +103,9 @@ graph LR
 </p>
     
 ### VII. Modelos utilizados
+
+### VIII. Implementación
+
+
+### IX. Conclusión
 
