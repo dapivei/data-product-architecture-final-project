@@ -39,6 +39,9 @@ El gobierno de Nueva York, con el fin de proveer a la comunidad *newyorkina* con
 
 >* "es proporcionar al público un acceso rápido y fácil a todos los servicios e información del gobierno de la ciudad de Nueva York al tiempo que ofrece el mejor servicio al cliente. Ayudamos a las agencias a mejorar la prestación de servicios permitiéndoles centrarse en sus misiones principales y administrar su carga de trabajo de manera eficiente. También proporcionamos información para mejorar el gobierno de la Ciudad a través de mediciones y análisis precisos y consistentes de la prestación de servicios".
 
+<p align="center">
+<image width="900" height="130" src="https://github.com/dapivei/data-product-architecture-final-project/blob/master/images/nyc_311_sr_website.png">
+</p>
 
 ### II. Problema
 
