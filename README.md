@@ -86,6 +86,35 @@ graph LR
 <image width="900" height="130" src="https://github.com/dapivei/data-product-architecture-final-project/blob/master/images/mockup.png">
 </p>
     
+#### c. Extract, Transform and Load (ETL)
+
+##### Extract
+
++ Bajar info (Pandas Script)
+
++ Formato (Json)
+
++ Bucket: S3 Amazon Web Service
+
++ Periodicidad: Diaria
+
+##### Transform
+
++ Schema (Raw, Clean, Semantic)
+
++ Clean: Formato y Estructura
+
+¿Qué hacemos? 1) Crear la base con formatos y columnas (SQL); 2) Transformamos los datos (siempre)
+
+##### Load
+
++ Insertar registros: siempre
+
++ Parquet (Raw + Transform) SQL
+
++ En qué formato los guardamos?
+
+
 ### IV. Métricas de Desempeño
 
 ### V. Datos/variables requeridas
