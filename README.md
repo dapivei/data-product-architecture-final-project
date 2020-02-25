@@ -104,11 +104,11 @@ graph LR
 
 + Clean: Formato y Estructura
 
-¿Qué hacemos? 1) Crear la base con formatos y columnas (SQL); 2) Transformamos los datos (siempre)
+¿Qué hacemos? Script: 1) Crear la base con formatos y columnas (SQL); 2) Transformamos los datos (siempre)
 
 ##### Load
 
-+ Insertar registros: siempre
++ Script: Insertar registros: siempre
 
 + Parquet (Raw + Transform) SQL
 
