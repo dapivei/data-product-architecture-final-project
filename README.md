@@ -93,32 +93,22 @@ graph LR
 </p>  
     
 #### c. Extract, Transform and Load (ETL)
+##### Deploy
+1. Petición a la API por medio de un script en python solicitando todos los registros existentes en formato JSON.  
+2. En EC2 se ejecutará un script de SQL que crea la base de datos, los usuarios y los esquemas raw y cleaned en una instancia RDS dentro de AWS. La instancia RDS solamente se comunicará con la instancia EC2 en la que realizaremos todo el procesamiento.  
+3. Alimentamos el esquema **cleaned**. Se abre el archivo JSON y se generará una columna por cada variable del archivo. Además, se eliminan las columnas que no tienen variabilidad o son en su mayoría valores nulos. Se asignan los tipos de dato a cada columna y se limpian acentos y caracteres extraños de nombres de columnas y observaciones.  
 
-##### Extract
-
-+ Bajar info (Pandas Script)
-
-+ Formato (Json)
-
-+ Bucket: S3 Amazon Web Service
-
-+ Periodicidad: Diaria
-
-##### Transform
-
-+ Schema (Raw, Clean, Semantic)
-
-+ Clean: Formato y Estructura
-
-¿Qué hacemos? Script: 1) Crear la base con formatos y columnas (SQL); 2) Transformamos los datos (siempre)
+##### Producción
+###### Extract
+1. Hacemos una petición a la API solicitando los datos en formato JSON por medio de un script en python. Se hará un petición al día en la que filtramos para incluir solamente los registros que se crearon el día anterior (registros nuevos).
+2. Hacemos una segunda petición a la API solaicitando los registros que se cerraron el día anterior en formato JSON. Filtramos la petición por medio de las variables **closed_date** (actualización de registros existentes).
 
 ##### Load
+1. Obtenemos dos archivos JSON de la API, uno por cada petición. Cada uno se almacena en una columna de tipo de datos JSON dentro del esquema raw en la base de datos que creamos en la etapa de deploy. El archivo se guarda tal como lo recibimos de la API.
 
-+ Script: Insertar registros: siempre
-
-+ Parquet (Raw + Transform) SQL
-
-+ En qué formato los guardamos?
+##### Transform
+1. Se corre un script en python que abre los datos del archivo de JSON que tiene los registros nuevos, se limpian los datos, se quitan las columnas nulas o que no tienen variabilidad y se inyectan los registros al esquema cleaned de la base de datos.  
+2. Se corre un segundo script en python que abre el archivo JSON que tiene la actualización de registros existentes, se filtra la base con el ID de los registros que se modificaron y se hace la actualización en el esquema cleaned.
 
 
 ### IV. Métricas de Desempeño
