@@ -139,7 +139,7 @@ graph LR
 ### VI. Solución Propuesta: Producto Final
 </div>
 
-**Gráfica 3.Portal-Web "NYC311 Service Request Engagement"**
+**Gráfica 4.Portal-Web "NYC311 Service Request Engagement"**
 
 <p align="center">
   <image width="350" height="250" src="https://github.com/dapivei/data-product-architecture-final-project/blob/master/images/web_service_proposal.png">
