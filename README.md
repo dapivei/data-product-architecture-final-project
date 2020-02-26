@@ -89,7 +89,7 @@ graph LR
 **Gráfica 3. Extract, Load and Transform(ELT)**
 
 <p align="center">
-<image width="900" height="130" src="https://github.com/dapivei/data-product-architecture-final-project/blob/master/images/etl_extended_new.png">
+<image width="900" height="500" src="https://github.com/dapivei/data-product-architecture-final-project/blob/master/images/etl_extended_new.png">
 </p>  
     
 #### c. Extract, Transform and Load (ETL)
