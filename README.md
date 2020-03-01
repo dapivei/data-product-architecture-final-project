@@ -66,7 +66,9 @@ El desarrollo de este producto de datos tiene los siguientes objetivos:
 Tiempo estimado de resolución de un *service request*
 
 
-#### b. Data Product Architecture:
+#### b. Warning: Implicaciones Éticas
+
+#### c. Data Product Architecture:
 
 ```mermaid
 graph LR
@@ -92,7 +94,7 @@ graph LR
 <image width="900" height="500" src="https://github.com/dapivei/data-product-architecture-final-project/blob/master/images/etl_extended_new.png">
 </p>  
     
-#### c. Extract, Transform and Load (ETL)
+#### c.1. Extract, Transform and Load (ETL)
 ##### Deploy
 1. Petición a la API por medio de un script en python solicitando todos los registros existentes en formato JSON.  
 2. En EC2 se ejecutará un script de SQL que crea la base de datos, los usuarios y los esquemas raw y cleaned en una instancia RDS dentro de AWS. La instancia RDS solamente se comunicará con la instancia EC2 en la que realizaremos todo el procesamiento.  
