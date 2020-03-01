@@ -67,7 +67,8 @@ Tiempo estimado de resolución de un *service request*
 
 ![](./images/warning_sign.png=50x50) Warning: Implicaciones Éticas
 
-
+<image width="50" height="50" src="./images/warning_sign.png"> Implicaciones Éticas
+    
 #### c. Data Product Architecture:
 
 ```mermaid
