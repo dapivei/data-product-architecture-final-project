@@ -66,7 +66,7 @@ El desarrollo de este producto de datos tiene los siguientes objetivos:
 Tiempo estimado de resolución de un *service request*
 
 
-<image width="80" height="80" src="./images/warning_sign.png"> Implicaciones Éticas
+<image width="30" height="30" src="./images/warning_sign.png"> Implicaciones Éticas
     
 #### c. Data Product Architecture:
 
