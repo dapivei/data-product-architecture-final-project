@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import luigi
 import luigi.contrib.s3
 import boto3
@@ -6,7 +9,6 @@ import json
 from sodapy import Socrata
 
 # path para guardar los datos
-output_path='/Users/c1587s/Documents/GitHub/data-product-architecture/scripts/data-311/test.json'
 
 class downloadDataS3(luigi.Task):
     task_name = "demo"
@@ -37,7 +39,7 @@ class downloadDataS3(luigi.Task):
         # los resultados son retornados como un archivo JSON desde la API /
         # convertida a una lista de Python usando sodapy
         client.timeout = 50
-        results = client.get("erm2-nwe9", limit=2)
+        results = client.get("erm2-nwe9", limit=1)
 
         with self.output().open('w') as json_file:
             json.dump(results, json_file)
@@ -46,7 +48,7 @@ class downloadDataS3(luigi.Task):
         '''
         Descarga los datos en path sleccionado
         '''
-        output_path = "s3://{}/{}/{}/{}/YEAR={}/MONTH={}/test.csv".\
+        output_path = "s3://{}/{}/{}/{}/YEAR={}/MONTH={}/test.json".\
         format(self.bucket,
         self.root_path,
         self.etl_path,
