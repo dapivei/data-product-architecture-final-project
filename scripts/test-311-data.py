@@ -17,8 +17,8 @@ class downloadData(luigi.Task):
         # Autenticación del cliente:
         client = Socrata("data.cityofnewyork.us",
                         "N2WpW61JnP5RoT5mrYGUaSUg9",
-                        username="villa.lizarraga@gmail.com",
-                        password="Itam1234567890@")
+                        username="****",
+                        password="****")
 
         # los resultados son retornados como un archivo JSON desde la API /
         # convertida a una lista de Python usando sodapy
