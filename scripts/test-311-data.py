@@ -1,5 +1,4 @@
 import luigi
-import pandas as pd
 import json
 from sodapy import Socrata
 
