@@ -1,9 +1,12 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import luigi
 import json
 from sodapy import Socrata
 
 # path para guardar los datos
-path='/Users/c1587s/Documents/GitHub/data-product-architecture/scripts/data-311/test.json'
+outputpath='/PATH.../test.json'
 
 class downloadData(luigi.Task):
 
@@ -20,7 +23,7 @@ class downloadData(luigi.Task):
         # los resultados son retornados como un archivo JSON desde la API /
         # convertida a una lista de Python usando sodapy
         client.timeout = 50
-        results = client.get("erm2-nwe9", limit=2)
+        results = client.get("erm2-nwe9", limit=1)
 
         with self.output().open('w') as json_file:
             json.dump(results, json_file)
@@ -30,4 +33,4 @@ class downloadData(luigi.Task):
         Descarga los datos en `path`
         `path`: ruta donde va a guardar los datos descargados.
         '''
-        return luigi.local_target.LocalTarget(path)
+        return luigi.local_target.LocalTarget(outputpath)
