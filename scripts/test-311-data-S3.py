@@ -2,7 +2,6 @@ import luigi
 import luigi.contrib.s3
 import boto3
 import os
-import pandas as pd
 import json
 from sodapy import Socrata
 
