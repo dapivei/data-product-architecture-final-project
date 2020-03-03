@@ -168,6 +168,7 @@ graph LR
  image width="350" height="250" src="./images/web_service_proposal.png"
     
 </p>
+
     
 ### VII. Modelos utilizados
 
