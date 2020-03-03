@@ -39,10 +39,13 @@ El gobierno de Nueva York, con el fin de proveer a la comunidad *newyorkina* con
 >* "es proporcionar al público un acceso rápido y fácil a todos los servicios e información del gobierno de la ciudad de Nueva York al tiempo que ofrece el mejor servicio al cliente. Ayudamos a las agencias a mejorar la prestación de servicios permitiéndoles centrarse en sus misiones principales y administrar su carga de trabajo de manera eficiente. También proporcionamos información para mejorar el gobierno de la Ciudad a través de mediciones y análisis precisos y consistentes de la prestación de servicios".
 
 **Gráfica 1.Portal-Web "NYC311 Service Request**
+    
+<p align="center">
 
     
 <image width="380" height="330" src="./images/nyc_311_sr_website.png">
     
+</p>
 
 ### II. Problema
 
@@ -76,7 +79,13 @@ Este producto de datos tiene dos poblaciones objetivo:
 - Ciudadanos de la ciudad de NY que estén interesados en dar seguimiento a sus *service requests*, y dessen tener una herramienta de comparación de la atención que les es brindada por las agencias.
 - Agencias gubernamentales de la ciudad de NY que deseen tener una herramienta de control sobre sus servicios presentados a los ciudadanos. 
 
+<p align="center">
+    
+
 <image width="30" height="30" src="./images/warning_sign.png"> Implicaciones Éticas
+    
+        
+</p>
 
 - Las predicciones pueden estar sesgadas hacia las zonas (distritos) con un mayor número de *service requests*,
 - 
@@ -111,7 +120,9 @@ graph LR
 **Gráfica 3. Extract, Load and Transform (ELT)**
 
 <p align="center">
+    
 <image width="900" height="500" src="./images/etl_extended_new.png">
+    
 </p>  
     
 #### c.1. Extract, Transform and Load (ETL)
@@ -154,7 +165,9 @@ graph LR
 **Gráfica 4.Portal-Web "NYC311 Service Request Engagement"**
 
 <p align="center">
+    
   <image width="350" height="250" src="./images/web_service_proposal.png">
+    
 </p>
     
 ### VII. Modelos utilizados
