@@ -16,8 +16,8 @@ class downloadDataS3(luigi.Task):
     bucket = luigi.Parameter()
     root_path = luigi.Parameter()
     etl_path = luigi.Parameter()
-    year = luigi.Parameter()
-    month = luigi.Parameter()
+    data_str = luigi.Parameter()
+    schema = luigi.Parameter()
 
     def run(self):
         '''
@@ -48,12 +48,12 @@ class downloadDataS3(luigi.Task):
         '''
         Descarga los datos en path sleccionado
         '''
-        output_path = "s3://{}/{}/{}/{}/YEAR={}/MONTH={}/test.json".\
+        output_path = "s3://{}/{}/{}/{}/DATASTR={}/={}/DataTest.json".\
         format(self.bucket,
         self.root_path,
         self.etl_path,
         self.task_name,
-        self.year,
-        str(self.month))
+        self.data_str,
+        str(self.schema))
 
         return luigi.contrib.s3.S3Target(path=output_path)
