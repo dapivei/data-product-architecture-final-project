@@ -29,16 +29,15 @@ class downloadDataS3(luigi.Task):
 
         obj = s3_resource.Bucket(self.bucket)
         print(ses)
-
         # Autenticación del cliente:
         client = Socrata("data.cityofnewyork.us",
                         "N2WpW61JnP5RoT5mrYGUaSUg9",
-                        username="****",
-                        password="****")
+                        username="villa.lizarraga@gmail.com",
+                        password="Itam1234567890@")
 
         # los resultados son retornados como un archivo JSON desde la API /
         # convertida a una lista de Python usando sodapy
-        client.timeout = 50
+        client.timeout =1000
         results = client.get("erm2-nwe9", limit=100)
 
         with self.output().open('w') as json_file:
@@ -48,7 +47,7 @@ class downloadDataS3(luigi.Task):
         '''
         Descarga los datos en path sleccionado
         '''
-        output_path = "s3://{}/{}/{}/{}/DATASTR={}/={}/DataTest.json".\
+        output_path = "s3://{}/{}/{}/{}/{}/{}/DataTest.json".\
         format(self.bucket,
         self.root_path,
         self.etl_path,
