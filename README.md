@@ -124,7 +124,7 @@ graph LR
 
 <p align="center">
 
-<image width="900" height="500" src="./images/deployment.png">
+<image width="900" height="200" src="./images/deployment.png">
 
 </p>  
 
@@ -132,7 +132,7 @@ graph LR
 
 <p align="center">
 
-<image width="900" height="500" src="./images/desarrollo_produccion.png">
+<image width="900" height="200" src="./images/desarrollo_produccion.png">
 
 </p>  
 
