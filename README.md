@@ -163,11 +163,11 @@ graph LR
 
 **Gráfica 4.Portal-Web "NYC311 Service Request Engagement"**
 
-p align="center"
+<p align="center">
     
  image width="350" height="250" src="./images/web_service_proposal.png"
     
-/p
+</p>
     
 ### VII. Modelos utilizados
 
