@@ -7,6 +7,7 @@ import boto3
 import os
 import json
 from sodapy import Socrata
+from dynaconf import settings
 
 # path para guardar los datos
 
@@ -30,10 +31,10 @@ class downloadDataS3(luigi.Task):
         obj = s3_resource.Bucket(self.bucket)
         print(ses)
         # Autenticación del cliente:
-        client = Socrata("data.cityofnewyork.us",
-                        "N2WpW61JnP5RoT5mrYGUaSUg9",
-                        username="villa.lizarraga@gmail.com",
-                        password="Itam1234567890@")
+        client = Socrata(settings.get('dburl'),
+                settings.get('apptoken'),
+                username=settings.get('user'),
+                password=settings.get('pass'))
 
         # los resultados son retornados como un archivo JSON desde la API /
         # convertida a una lista de Python usando sodapy
