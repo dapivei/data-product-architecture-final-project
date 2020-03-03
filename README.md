@@ -120,9 +120,19 @@ graph LR
 
 **Gráfica 3. Extract, Load and Transform (ELT)**
 
+**Deployment**
+
 <p align="center">
 
-<image width="900" height="500" src="./images/etl_extended_new.png">
+<image width="900" height="500" src="./images/deployment.png">
+
+</p>  
+
+**Desarrollo y Producción**
+
+<p align="center">
+
+<image width="900" height="500" src="./images/desarrollo_produccion.png">
 
 </p>  
 
