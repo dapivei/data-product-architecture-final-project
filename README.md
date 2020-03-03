@@ -173,7 +173,7 @@ _En fase de modificación_: se establecerá una estructura de descarga de los da
 - Aparentemente, la carga de datos a la API solo se genera en días hábiles. Esto puede sesgar las entradas del modelo en la medida que los lunes serían los días con un mayor número de consultas (Falta identificar en el EDA). Esto podría afectar las predicciones.
 
 ### VI. Solución Propuesta: Producto Final
-</div>
+
 
 
 **Gráfica 4.Portal-Web "NYC311 Service Request Engagement"**
