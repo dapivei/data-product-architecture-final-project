@@ -40,9 +40,9 @@ El gobierno de Nueva York, con el fin de proveer a la comunidad *newyorkina* con
 
 **Gráfica 1.Portal-Web "NYC311 Service Request**
 
-<p align="center">
-<image width="380" height="330" src="https://github.com/dapivei/data-product-architecture-final-project/blob/master/images/nyc_311_sr_website.png">
-</p>
+    
+<image width="380" height="330" src="./images/nyc_311_sr_website.png">
+    
 
 ### II. Problema
 
@@ -78,10 +78,14 @@ Este producto de datos tiene dos poblaciones objetivo:
 
 <image width="30" height="30" src="./images/warning_sign.png"> Implicaciones Éticas
 
+- Las predicciones pueden estar sesgadas hacia las zonas (distritos) con un mayor número de *service requests*,
 - 
 - 
-- 
-- 
+
+**Para tener en cuenta:**
+
+- Aparentemente, la carga de datos a la API solo se genera en días hábiles. Esto puede sesgar las entradas del modelo en la medida que los lunes serían los días con un mayor número de consultas (Falta identificar en el EDA). Esto podría afectar las predicciones
+
 #### Data Product Architecture:
 
 ```mermaid
@@ -99,7 +103,9 @@ graph LR
 **Gráfica 2.Data Product Pipeline**
 
 <p align="center">
+    
 <image width="900" height="130" src="./images/mockup.png">
+    
 </p>
     
 **Gráfica 3. Extract, Load and Transform (ELT)**
