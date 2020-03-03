@@ -4,6 +4,7 @@
 import luigi
 import json
 from sodapy import Socrata
+from dynaconf import settings
 
 # path para guardar los datos
 outputpath='/PATH.../test.json'
@@ -15,10 +16,10 @@ class downloadData(luigi.Task):
         Consulta de los datos en la api de 311
         '''
         # Autenticación del cliente:
-        client = Socrata("data.cityofnewyork.us",
-                        "N2WpW61JnP5RoT5mrYGUaSUg9",
-                        username="****",
-                        password="****")
+        client = Socrata(settings.get('dburl'),
+                settings.get('apptoken'),
+                username=settings.get('user'),
+                password=settings.get('pass'))
 
         # los resultados son retornados como un archivo JSON desde la API /
         # convertida a una lista de Python usando sodapy
