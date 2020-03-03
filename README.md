@@ -110,29 +110,19 @@ graph LR
     id8((Web Server))
 
 ```
-**Gráfica 2.Data Product Pipeline**
+**Gráfica 2.Data Product Pipeline: Deployment**
 
 <p align="center">
 
-<image width="900" height="130" src="./images/mockup.png">
-
-</p>
-
-**Gráfica 3. Extract, Load and Transform (ELT)**
-
-**Deployment**
-
-<p align="center">
-
-<image width="900" height="200" src="./images/deployment.png">
+<image width="900" height="150" src="./images/deployment.png">
 
 </p>  
 
-**Desarrollo y Producción**
+**Gráfica 3.Data Product Pipeline: Desarrollo y Producción**
 
 <p align="center">
 
-<image width="900" height="200" src="./images/desarrollo_produccion.png">
+<image width="900" height="150" src="./images/desarrollo_produccion.png">
 
 </p>  
 
