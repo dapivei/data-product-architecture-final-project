@@ -41,8 +41,7 @@ El gobierno de Nueva York, con el fin de proveer a la comunidad *newyorkina* con
 **Gráfica 1.Portal-Web "NYC311 Service Request**
     
 <p align="center">
-
-    
+  
 <image width="380" height="330" src="./images/nyc_311_sr_website.png">
     
 </p>
@@ -164,11 +163,11 @@ graph LR
 
 **Gráfica 4.Portal-Web "NYC311 Service Request Engagement"**
 
-<p align="center">
+p align="center"
     
-  <image width="350" height="250" src="./images/web_service_proposal.png">
+ image width="350" height="250" src="./images/web_service_proposal.png"
     
-</p>
+/p
     
 ### VII. Modelos utilizados
 
