@@ -39,7 +39,7 @@ class downloadDataS3(luigi.Task):
         # los resultados son retornados como un archivo JSON desde la API /
         # convertida a una lista de Python usando sodapy
         client.timeout = 50
-        results = client.get("erm2-nwe9", limit=1)
+        results = client.get("erm2-nwe9", limit=100)
 
         with self.output().open('w') as json_file:
             json.dump(results, json_file)
