@@ -70,6 +70,7 @@ El desarrollo de este producto de datos tiene los siguientes objetivos:
 #### Predicción:
 
 - El tiempo de respuesta (en días) de los *service request* recibidos por las agencias.
+- Re-entrenamiento 6 meses aproximadamente, luego de evaluar las métricas del modelo.
 
 ### IV. Población objetivo
 
@@ -86,13 +87,11 @@ Este producto de datos tiene dos poblaciones objetivo:
         
 </p>
 
-- Las predicciones pueden estar sesgadas hacia las zonas (distritos) con un mayor número de *service requests*,
-- 
-- 
-
-**Para tener en cuenta:**
-
-- Aparentemente, la carga de datos a la API solo se genera en días hábiles. Esto puede sesgar las entradas del modelo en la medida que los lunes serían los días con un mayor número de consultas (Falta identificar en el EDA). Esto podría afectar las predicciones
+- Las predicciones pueden estar sesgadas hacia las zonas (distritos) con mayor número de *service requests*,
+- La credibilidad de las agencias públicas puede ser afectada por predicciones erróneas de tiempos de respuestas a los *service request*,
+- Ciertas zonas y distritos pueden ser marginados o rezagados por lo posible reubicación de recursos gubernamentales para atender mejor a los requerimientos en las llamadas de los ciudadanos. Estas decisiones podrían ser derivadas del *output* del producto de datos.
+- Las expectativas de las personas podrían ser sesgadas a raíz del producto de datos. 
+- El producto de datos puede dar juicios de valor con respecto a la asignación de servicios de las agencias. Sin embargo, también se debe tener en cuenta que puede haber información omitida por el modelo que se tiene al interior de las agencias cuando estas toman las decisiones. 
 
 #### Data Product Architecture:
 
@@ -123,7 +122,7 @@ graph LR
 <image width="900" height="500" src="./images/etl_extended_new.png">
     
 </p>  
-    
+  
 #### c.1. Extract, Transform and Load (ETL)
 ##### Deploy
 1. Petición a la API por medio de un script en python solicitando todos los registros existentes en formato JSON.  
@@ -143,9 +142,9 @@ graph LR
 2. Se corre un segundo script en python que abre el archivo JSON que tiene la actualización de registros existentes, se filtra la base con el ID de los registros que se modificaron y se hace la actualización en el esquema cleaned.
 
 
-### IV. Métricas de Desempeño
+### V. Métricas de Desempeño
 
-### V. Datos/variables requeridas
+### VI. Set de datos
 
 + unique key
 + created date 
@@ -158,8 +157,20 @@ graph LR
 + demographic variables 
 + status 
 
+#### Frecuencia de actualización de datos
+
+- Los datos en la API se actualizan diariamente con un día de rezago (hoy se actualizan los datos de ayer). Nosotros descargaremos los datos diariamente desde la API utilizando `CRON` integrado con una tarea en `luigi`.
+- Cada 40 días se realiza una actualización de la base de datos (para poner al día el estatus del *service request*).
+- La descarga de datos se realizará diariamente a las 2:00 a.m. Actualmente, la estructura de carpetas agrega los datos de manera agregada. 
+_En fase de modificación_: se establecerá una estructura de descarga de los datos por día, en el cual se contienen todos los *service requests* de la fecha.
+
+**Para tener en cuenta:**
+
+- Aparentemente, la carga de datos a la API solo se genera en días hábiles. Esto puede sesgar las entradas del modelo en la medida que los lunes serían los días con un mayor número de consultas (Falta identificar en el EDA). Esto podría afectar las predicciones.
+
 ### VI. Solución Propuesta: Producto Final
 </div>
+
 
 **Gráfica 4.Portal-Web "NYC311 Service Request Engagement"**
 
@@ -169,6 +180,7 @@ graph LR
     
 </p>
 
+El producto de datos va a ser un dashboard que genere predicciones diarias de los *service request recibidos* una vez se realice la ingesta de datos. El dashboard va a permitir filtrar las predicciones por fecha de creación, días para completar, distrito, agencia, tipo de *service request*. 
     
 ### VII. Modelos utilizados
 
