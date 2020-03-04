@@ -102,7 +102,7 @@ Este producto de datos tiene dos poblaciones objetivo:
 
 <p align="center">
 
-<image width="800" height="100" src="./images/deployment.png">
+<image width="700" height="100" src="./images/deployment.png">
 
 </p>  
 
