@@ -128,7 +128,7 @@ Este producto de datos tiene dos poblaciones objetivo:
 
 ##### Desarrollo
 ###### Extract
-1. Hacemos una petición a la API solicitando los datos en formato JSON por medio de un script en python. Se hará un petición al día en la que filtramos para incluir solamente los registros que se crearon el día anterior (registros nuevos).
+1. Hacemos una petición a la API solicitando los datos en formato JSON por medio de un script en python. Se hará un petición al día en la que filtramos para incluir solamente los registros que se crearon el día anterior (registros nuevos). La petición actualmente se hace por número de registros. Se modificará para realizar un filtrado utilizando la variable **created_date**.
 2. Hacemos una segunda petición a la API solicitando los registros que se cerraron el día anterior en formato JSON. Filtramos la petición por medio de las variables **closed_date** (actualización de registros existentes).
 
 ##### Load
