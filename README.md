@@ -85,7 +85,7 @@ Este producto de datos tiene dos poblaciones objetivo:
 <p align="center">
 
 
-<image width="30" height="30" src="./images/warning_sign.png"> Implicaciones Éticas
+<image width="50" height="50" src="./images/warning_sign.png"> Implicaciones Éticas
 
 
 </p>
@@ -102,7 +102,7 @@ Este producto de datos tiene dos poblaciones objetivo:
 
 <p align="center">
 
-<image width="900" height="100" src="./images/deployment.png">
+<image width="800" height="100" src="./images/deployment.png">
 
 </p>  
 
@@ -110,7 +110,7 @@ Este producto de datos tiene dos poblaciones objetivo:
 
 <p align="center">
 
-<image width="900" height="100" src="./images/desarrollo_produccion.png">
+<image width="700" height="100" src="./images/desarrollo_produccion.png">
 
 </p>  
 
