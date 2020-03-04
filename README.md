@@ -83,7 +83,7 @@ El desarrollo de este producto de datos tiene los siguientes objetivos:
 
 Este producto de datos tiene dos poblaciones objetivo:
 
-- Ciudadanos de la ciudad de NY que estén interesados en dar seguimiento a sus *service requests*, y dessen tener una herramienta de comparación de la atención que les es brindada por las agencias.
+- Ciudadanos de la ciudad de NY que estén interesados en dar seguimiento a sus *service requests*, y deseen tener una herramienta de comparación de la atención que les es brindada por las agencias.
 - Agencias gubernamentales de la ciudad de NY que deseen tener una herramienta de control sobre sus servicios presentados a los ciudadanos.
 
 <p align="center">
