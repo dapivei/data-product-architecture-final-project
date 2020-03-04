@@ -96,20 +96,8 @@ Este producto de datos tiene dos poblaciones objetivo:
 - Las expectativas de las personas podrían ser sesgadas a raíz del producto de datos.
 - El producto de datos puede dar juicios de valor con respecto a la asignación de servicios de las agencias. Sin embargo, también se debe tener en cuenta que puede haber información omitida por el modelo que se tiene al interior de las agencias cuando estas toman las decisiones.
 
-#### Data Product Architecture:
+### V. Data Product Architecture:
 
-```mermaid
-graph LR
-    id1(API NYC 311) -->
-    id2(Extract)-. S3 .->
-    id3(Transform ETL)-->
-    id4[(Database)]-->
-    id5(Transform ML) -->
-    id6(Módulos Spark/Training)-->
-    id7(Predecir)-->
-    id8((Web Server))
-
-```
 **Gráfica 2.Data Product Pipeline: Deployment**
 
 <p align="center">
@@ -146,9 +134,9 @@ graph LR
 1. Se corre un script en python (pyspark) que hace consultas a los datos almacenados en parquet, se limpian los datos, se quitan las columnas nulas o que no tienen variabilidad y incorporan los registros al esquema cleaned de la estructura de carpetas.  
 2. Se corre un segundo script en python que transforma el archivo JSON que tiene la actualización de registros existentes a parquet, se lleva al formato cleaned y es guarda en la estructura de carpetas.
 
-### V. Métricas de Desempeño
+### VI. Métricas de Desempeño
 
-### VI. Set de datos
+### VII. Set de datos
 
 + unique key
 + created date
@@ -172,7 +160,7 @@ _En fase de modificación_: se establecerá una estructura de descarga de los da
 
 - Aparentemente, la carga de datos a la API solo se genera en días hábiles. Esto puede sesgar las entradas del modelo en la medida que los lunes serían los días con un mayor número de consultas (Falta identificar en el EDA). Esto podría afectar las predicciones.
 
-### VI. Solución Propuesta: Producto Final
+### VIII. Solución Propuesta: Producto Final
 
 
 
@@ -186,11 +174,11 @@ _En fase de modificación_: se establecerá una estructura de descarga de los da
 
 El producto de datos va a ser un dashboard que genere predicciones diarias de los *service request recibidos* una vez se realice la ingesta de datos. El dashboard va a permitir filtrar las predicciones por fecha de creación, días para completar, distrito, agencia, tipo de *service request*.
 
-### VII. Modelos utilizados
+### IX. Modelos utilizados
 
-### VIII. Implementación
+### X. Implementación
 
 
-### IX. Conclusión
+### XI. Conclusión
 
 </div>
