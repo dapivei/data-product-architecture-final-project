@@ -138,11 +138,11 @@ Este producto de datos tiene dos poblaciones objetivo:
 1. Se corre un script en python (pyspark) que hace consultas a los datos almacenados en parquet, se limpian los datos, se quitan las columnas nulas o que no tienen variabilidad y incorporan los registros al esquema cleaned de la estructura de carpetas.  
 2. Se corre un segundo script en python que transforma el archivo JSON que tiene la actualización de registros existentes a parquet, se lleva al formato cleaned y es guarda en la estructura de carpetas.
 
-**Gráfica 4.Data Product Pipeline: Deployment**
+**Gráfica 4.Extract, Load & Transform**
 
 <p align="center">
 
-<image width="700" height="100" src="./images/elt_aws.png">
+<image width="700" height="600" src="./images/elt_aws.png">
 
 </p>  
 
