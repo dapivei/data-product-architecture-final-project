@@ -132,7 +132,7 @@ Este producto de datos tiene dos poblaciones objetivo:
 2. Hacemos una segunda petición a la API solicitando los registros que se cerraron el día anterior en formato JSON. Filtramos la petición por medio de las variables **closed_date** (actualización de registros existentes).
 
 ##### Load
-1. Obtenemos dos archivos JSON de la API, uno por cada petición. Recibimos los archivos en la EC2 donde se procesan usando los esquemas raw y preprocessed. Los registros nuevos se incorporan a la estructura de carpetas en S3 con la fecha de creación del registro. Los registros obtenidos por la variable closed_date se guardan en otra estructura de carpatas generada a partir de las fechas.
+1. La petición de los datos en *extract* nos permite obtener los archivos JSON de la API, uno por cada petición y los registros nuevos se incorporan a la estructura de carpetas en S3 con la fecha de creación del registro (futura estructura). Los registros obtenidos por la variable closed_date se guardan en otra estructura de carpatas generada a partir de las fechas.
 
 ##### Transform
 1. Se corre un script en python (pyspark) que hace consultas a los datos almacenados en parquet, se limpian los datos, se quitan las columnas nulas o que no tienen variabilidad y incorporan los registros al esquema cleaned de la estructura de carpetas.  
