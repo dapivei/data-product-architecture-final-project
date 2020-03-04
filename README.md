@@ -21,17 +21,21 @@
 
 - [X] III. Objetivos del producto de datos
 
-- [ ] IV. Métricas de Desempeño
+- [ ] IV. Población Objetivo
 
-- [ ] V. Datos requeridos
+- [ ] V. Data Product Arquitecture
 
-- [X] VI. Solución Propuesta: Producto final
+- [ ] VI. Métricas de Desempeño
 
-- [ ] VII. Modelos utilizados
+- [ ] VII. Datos requeridos
 
-- [ ] VIII. Implementación
+- [X] VIII. Solución Propuesta: Producto final
 
-- [ ] IX. Conclusión
+- [ ] IX. Modelos utilizados
+
+- [ ] X. Implementación
+
+- [ ] XI. Conclusión
 
 
 
