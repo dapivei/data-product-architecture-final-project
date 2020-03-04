@@ -119,7 +119,7 @@ Este producto de datos tiene dos poblaciones objetivo:
 </p>  
 
 
-#### c.1. Extract, Transform and Load (ETL)
+**Extract, Transform and Load (ETL)**
 ##### Deploy
 1. Script en python que hace peticiones a la API de **socrata** usando la librería **sodapy** solicitando todos los registros de la base de datos en formato JSON.
 2. En la EC2 se recibe el archivo de datos y se guarda en la instancia S3. El script hace las predicciones por fecha y los archivos respuesta se van guardando en una estructura de carpetas dentro de S3. El S3 está encriptado de tal manera que solamente pueden ingresar con las credenciales asignadas.
