@@ -45,7 +45,7 @@ El gobierno de Nueva York, con el fin de proveer a la comunidad *newyorkina* con
 
 <p align="center">
 
-<image width="380" height="330" src="./images/nyc_311_sr_website.png">
+<image width="300" height="330" src="./images/nyc_311_sr_website.png">
 
 </p>
 
@@ -102,7 +102,7 @@ Este producto de datos tiene dos poblaciones objetivo:
 
 <p align="center">
 
-<image width="900" height="150" src="./images/deployment.png">
+<image width="900" height="100" src="./images/deployment.png">
 
 </p>  
 
@@ -110,7 +110,7 @@ Este producto de datos tiene dos poblaciones objetivo:
 
 <p align="center">
 
-<image width="900" height="150" src="./images/desarrollo_produccion.png">
+<image width="900" height="100" src="./images/desarrollo_produccion.png">
 
 </p>  
 
