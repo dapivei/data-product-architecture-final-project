@@ -142,7 +142,7 @@ Este producto de datos tiene dos poblaciones objetivo:
 
 <p align="center">
 
-<image width="700" height="100" src="./images/etl_aws.png">
+<image width="700" height="100" src="./images/elt_aws.png">
 
 </p>  
 
