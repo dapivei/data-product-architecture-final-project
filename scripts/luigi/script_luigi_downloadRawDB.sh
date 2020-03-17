@@ -9,7 +9,7 @@ do
   do
     for day in {1..31}
     do
-    PYTHONPATH="." luigi --module test2_311_data downloadRawJSONData --local-scheduler --year $year --month $month --day $day
+    PYTHONPATH="." luigi --module luigi_local_downloadRaw downloadRawJSONData --local-scheduler --year $year --month $month --day $day
     sleep 2s
     done
   done
