@@ -16,6 +16,7 @@ datetime = "*"
 json = "*"
 dynaconf = "*"
 os = "*"
+boto3 = "*"
 
 [requires]
 python_version = "3.7"
