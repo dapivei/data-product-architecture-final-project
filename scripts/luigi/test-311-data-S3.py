@@ -31,7 +31,7 @@ class downloadDataS3(luigi.Task):
         obj = s3_resource.Bucket(self.bucket)
         print(ses)
         # Autenticación del cliente:
-       client = Socrata("data.cityofnewyork.us",
+        client = Socrata("data.cityofnewyork.us",
                         "N2WpW61JnP5RoT5mrYGUaSUg9",
                         username="villa.lizarraga@gmail.com",
                         password="Itam1234567890@")
