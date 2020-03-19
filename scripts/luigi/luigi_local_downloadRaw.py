@@ -43,7 +43,7 @@ class downloadRawJSONData(luigi.Task):
         # convertida a una lista de Python usando sodapy
         client.timeout = 1000
         l = 1000000000
-        today = str(date.today())
+        # today = str(date.today())
 
         if not os.path.exists(f'{path}'):
             os.mkdir(f'{path}')
