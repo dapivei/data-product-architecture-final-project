@@ -9,21 +9,23 @@ from dynaconf import settings
 from sodapy import Socrata
 
 # path para guardar los datos
-path   = '/Users/c1587s/Desktop/db-diego/raw/json'
+#path = '/Users/c1587s/Desktop/db-diego/raw/json'
+path = '/Users/scadavidsanchez/Desktop/raw'
+
 
 class downloadRawJSONData(luigi.Task):
     '''
     Parameters:
      -
     '''
-    year  = luigi.Parameter()
+    year = luigi.Parameter()
     month = luigi.Parameter()
-    day   = luigi.Parameter()
+    day = luigi.Parameter()
 
     def output(self):
         today = str(date.today())
         # Defining the loop for creating the variables:
-        output_path = f"{path}/{today}/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.json"
+        output_path = f"{path}/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.json"
         return luigi.local_target.LocalTarget(path=output_path)
 
     def run(self):
@@ -33,9 +35,9 @@ class downloadRawJSONData(luigi.Task):
         '''
         # Autenticación del cliente:
         client = Socrata(settings.get('dburl'),
-                        settings.get('apptoken'),
-                        username=settings.get('user'),
-                        password=settings.get('pass'))
+                         settings.get('apptoken'),
+                         username=settings.get('user'),
+                         password=settings.get('pass'))
 
         # los resultados son retornados como un archivo JSON desde la API /
         # convertida a una lista de Python usando sodapy
@@ -43,26 +45,26 @@ class downloadRawJSONData(luigi.Task):
         l = 1000000000
         today = str(date.today())
 
-        if not os.path.exists(f'{path}/{today}'):
-            os.mkdir(f'{path}/{today}')
+        if not os.path.exists(f'{path}'):
+            os.mkdir(f'{path}')
         else:
             None
 
         # year path
-        if not os.path.exists(f'{path}/{today}/{self.year}'):
-            os.mkdir(f'{path}/{today}/{self.year}')
+        if not os.path.exists(f'{path}/{self.year}'):
+            os.mkdir(f'{path}/{self.year}')
         else:
             None
 
         # year/month path
-        if not os.path.exists(f'{path}/{today}/{self.year}/{self.month}'):
-            os.mkdir(f'{path}/{today}/{self.year}/{self.month}')
+        if not os.path.exists(f'{path}/{self.year}/{self.month}'):
+            os.mkdir(f'{path}/{self.year}/{self.month}')
         else:
             None
 
         # complete daily-path
-        if not os.path.exists(f'{path}/{today}/{self.year}/{self.month}/{self.day}'):
-            os.mkdir(f'{path}/{today}/{self.year}/{self.month}/{self.day}')
+        if not os.path.exists(f'{path}/{self.year}/{self.month}/{self.day}'):
+            os.mkdir(f'{path}/{self.year}/{self.month}/{self.day}')
         else:
             None
 
