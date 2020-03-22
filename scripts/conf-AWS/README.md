@@ -15,7 +15,7 @@ Para la selección de contraseña, utilizamos el encriptador `crypt` contenido e
 import crypt
 crypt.crypt("contraseña","salt")
 ```
-La salida de estos comandos debe verse como: ` 'sa1O7Z1pCJzK.' ` esta salida se debe agregar al script addus.ssh en la parte indicada. Para correr el archivo solo es necesario corer el siguiente comando:
+La salida de estos comandos debe verse como: ` 'sa1O7Z1pCJzK.' ` está salida se debe agregar al script addus.ssh en la parte indicada. Para correr el archivo solo es necesario corer el siguiente comando:
  ```
  ./addus.ssh
  ```
