@@ -1,3 +1,4 @@
+
 #!/bin/bash
 # Script para agregar usuarios a ubuntu 
 # El password y permisos para todos los usuarios es el mismo
@@ -11,4 +12,3 @@ for i in $( cat users.txt ); do
     echo "Password for user $i changed successfully"
     usermod -aG sudo $i
 done
-
