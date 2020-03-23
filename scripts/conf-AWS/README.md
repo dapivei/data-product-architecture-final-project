@@ -5,7 +5,7 @@
 
 Esta carpeta tiene los scripts e indicaciones necesarias para la configuración del bastión y la máquina donde se llevará acabo el procesamiento.
 
-### I Configuración bastión
+### I. Configuración bastión
 
 El bastión es una instancia pequeña `t2.micro`  con `8gb` de memoria (no es necesario tener algo con mayor capacidad en este punto). Funciona como punto de seguridad y administra a los usuarios para que puedan entrar a la arquitectura de AWS.
 
@@ -17,7 +17,7 @@ ssh -o "ServerAliveInterval 60" -i /ruta/llave.pem  ubuntu@ip-ec2
 ```
 y para salir basta con poner `exit` en el shell de la instancia
 
-### II addus.sh
+### II. addus.sh
 
 Esté script crea los usuarios dentro del bastión y asigna la misma contraseña a cada uno de ellos, por lo que debemos estar conectados a la instancia. Para poder hacer uso es necesario darle los permisos, es decir, ` chmod +x addus.sh`. También es importante mencionar que se utiliza un archivo txt `users.txt` que contiene el nombre de los usuarios que queremos agregar.
 
@@ -33,7 +33,7 @@ La salida de estos comandos debe verse como: ` 'sa1O7Z1pCJzK.' ` está se debe a
  ```
 En este punto ya tenemos los usuarios agregados, todos con la misma contraseña y permisos de super usuario.
 
-### III  Agregar llaves para conexión
+### III.  Agregar llaves para conexión
 
 Una vez creados los usuarios copiaremos las llaves públicas de casa uno de los usuarios a su usuario correspondiente.
 
@@ -63,7 +63,7 @@ Para conectarnos usando el protocolo `ssh`  y la llave privada, utilizamos el si
 ssh -o "ServerAliveInterval 60" -i /ruta/llave_privada  usuario@ip-ec2
 ```
 
-### IV EC2 procesamiento
+### IV. EC2 procesamiento
 
 Esta máquina es para el procesamiento de la información y es donde viven las tareas que realiza `luigi`, cabe mencionar que está instancia es de mayor capacidad. Aquí también debe ser instalado `docker` para la reproducibilidad del proyecto.
 
