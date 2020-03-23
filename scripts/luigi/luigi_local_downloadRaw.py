@@ -9,8 +9,7 @@ from dynaconf import settings
 from sodapy import Socrata
 
 # path para guardar los datos
-#path = '/Users/c1587s/Desktop/db-diego/raw/json'
-path = '/Users/scadavidsanchez/Desktop/raw'
+path = './raw'
 
 
 class downloadRawJSONData(luigi.Task):
@@ -23,7 +22,6 @@ class downloadRawJSONData(luigi.Task):
     day = luigi.Parameter()
 
     def output(self):
-        today = str(date.today())
         # Defining the loop for creating the variables:
         output_path = f"{path}/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.json"
         return luigi.local_target.LocalTarget(path=output_path)
