@@ -1,6 +1,6 @@
 <div class="tip" markdown="1">
-    
-    
+
+
 # 311 NYC Service Request Web-Service
 ***
 <div align="justify">
@@ -62,29 +62,25 @@ Existe una brecha, aparentemente "infranqueable" entre el Estado y la ciudadaní
 
 El desarrollo de este producto de datos tiene los siguientes objetivos:
 
-#### Objetivos generales
+#### Objetivo generales
 
-* Proveer a todo el público una herramienta de seguimiento y control de las peticiones realizadas a la línea 311 en la ciudad de Nueva York por medio de una estimación en el tiempo de respuesta del problema;
-
-* Proporcionar una herramienta que permita a las agencias estatales reubicar de manera óptima sus recursos para atender mejor a los requerimientos en las llamadas de los ciudadanos;
+* Proveer una herramienta a las agencias gubernamentales para conocer con anticipación momentos en que se dará un exceso de demanda de servicios con el fin de tener una planeación y asignación adecuada.
 
 #### Objetivos específicos
 
-* Pronosticar el tiempo de respuesta (en días) de los *service request* recibidos por las agencias;
-* Medir la divergencia en el tiempo de respuesta por distritos de la ciudad, por agencia y por tipo de solicitud.
+* Pronosticar días en que la demanda de recursos por agencia esté supere un límite establecido;
 
+* Medir la divergencia en el tiempo de respuesta por distritos de la ciudad, por agencia y por tipo de solicitud.
 
 #### Predicción:
 
-- El tiempo de respuesta (en días) de los *service request* recibidos por las agencias.
+- Predicción binaria que indica si el número de servicios requeridos por agencia gubernamental superará un límite previamente establecido.
+
 - Re-entrenamiento 6 meses aproximadamente, luego de evaluar las métricas del modelo.
 
 ### IV. Población objetivo
 
-Este producto de datos tiene dos poblaciones objetivo:
-
-- Ciudadanos de la ciudad de NY que estén interesados en dar seguimiento a sus *service requests*, y deseen tener una herramienta de comparación de la atención que les es brindada por las agencias.
-- Agencias gubernamentales de la ciudad de NY que deseen tener una herramienta de control sobre sus servicios presentados a los ciudadanos.
+- Agencias gubernamentales de la ciudad de NY que deseen tener una herramienta de predicción sobre el exceso de demanda de sus servicios.
 
 <p align="center">
 
@@ -93,12 +89,16 @@ Este producto de datos tiene dos poblaciones objetivo:
 
 
 </p>
-
+**ya no aplican**
 - Las predicciones pueden estar sesgadas hacia las zonas (distritos) con mayor número de *service requests*,
 - La credibilidad de las agencias públicas puede ser afectada por predicciones erróneas de tiempos de respuestas a los *service request*,
 - Ciertas zonas y distritos pueden ser marginados o rezagados por lo posible reubicación de recursos gubernamentales para atender mejor a los requerimientos en las llamadas de los ciudadanos. Estas decisiones podrían ser derivadas del *output* del producto de datos.
 - Las expectativas de las personas podrían ser sesgadas a raíz del producto de datos.
 - El producto de datos puede dar juicios de valor con respecto a la asignación de servicios de las agencias. Sin embargo, también se debe tener en cuenta que puede haber información omitida por el modelo que se tiene al interior de las agencias cuando estas toman las decisiones.
+
+- Las agencias asignarán recursos para habilitar operaciones que cubran la demanda predicha, en caso de falsos positivos estos recursos serán desperdiciados.  
+
+
 
 ### V. Data Product Architecture:
 
