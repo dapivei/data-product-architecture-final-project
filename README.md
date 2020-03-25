@@ -89,11 +89,12 @@ El desarrollo de este producto de datos tiene los siguientes objetivos:
 
 
 </p>
-**ya no aplican**
+
 - Las predicciones pueden estar sesgadas hacia las zonas (distritos) con mayor número de *service requests*,
-- La credibilidad de las agencias públicas puede ser afectada por predicciones erróneas de tiempos de respuestas a los *service request*,
+- La credibilidad de las agencias públicas puede ser afectada por predicciones erróneas de tiempos de respuestas a los 
+
+*service request*,
 - Ciertas zonas y distritos pueden ser marginados o rezagados por lo posible reubicación de recursos gubernamentales para atender mejor a los requerimientos en las llamadas de los ciudadanos. Estas decisiones podrían ser derivadas del *output* del producto de datos.
-- Las expectativas de las personas podrían ser sesgadas a raíz del producto de datos.
 - El producto de datos puede dar juicios de valor con respecto a la asignación de servicios de las agencias. Sin embargo, también se debe tener en cuenta que puede haber información omitida por el modelo que se tiene al interior de las agencias cuando estas toman las decisiones.
 
 - Las agencias asignarán recursos para habilitar operaciones que cubran la demanda predicha, en caso de falsos positivos estos recursos serán desperdiciados.  
