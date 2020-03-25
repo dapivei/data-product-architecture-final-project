@@ -200,7 +200,7 @@ Presentación de los esquemas que representan el linaje de datos del ETL del pro
 + Logs del scrpit
 + Estatus de ejecución: Fallido, exitoso, etc.
 
-#### Clean
+##### Clean
 
 >**Descripción**: **1)** Limpieza de títulos de las columnas, por ejemplo: pasar los datos a minúsculas y quitar caracteres especiales. **2)** Asignación del tipo de dato a las columnas. **3)** Eliminación de las columnas vacías o sin variabilidad.
 
