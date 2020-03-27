@@ -12,7 +12,7 @@ from pyspark.sql import SQLContext
 from sodapy import Socrata
 
 # Definir los paths donde se guardan los datos
-path_raw     = './raw'
+path_raw = './raw'
 path_preproc = './preprocess'
 
 # path para guardar los datos

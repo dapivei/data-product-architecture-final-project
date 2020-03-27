@@ -1,17 +1,17 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import boto3
+import json
+import luigi
+import luigi.contrib.s3
+import os
+import pandas as pd
+
 from sodapy import Socrata
 from pyspark.sql import SQLContext
 from pyspark import SparkContext
-import luigi.contrib.s3
 from dynaconf import settings
-from datetime import date
-import pandas as pd
-import os
-import luigi
-import json
-import boto3
-tom  # !/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 
 # Definir los paths donde se guardan los datos
 path_raw = 's3://raw'
@@ -28,8 +28,7 @@ class downloadRawJSONData(luigi.Task):
     year = luigi.Parameter()
     month = luigi.Parameter()
     day = luigi.Parameter()
-    bucket_name =luigi.Parameter(default="prueba-nyc311")
-
+    bucket_name = luigi.Parameter(default="prueba-nyc311")
 
     def output(self):
         # Defining the loop for creating the variables:
