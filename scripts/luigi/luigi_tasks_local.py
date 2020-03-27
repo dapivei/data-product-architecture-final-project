@@ -81,12 +81,13 @@ class preprocParquetPandas(luigi.Task):
     month = luigi.Parameter()
     day   = luigi.Parameter()
 
+    def requires(self):
+        return downloadRawJSONData(year = self.year, month = self.month, day = self.day)
+
     def output(self):
         output_path = f"{path_preproc}/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
         return luigi.local_target.LocalTarget(path=output_path)
 
-    #def requires(self:
-    #    None
 
     def run(self):
         # crear carpeta preprocess
@@ -114,8 +115,9 @@ class preprocParquetPandas(luigi.Task):
             None
 
         # convertir a parquet usando pandas
-        df = pd.read_json(f"{path_raw}/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.json")
-
+        # lineas para correrlo sin y con requirements de downloadRawJSONData
+        # df = pd.read_json(f"{path_raw}/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.json")
+        df = pd.read_json(self.input().path)
         # Solving problems of datatype: "nested column branch had multiple children"
         for col in df.columns:
             weird = (df[[col]].applymap(type) != df[[col]].iloc[0].apply(type)).any(axis=1)
@@ -128,7 +130,7 @@ class preprocParquetPandas(luigi.Task):
         self.output().makedirs()
         df.to_parquet(self.output().path, engine='auto', compression='snappy')
 
-class preprocPARQUETSpark(luigi.Task):
+class preprocParquetSpark(luigi.Task):
     '''
     Convertir datos descargados en JSON a formato PARQUET.
     '''
@@ -137,12 +139,12 @@ class preprocPARQUETSpark(luigi.Task):
     month = luigi.Parameter()
     day   = luigi.Parameter()
 
-    def output(self):
-        output_path = f"{path_preproc}/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}/"
-        return luigi.local_target.LocalTarget(path=output_path)
+    def requires(self):
+        return downloadRawJSONData(year = self.year, month = self.month, day = self.day)
 
-    #def requires(self:
-    #    None
+    def output(self):
+        output_path = f"{path_preproc}/{self.year}/{self.month}/{self.day}/"
+        return luigi.local_target.LocalTarget(path=output_path)
 
     def run(self):
         # crear carpeta preprocess
@@ -173,8 +175,9 @@ class preprocPARQUETSpark(luigi.Task):
         ## crear sesión en spark
         sc = SparkContext.getOrCreate()
         sqlContext = SQLContext(sc)
-        #
-        df = sqlContext.read.json(f"{path_raw}/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.json")
+        # lineas para correrlo sin y con requirements de downloadRawJSONData
+        # df = sqlContext.read.json(f"{path_raw}/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.json")
+        df = sqlContext.read.json(self.input().path)
 
         # guardar como parquet
         self.output().makedirs()
