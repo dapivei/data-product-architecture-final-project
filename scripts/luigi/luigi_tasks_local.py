@@ -7,12 +7,13 @@ import pandas as pd
 
 from datetime import date
 from dynaconf import settings
+from pyspark import SparkContext
+from pyspark.sql import SQLContext
 from sodapy import Socrata
 
 # Definir los paths donde se guardan los datos
-path_raw = './raw'
-path_preproc ='./preprocess'
-
+path_raw     = './raw'
+path_preproc = './preprocess'
 
 # path para guardar los datos
 class downloadRawJSONData(luigi.Task):
@@ -71,7 +72,7 @@ class downloadRawJSONData(luigi.Task):
         with self.output().open('w') as json_file:
             json.dump(results, json_file)
 
-class preprocPARQUET(luigi.Task):
+class preprocParquetPandas(luigi.Task):
     '''
     Convertir datos descargados en JSON a formato PARQUET.
     '''
@@ -114,6 +115,7 @@ class preprocPARQUET(luigi.Task):
 
         # convertir a parquet usando pandas
         df = pd.read_json(f"{path_raw}/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.json")
+
         # Solving problems of datatype: "nested column branch had multiple children"
         for col in df.columns:
             weird = (df[[col]].applymap(type) != df[[col]].iloc[0].apply(type)).any(axis=1)
@@ -125,3 +127,55 @@ class preprocPARQUET(luigi.Task):
         # guardar como parquet
         self.output().makedirs()
         df.to_parquet(self.output().path, engine='auto', compression='snappy')
+
+class preprocPARQUETSpark(luigi.Task):
+    '''
+    Convertir datos descargados en JSON a formato PARQUET.
+    '''
+    # parametros
+    year  = luigi.Parameter()
+    month = luigi.Parameter()
+    day   = luigi.Parameter()
+
+    def output(self):
+        output_path = f"{path_preproc}/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}/"
+        return luigi.local_target.LocalTarget(path=output_path)
+
+    #def requires(self:
+    #    None
+
+    def run(self):
+        # crear carpeta preprocess
+        if not os.path.exists(f'{path_preproc}'):
+            os.mkdir(f'{path_preproc}')
+        else:
+            None
+
+        # crear carpeta year
+        if not os.path.exists(f'{path_preproc}/{self.year}'):
+            os.mkdir(f'{path_preproc}/{self.year}')
+        else:
+            None
+
+        # crear carpeta year/month
+        if not os.path.exists(f'{path_preproc}/{self.year}/{self.month}'):
+            os.mkdir(f'{path_preproc}/{self.year}/{self.month}')
+        else:
+            None
+
+        # crear carpeta  year/month/day
+        if not os.path.exists(f'{path_preproc}/{self.year}/{self.month}/{self.day}'):
+            os.mkdir(f'{path_preproc}/{self.year}/{self.month}/{self.day}')
+        else:
+            None
+
+        # convertir a parquet usando pyspark:
+        ## crear sesión en spark
+        sc = SparkContext.getOrCreate()
+        sqlContext = SQLContext(sc)
+        #
+        df = sqlContext.read.json(f"{path_raw}/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.json")
+
+        # guardar como parquet
+        self.output().makedirs()
+        df.write.parquet(self.output().path, mode="overwrite")
