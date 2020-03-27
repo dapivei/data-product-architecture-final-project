@@ -17,6 +17,7 @@ json = "*"
 dynaconf = "*"
 os = "*"
 boto3 = "*"
+pyspark = "*"
 
 [requires]
 python_version = "3.7"
