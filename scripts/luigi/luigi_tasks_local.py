@@ -16,15 +16,17 @@ path_raw     = './raw'
 path_preproc = './preprocess'
 
 # path para guardar los datos
+
+
 class downloadRawJSONData(luigi.Task):
     '''
     Descarga los datos de la API de 311 NYC en formato JSON en carpetas por
     fecha con frecuencia diaria.
     '''
     # parametros:
-    year  = luigi.Parameter()
+    year = luigi.Parameter()
     month = luigi.Parameter()
-    day   = luigi.Parameter()
+    day = luigi.Parameter()
 
     def output(self):
         # Defining the loop for creating the variables:
@@ -41,7 +43,7 @@ class downloadRawJSONData(luigi.Task):
         # los resultados son retornados como un archivo JSON desde la API /
         # convertida a una lista de Python usando sodapy
         client.timeout = 1000
-        l = 1000000000
+        limit = 1000000000
 
         # crear carpeta raw
         if not os.path.exists(f'{path_raw}'):
@@ -68,26 +70,27 @@ class downloadRawJSONData(luigi.Task):
             None
 
         # query
-        results = client.get("erm2-nwe9", limit=l, where=f"created_date between '{self.year}-{self.month}-{self.day}T00:00:00.000' and '{self.year}-{self.month}-{self.day}T23:59:59.999'")
+        results = client.get(
+            "erm2-nwe9", limit=limit, where=f"created_date between '{self.year}-{self.month}-{self.day}T00:00:00.000' and '{self.year}-{self.month}-{self.day}T23:59:59.999'")
         with self.output().open('w') as json_file:
             json.dump(results, json_file)
+
 
 class preprocParquetPandas(luigi.Task):
     '''
     Convertir datos descargados en JSON a formato PARQUET.
     '''
     # parametros
-    year  = luigi.Parameter()
+    year = luigi.Parameter()
     month = luigi.Parameter()
-    day   = luigi.Parameter()
+    day = luigi.Parameter()
 
     def requires(self):
-        return downloadRawJSONData(year = self.year, month = self.month, day = self.day)
+        return downloadRawJSONData(year=self.year, month=self.month, day=self.day)
 
     def output(self):
         output_path = f"{path_preproc}/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
         return luigi.local_target.LocalTarget(path=output_path)
-
 
     def run(self):
         # crear carpeta preprocess
@@ -120,7 +123,8 @@ class preprocParquetPandas(luigi.Task):
         df = pd.read_json(self.input().path)
         # Solving problems of datatype: "nested column branch had multiple children"
         for col in df.columns:
-            weird = (df[[col]].applymap(type) != df[[col]].iloc[0].apply(type)).any(axis=1)
+            weird = (df[[col]].applymap(type) !=
+                     df[[col]].iloc[0].apply(type)).any(axis=1)
             if len(df[weird]) > 0:
                 df[col] = df[col].astype(str)
             if df[col].dtype == list:
@@ -130,17 +134,18 @@ class preprocParquetPandas(luigi.Task):
         self.output().makedirs()
         df.to_parquet(self.output().path, engine='auto', compression='snappy')
 
+
 class preprocParquetSpark(luigi.Task):
     '''
     Convertir datos descargados en JSON a formato PARQUET.
     '''
     # parametros
-    year  = luigi.Parameter()
+    year = luigi.Parameter()
     month = luigi.Parameter()
-    day   = luigi.Parameter()
+    day = luigi.Parameter()
 
     def requires(self):
-        return downloadRawJSONData(year = self.year, month = self.month, day = self.day)
+        return downloadRawJSONData(year=self.year, month=self.month, day=self.day)
 
     def output(self):
         output_path = f"{path_preproc}/{self.year}/{self.month}/{self.day}/"
@@ -172,7 +177,7 @@ class preprocParquetSpark(luigi.Task):
             None
 
         # convertir a parquet usando pyspark:
-        ## crear sesión en spark
+        # crear sesión en spark
         sc = SparkContext.getOrCreate()
         sqlContext = SQLContext(sc)
         # lineas para correrlo sin y con requirements de downloadRawJSONData
