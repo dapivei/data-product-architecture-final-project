@@ -5,12 +5,15 @@ import json
 import luigi
 import os
 import pandas as pd
+import functions  # modulo propio
 
 from datetime import date
 from dynaconf import settings
 from pyspark import SparkContext
 from pyspark.sql import SQLContext
 from sodapy import Socrata
+
+import subprocess as sub
 
 # Definir los paths donde se guardan los datos
 path_raw = './raw'
@@ -30,7 +33,6 @@ class downloadRawJSONData(luigi.Task):
     day = luigi.Parameter()
 
     def output(self):
-        # Defining the loop for creating the variables:
         output_path = f"{path_raw}/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.json"
         return luigi.local_target.LocalTarget(path=output_path)
 
@@ -188,3 +190,136 @@ class preprocParquetSpark(luigi.Task):
         # guardar como parquet
         self.output().makedirs()
         df.write.parquet(self.output().path, mode="overwrite")
+
+
+class metaExtract(luigi.Task):
+    '''
+    Generar metadatos de la extracción de datos de la API
+    '''
+    # parámetros
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+
+    def requires(self):
+        return downloadRawJSONData(year=self.year, month=self.month, day=self.day)
+
+    def output(self):
+        output_path = f"{path_raw}/{self.year}/{self.month}/{self.day}/metaData_{self.year}_{self.month}_{self.day}.csv"
+        return luigi.local_target.LocalTarget(path=output_path)
+
+    def run(self):
+        cwd = os.getcwd()  # path actual
+        file_path = self.input().path
+        cmd_name = "echo %s | awk -F \"/\" \'{print $NF}\'" % (file_path)
+        # obterner solo el nombre del archivo
+        file_name = functions.execv(cmd_name, cwd)
+        # crea df vacío usando pandas
+        columns = ['name', 'extention', 'schema', 'action', 'creator', 'machine', 'ip', 'creation_date', 'size', 'location',
+                   'entries', 'variables', 'script', 'log_script', 'status']
+        df = pd.DataFrame(columns=columns)
+        # defnir los comandos a utilizar para llenar las celdas
+        name_cmd = "echo  %s | awk -F\".\" \'{print $1}\'" % (file_name)
+        ext_cmd = "ls -lad %s | awk -F\".\" \'{print $NF}\' " % (file_path)
+        cre_cmd = "ls -lad %s | awk \'{print $3}\'" % (file_path)
+        mch_cmd = "  uname -a"
+        ip_cmd = "curl ipecho.net/plain ; echo"
+        cdt_cmd = "ls -lad %s | awk \'{print $6\"-\"$7\"-\"$8}'" % (file_path)
+        siz_cmd = "ls -lad -h %s | awk \'{print $5}\'" % (file_path)
+        ent_cmd = "jq length %s" % (file_path)
+
+        # llena el df
+        df.at[0, 'name'] = functions.execv(name_cmd, cwd)
+        df.at[0, 'extention'] = functions.execv(ext_cmd, cwd)
+        df.at[0, 'schema'] = 'raw'
+        df.at[0, 'action'] = 'download'
+        df.at[0, 'creator'] = functions.execv(cre_cmd, cwd)
+        df.at[0, 'machine'] = functions.execv(mch_cmd, cwd)
+        df.at[0, 'ip'] = functions.execv(ip_cmd, cwd)
+        df.at[0, 'creation_date'] = functions.execv(cdt_cmd, cwd)
+        df.at[0, 'size'] = functions.execv(siz_cmd, cwd)
+        df.at[0, 'location'] = file_path
+        df.at[0, 'entries'] = functions.execv(ent_cmd, cwd)
+        df.at[0, 'variables'] = None
+        df.at[0, 'script'] = None
+        df.at[0, 'log_script'] = None
+        df.at[0, 'status'] = None
+
+        # escribir csv para guardar la info
+        self.output().makedirs()
+        df.to_csv(self.output().path, mode="w+", index=False)
+
+
+class metaPreproc(luigi.Task):
+    '''
+    Generar metadatos del preprocesamiento de datos, donde se convierten de JSON
+    a parquet.
+    '''
+    # parámetros
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+
+    def requires(self):
+        return preprocParquetSpark(year=self.year, month=self.month, day=self.day)
+
+    def output(self):
+        output_path = f"{path_preproc}/{self.year}/{self.month}/{self.day}/metaData_{self.year}_{self.month}_{self.day}.csv"
+        return luigi.local_target.LocalTarget(path=output_path)
+
+    def run(self):
+        cwd = os.getcwd()  # path actual
+        file_path = self.input().path
+        # encontrar todos los archivos formato parquet
+        ls_parquet_files = functions.execv("ls *.parquet", file_path)
+        names_file=ls_parquet_files.split('\n')
+        cmd_name = "echo %s | awk -F \"/\" \'{print $NF}\'" % (file_path)
+        # obterner solo el nombre del archivo
+        file_name = functions.execv(cmd_name, cwd)
+        # crea df vacío usando pandas
+        columns = ['name', 'extention', 'schema', 'action','creator', 'machine', 'ip', 'creation_date','size', 'location',
+                   'entries', 'variables', 'script', 'log_script', 'status']
+        df = pd.DataFrame(columns=columns)
+        # defnir los comandos a utilizar para llenar las celdas
+        count = 0
+        for file in names_file:
+            # introducir nombre
+            cmd_name = "echo %s | awk -F \"/\" \'{print $NF}\'" % (cwd)
+            df.at[count, 'name' ] = functions.execv(cmd_name, cwd)
+            # introducir extension
+            ext_cmd = "ls -lad %s | awk -F\".\" \'{print $NF}\' " % (file)
+            df.at[count, 'extention'] = functions.execv(ext_cmd, cwd)
+            # esquema y acción
+            df.at[count, 'schema'] = 'preprocessing'
+            df.at[count, 'action'] = 'transform json to parquet'
+            # otras características de la creación
+            cre_cmd = "ls -lad %s | awk \'{print $3}\'" % (file)
+            df.at[count, 'creator'] = functions.execv(cre_cmd, cwd)
+            mch_cmd = "uname -a"
+            df.at[count, 'machine'] = functions.execv(mch_cmd, cwd)
+            ip_cmd = "curl ipecho.net/plain ; echo"
+            df.at[count, 'ip'] = functions.execv(ip_cmd, cwd)
+            cdt_cmd = "ls -lad %s | awk \'{print $6\"-\"$7\"-\"$8}'" % (file)
+            df.at[count, 'creation_date'] = functions.execv(cdt_cmd, cwd)
+            siz_cmd = "ls -lad -h %s | awk \'{print $5}\'" % (file)
+            df.at[count, 'size'] = functions.execv(siz_cmd, cwd)
+            lcn_cmd = cwd
+            df.at[count, 'location'] = lcn_cmd
+
+            count += 1
+
+        # escribir csv para guardar la info
+        self.output().makedirs()
+        df.to_csv(self.output().path, mode="w+", index=False)
+
+    class ELTprocess(luigi.Task):
+        '''
+        Corre el proceso de ELT generando metadatos.
+        '''
+        # parámetros
+        year = luigi.Parameter()
+        month = luigi.Parameter()
+        day = luigi.Parameter()
+
+        def requires(self):
+            return metaPreproc(year=self.year, month=self.month, day=self.day),
