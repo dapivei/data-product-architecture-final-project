@@ -1,8 +1,8 @@
 create schema if not exists preprocessed;
 
-drop table if exists preprocessed.etl_ejecucion;
+drop table if exists preprocessed.etl_execution;
 
-create table preprocessed.etl_ejecucion (
+create table preprocessed.etl_execution (
   "name" TEXT,
   "extention" TEXT,
   "schema" TEXT,
