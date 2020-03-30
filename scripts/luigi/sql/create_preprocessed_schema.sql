@@ -20,5 +20,4 @@ create table preprocessed.etl_ejecucion (
   "status" TEXT
 );
 
-comment on table preprocessed.etl_ejecucion is 'Metadatos de ejecucion del
-etl PREPROCESSED';
+comment on table preprocessed.etl_ejecucion is 'Metadata from ETL-PREPROCESSED';
