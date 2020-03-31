@@ -19,7 +19,36 @@ import subprocess as sub
 path_raw = './raw'
 path_preproc = './preprocess'
 
-# path para guardar los datos
+class createSchemaRaw(luigi.Task):
+    def run(self):
+        cwd = os.getcwd()
+        cmd_posgres = "psql -U postgres -h dpa-nyc311.c9aurezhx2pc.us-west-2.rds.amazonaws.com"
+        functions.execv(cmd_posgres, cwd)
+
+        create schema if not exists raw;
+
+        drop table if exists raw.etl_execution;
+
+        create table raw.etl_execution (
+        "name" TEXT,
+        "extention" TEXT,
+        "schema" TEXT,
+        "action" TEXT,
+        "creator" TEXT,
+        "machine" TEXT,
+        "ip" TEXT,
+        "creation_date" TEXT,
+        "size" INTEGER,
+        "location" TEXT,
+        "entries" TEXT,
+        "variables" TEXT,
+        "script" TEXT,
+        "log_script" TEXT,
+        "status" TEXT
+        );
+
+        comment on table raw.etl_ejecucion is 'Metadata from ETL-RAW';
+
 
 
 class downloadRawJSONData(luigi.Task):
@@ -148,13 +177,16 @@ class preprocParquetSpark(luigi.Task):
     day = luigi.Parameter()
 
     def requires(self):
-        return downloadRawJSONData(year=self.year, month=self.month, day=self.day)
-
+        #return downloadRawJSONData(year=self.year, month=self.month, day=self.day)
+        return metaExtract(year=self.year, month=self.month, day=self.day)
     def output(self):
         output_path = f"{path_preproc}/{self.year}/{self.month}/{self.day}/"
         return luigi.local_target.LocalTarget(path=output_path)
 
     def run(self):
+        # generar los metadatos de Download
+
+        metaExtract(year=self.year, month=self.month, day=self.day)
         # crear carpeta preprocess
         if not os.path.exists(f'{path_preproc}'):
             os.mkdir(f'{path_preproc}')
@@ -185,7 +217,9 @@ class preprocParquetSpark(luigi.Task):
         sqlContext = SQLContext(sc)
         # lineas para correrlo sin y con requirements de downloadRawJSONData
         # df = sqlContext.read.json(f"{path_raw}/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.json")
-        df = sqlContext.read.json(self.input().path)
+        df = sqlContext.read.json(f"{path_raw}/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.json")
+        #df = sqlContext.read.json(cwd)
+        #df = sqlContext.read.json(self.input().path)
 
         # guardar como parquet
         self.output().makedirs()
@@ -262,6 +296,7 @@ class metaPreproc(luigi.Task):
 
     def requires(self):
         return preprocParquetSpark(year=self.year, month=self.month, day=self.day)
+        #return preprocParquetPandas(year=self.year, month=self.month, day=self.day)
 
     def output(self):
         output_path = f"{path_preproc}/{self.year}/{self.month}/{self.day}/metaData_{self.year}_{self.month}_{self.day}.csv"
@@ -284,7 +319,7 @@ class metaPreproc(luigi.Task):
         count = 0
         for file in names_file:
             # introducir nombre
-            cmd_name = "echo %s | awk -F \"/\" \'{print $NF}\'" % (cwd)
+            cmd_name = "echo %s | awk -F \"/\" \'{print $NF}\'" % (file)
             df.at[count, 'name' ] = functions.execv(cmd_name, cwd)
             # introducir extension
             ext_cmd = "ls -lad %s | awk -F\".\" \'{print $NF}\' " % (file)
@@ -299,12 +334,11 @@ class metaPreproc(luigi.Task):
             df.at[count, 'machine'] = functions.execv(mch_cmd, cwd)
             ip_cmd = "curl ipecho.net/plain ; echo"
             df.at[count, 'ip'] = functions.execv(ip_cmd, cwd)
-            cdt_cmd = "ls -lad %s | awk \'{print $6\"-\"$7\"-\"$8}'" % (file)
+            cdt_cmd = "ls -lad %s | awk \'{print $6\"-\"$7\"-\"$8}\'" % (file)
             df.at[count, 'creation_date'] = functions.execv(cdt_cmd, cwd)
             siz_cmd = "ls -lad -h %s | awk \'{print $5}\'" % (file)
             df.at[count, 'size'] = functions.execv(siz_cmd, cwd)
-            lcn_cmd = cwd
-            df.at[count, 'location'] = lcn_cmd
+            df.at[count, 'location'] = file_path
 
             count += 1
 
