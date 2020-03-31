@@ -11,7 +11,7 @@ create table preprocessed.etl_execution (
   "machine" TEXT,
   "ip" TEXT,
   "creation_date" TEXT,
-  "size" INTEGER,
+  "size" TEXT,
   "location" TEXT,
   "entries" TEXT,
   "variables" TEXT,
@@ -20,4 +20,4 @@ create table preprocessed.etl_execution (
   "status" TEXT
 );
 
-comment on table preprocessed.etl_ejecucion is 'Metadata from ETL-PREPROCESSED';
+comment on table preprocessed.etl_execution is 'Metadata from ETL-PREPROCESSED';
