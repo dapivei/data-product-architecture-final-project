@@ -11,7 +11,7 @@ create table raw.etl_execution (
   "machine" TEXT,
   "ip" TEXT,
   "creation_date" TEXT,
-  "size" INTEGER,
+  "size" TEXT,
   "location" TEXT,
   "entries" TEXT,
   "variables" TEXT,
@@ -20,4 +20,4 @@ create table raw.etl_execution (
   "status" TEXT
 );
 
-comment on table raw.etl_ejecucion is 'Metadata from ETL-RAW';
+comment on table raw.etl_execution is 'Metadata from ETL-RAW';
