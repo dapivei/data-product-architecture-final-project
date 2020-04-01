@@ -92,7 +92,7 @@ class preprocParquetPandas(luigi.Task):
     month = luigi.Parameter()
     day = luigi.Parameter()
     bucket_name = luigi.Parameter(default="prueba-nyc311")
-    
+
     def requires(self):
         return downloadRawJSONData(year=self.year, month=self.month, day=self.day)
 
@@ -157,7 +157,7 @@ class preprocParquetSpark(luigi.Task):
     month = luigi.Parameter()
     day = luigi.Parameter()
     bucket_name = luigi.Parameter(default="prueba-nyc311")
-    
+
     def requires(self):
         return downloadRawJSONData(year=self.year, month=self.month, day=self.day)
 
@@ -206,7 +206,7 @@ class preprocParquetSpark(luigi.Task):
         # guardar como parquet
         self.output().makedirs()
         df.write.parquet(self.output().path, mode="overwrite")
-        
+
   class metaExtract(luigi.Task):
     '''
     Generar metadatos de la extracción de datos de la API
@@ -284,7 +284,7 @@ class metaPreproc(luigi.Task):
 
     def requires(self):
         return preprocParquetSpark(year=self.year, month=self.month, day=self.day)
-        #return preprocParquetPandas(year=self.year, month=self.month, day=self.day)
+        # return preprocParquetPandas(year=self.year, month=self.month, day=self.day)
 
     def output(self):
         output_path = f"{path_preproc}/{self.year}/{self.month}/{self.day}/metaData_{self.year}_{self.month}_{self.day}.csv"
