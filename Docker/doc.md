@@ -11,3 +11,5 @@ La primera versión de la imagen se encuentras disponible en [dockerhub](https:/
 inicializar imagen 
 
 > docker run -it --rm c1587s/dpa_nyc311_image
+
+**Nota:** En la EC2 el anterior comando (y los relacionados con `docker`) se debe ejecutar como superusuario: `sudo docker ...`
