@@ -8,3 +8,6 @@ La primera versión de la imagen se encuentras disponible en [dockerhub](https:/
 
 > git pull c1587s/dpa_nyc311_image
 
+inicializar imagen 
+
+> docker run -it --rm c1587s/dpa_nyc311_image
