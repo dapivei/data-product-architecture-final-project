@@ -6,18 +6,17 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-nose = "*"
-Sphinx = "*"
 luigi = "*"
-sodapy = "*"
 pandas = "*"
-pyarrow = "*"
-datetime = "*"
-json = "*"
-dynaconf = "*"
-os = "*"
-boto3 = "*"
 pyspark = "*"
+dynaconf = "*"
+sodapy = "*"
+boto3 = "*"
+datetime = "*"
+pyarrow = "*"
+wget = "*"
+requests = "*"
+psycopg2 = "*"
 
 [requires]
 python_version = "3.7"
