@@ -19,38 +19,6 @@ import subprocess as sub
 path_raw = './raw'
 path_preproc = './preprocess'
 
-class createSchemaRaw(luigi.Task):
-    def run(self):
-        cwd = os.getcwd()
-        cmd_posgres = "psql -U postgres -h dpa-nyc311.c9aurezhx2pc.us-west-2.rds.amazonaws.com"
-        functions.execv(cmd_posgres, cwd)
-
-        create schema if not exists raw;
-
-        drop table if exists raw.etl_execution;
-
-        create table raw.etl_execution (
-        "name" TEXT,
-        "extention" TEXT,
-        "schema" TEXT,
-        "action" TEXT,
-        "creator" TEXT,
-        "machine" TEXT,
-        "ip" TEXT,
-        "creation_date" TEXT,
-        "size" INTEGER,
-        "location" TEXT,
-        "entries" TEXT,
-        "variables" TEXT,
-        "script" TEXT,
-        "log_script" TEXT,
-        "status" TEXT
-        );
-
-        comment on table raw.etl_ejecucion is 'Metadata from ETL-RAW';
-
-
-
 class downloadRawJSONData(luigi.Task):
     '''
     Descarga los datos de la API de 311 NYC en formato JSON en carpetas por
