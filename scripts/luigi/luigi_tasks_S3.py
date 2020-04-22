@@ -95,7 +95,7 @@ class preprocParquetPandas(luigi.Task):
     day = luigi.Parameter()
 
     def requires(self):
-        return downloadRawJSONData(bucket=self.bucket, year=self.year, month=self.month, day=self.day, bucket=self.bucket)
+        return downloadRawJSONData(bucket=self.bucket, year=self.year, month=self.month, day=self.day)
 
     def output(self):
         output_path = f"{path_preproc}/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
