@@ -7,15 +7,17 @@ import luigi
 import luigi.contrib.s3
 import os
 import pandas as pd
-from sodapy import Socrata
+import functions  # modulo propio
+
+from datetime import date
+from dynaconf import settings
 from pyspark.sql import SQLContext
 from pyspark import SparkContext
-from dynaconf import settings
+from sodapy import Socrata
 
 # Definir los paths donde se guardan los datos
-#path_raw = f's3://prueba-nyc311/raw'
-#path_preproc = f's3://prueba-nyc311/preprocess'
-
+path_raw = 's3://prueba-nyc311/raw'
+path_preproc = 's3://prueba-nyc311/preprocess'
 
 # path para guardar los datos
 class downloadRawJSONData(luigi.Task):
@@ -24,24 +26,22 @@ class downloadRawJSONData(luigi.Task):
     fecha con frecuencia diaria.
     '''
     # parametros:
-    path_raw = luigi.Parameter(default="s3://prueba-nyc311/raw")
-    path_preproc = luigi.Parameter(default="s3://prueba-nyc311/preproc")
-    path_preproc = luigi.Parameter()
+    bucket_name = luigi.Parameter(default="prueba-nyc311")
     year = luigi.Parameter()
     month = luigi.Parameter()
     day = luigi.Parameter()
-    bucket_name = luigi.Parameter(default="prueba-nyc311")
 
     def output(self):
-        # Defining the loop for creating the variables:
-        output_path = f"{self.path_raw}/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.json"
+        output_path = f"{path_raw}/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.json"
         return luigi.contrib.s3.S3Target(path=output_path)
 
     def run(self):
         # Autenticación en S3
-        ses = boto3.session.Session(profile_name='default', region_name='us-west-2')
+        ses = boto3.session.Session(profile_name='luigi_dpa', region_name='us-west-2')
         s3_resource = ses.resource('s3')
-	#obj = s3_resource.Bucket(self.bucket_name)
+
+        obj = s3_resource.Bucket(self.bucket_name)
+        print(ses)
         # Autenticación del cliente:
         client = Socrata(settings.get('dburl'),
                          settings.get('apptoken'),
@@ -54,26 +54,26 @@ class downloadRawJSONData(luigi.Task):
         limit = 1000000000
 
         # crear carpeta raw
-        if not os.path.exists(f'{self.path_raw}'):
-            os.mkdir(f'{self.path_raw}')
+        if not os.path.exists(f'{path_raw}'):
+            os.mkdir(f'{path_raw}')
         else:
             None
 
         # crear carpeta year
-        if not os.path.exists(f'{self.path_raw}/{self.year}'):
-            os.mkdir(f'{self.path_raw}/{self.year}')
+        if not os.path.exists(f'{path_raw}/{self.year}'):
+            os.mkdir(f'{path_raw}/{self.year}')
         else:
             None
 
         # crear carpeta year/month
-        if not os.path.exists(f'{self.path_raw}/{self.year}/{self.month}'):
-            os.mkdir(f'{self.path_raw}/{self.year}/{self.month}')
+        if not os.path.exists(f'{path_raw}/{self.year}/{self.month}'):
+            os.mkdir(f'{path_raw}/{self.year}/{self.month}')
         else:
             None
 
         # crear carpeta  year/month/day
-        if not os.path.exists(f'{self.path_raw}/{self.year}/{self.month}/{self.day}'):
-            os.mkdir(f'{self.path_raw}/{self.year}/{self.month}/{self.day}')
+        if not os.path.exists(f'{path_raw}/{self.year}/{self.month}/{self.day}'):
+            os.mkdir(f'{path_raw}/{self.year}/{self.month}/{self.day}')
         else:
             None
 
@@ -89,54 +89,51 @@ class preprocParquetPandas(luigi.Task):
     Convertir datos descargados en JSON a formato PARQUET.
     '''
     # parametros
-    path_raw = luigi.Parameter(default="s3://prueba-nyc311/raw")
-    path_preproc = luigi.Parameter(default="s3://prueba-nyc311/preproc")
-
+    bucket_name = luigi.Parameter(default="prueba-nyc311")
     year = luigi.Parameter()
     month = luigi.Parameter()
     day = luigi.Parameter()
-    bucket_name = luigi.Parameter(default="prueba-nyc311")
 
     def requires(self):
-        return downloadRawJSONData(year=self.year, month=self.month, day=self.day)
+        return downloadRawJSONData(bucket_name=self.bucket_name, year=self.year, month=self.month, day=self.day, bucket_name=self.bucket_name)
 
     def output(self):
-        output_path = f"{self.path_preproc}/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
+        output_path = f"{path_preproc}/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
         return luigi.contrib.s3.S3Target(path=output_path)
 
     def run(self):
         # Autenticación en S3
-        ses = boto3.session.Session(
-        profile_name={self.bucket_name}, region_name='us-west-2')
+        ses = boto3.session.Session(profile_name='luigi_dpa', region_name='us-west-2')
         s3_resource = ses.resource('s3')
 
+        obj = s3_resource.Bucket(self.bucket_name)
+        print(ses)
+
         # crear carpeta preprocess
-        if not os.path.exists(f'{self.path_preproc}'):
-            os.mkdir(f'{self.path_preproc}')
+        if not os.path.exists(f'{path_preproc}'):
+            os.mkdir(f'{path_preproc}')
         else:
             None
 
         # crear carpeta year
-        if not os.path.exists(f'{self.path_preproc}/{self.year}'):
-            os.mkdir(f'{self.path_preproc}/{self.year}')
+        if not os.path.exists(f'{path_preproc}/{self.year}'):
+            os.mkdir(f'{path_preproc}/{self.year}')
         else:
             None
 
         # crear carpeta year/month
-        if not os.path.exists(f'{self.path_preproc}/{self.year}/{self.month}'):
-            os.mkdir(f'{self.path_preproc}/{self.year}/{self.month}')
+        if not os.path.exists(f'{path_preproc}/{self.year}/{self.month}'):
+            os.mkdir(f'{path_preproc}/{self.year}/{self.month}')
         else:
             None
 
         # crear carpeta  year/month/day
-        if not os.path.exists(f'{self.path_preproc}/{self.year}/{self.month}/{self.day}'):
-            os.mkdir(f'{self.path_preproc}/{self.year}/{self.month}/{self.day}')
+        if not os.path.exists(f'{path_preproc}/{self.year}/{self.month}/{self.day}'):
+            os.mkdir(f'{path_preproc}/{self.year}/{self.month}/{self.day}')
         else:
             None
 
         # convertir a parquet usando pandas
-        # lineas para correrlo sin y con requirements de downloadRawJSONData
-        # df = pd.read_json(f"{path_raw}/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.json")
         df = pd.read_json(self.input().path)
         # Solving problems of datatype: "nested column branch had multiple children"
         for col in df.columns:
@@ -157,47 +154,47 @@ class preprocParquetSpark(luigi.Task):
     Convertir datos descargados en JSON a formato PARQUET.
     '''
     # parametros
-    path_raw = luigi.Parameter(default="s3://prueba-nyc311/raw")
-    path_preproc = luigi.Parameter(default="s3://prueba-nyc311/preproc")
+    bucket_name = luigi.Parameter(default="prueba-nyc311")
     year = luigi.Parameter()
     month = luigi.Parameter()
     day = luigi.Parameter()
-    bucket_name = luigi.Parameter(default="prueba-nyc311")
 
     def requires(self):
-        return downloadRawJSONData(path_preproc=self.path_preproc,year=self.year, month=self.month, day=self.day)
+        return downloadRawJSONData(bucket_name=self.bucket_name,year=self.year, month=self.month, day=self.day)
 
     def output(self):
-        output_path = f"{self.path_preproc}/{self.year}/{self.month}/{self.day}/"
+        output_path = f"{path_preproc}/{self.year}/{self.month}/{self.day}/"
         return luigi.contrib.s3.S3Target(path=output_path)
 
     def run(self):
         # Autenticación en S3
-        ses = boto3.session.Session(
-        profile_name={self.bucket_name}, region_name='us-west-2')
+        ses = boto3.session.Session(profile_name='luigi_dpa', region_name='us-west-2')
         s3_resource = ses.resource('s3')
 
+        obj = s3_resource.Bucket(self.bucket_name)
+        print(ses)
+
         # crear carpeta preprocess
-        if not os.path.exists(f'{self.path_preproc}'):
-            os.mkdir(f'{self.path_preproc}')
+        if not os.path.exists(f'{path_preproc}'):
+            os.mkdir(f'{path_preproc}')
         else:
             None
 
         # crear carpeta year
-        if not os.path.exists(f'{self.path_preproc}/{self.year}'):
-            os.mkdir(f'{self.path_preproc}/{self.year}')
+        if not os.path.exists(f'{path_preproc}/{self.year}'):
+            os.mkdir(f'{path_preproc}/{self.year}')
         else:
             None
 
         # crear carpeta year/month
-        if not os.path.exists(f'{self.path_preproc}/{self.year}/{self.month}'):
-            os.mkdir(f'{self.path_preproc}/{self.year}/{self.month}')
+        if not os.path.exists(f'{path_preproc}/{self.year}/{self.month}'):
+            os.mkdir(f'{path_preproc}/{self.year}/{self.month}')
         else:
             None
 
         # crear carpeta  year/month/day
-        if not os.path.exists(f'{self.path_preproc}/{self.year}/{self.month}/{self.day}'):
-            os.mkdir(f'{self.path_preproc}/{self.year}/{self.month}/{self.day}')
+        if not os.path.exists(f'{path_preproc}/{self.year}/{self.month}/{self.day}'):
+            os.mkdir(f'{path_preproc}/{self.year}/{self.month}/{self.day}')
         else:
             None
 
@@ -212,140 +209,3 @@ class preprocParquetSpark(luigi.Task):
         # guardar como parquet
         self.output().makedirs()
         df.write.parquet(self.output().path, mode="overwrite")
-
-
-class metaExtract(luigi.Task):
-    '''
-    Generar metadatos de la extracción de datos de la API
-    '''
-    # parámetros
-    path_raw = luigi.Parameter(default="s3://prueba-nyc311/raw")
-    path_preproc = luigi.Parameter(default="s3://prueba-nyc311/preproc")
-    year = luigi.Parameter()
-    month = luigi.Parameter()
-    day = luigi.Parameter()
-    bucket_name = luigi.Parameter(default="prueba-nyc311")
-
-    def requires(self):
-        return downloadRawJSONData(year=self.year, month=self.month, day=self.day)
-
-    def output(self):
-        output_path = f"{self.path_raw}/{self.year}/{self.month}/{self.day}/metaData_{self.year}_{self.month}_{self.day}.csv"
-        return luigi.contrib.s3.S3Target(path=output_path)
-
-    def run(self):
-         # Autenticación en S3
-        ses = boto3.session.Session(
-        profile_name={self.bucket_name}, region_name='us-west-2')
-        s3_resource = ses.resource('s3')
-        cwd = os.getcwd()  # path actual
-        file_path = self.input().path
-        cmd_name = "echo %s | awk -F \"/\" \'{print $NF}\'" % (file_path)
-        # obterner solo el nombre del archivo
-        file_name = functions.execv(cmd_name, cwd)
-        # crea df vacío usando pandas
-        columns = ['name', 'extention', 'schema', 'action', 'creator', 'machine', 'ip', 'creation_date', 'size', 'location',
-                   'entries', 'variables', 'script', 'log_script', 'status']
-        df = pd.DataFrame(columns=columns)
-        # defnir los comandos a utilizar para llenar las celdas
-        name_cmd = "echo  %s | awk -F\".\" \'{print $1}\'" % (file_name)
-        ext_cmd = "ls -lad %s | awk -F\".\" \'{print $NF}\' " % (file_path)
-        cre_cmd = "ls -lad %s | awk \'{print $3}\'" % (file_path)
-        mch_cmd = "  uname -a"
-        ip_cmd = "curl ipecho.net/plain ; echo"
-        cdt_cmd = "ls -lad %s | awk \'{print $6\"-\"$7\"-\"$8}'" % (file_path)
-        siz_cmd = "ls -lad -h %s | awk \'{print $5}\'" % (file_path)
-        ent_cmd = "jq length %s" % (file_path)
-
-        # llena el df
-        df.at[0, 'name'] = functions.execv(name_cmd, cwd)
-        df.at[0, 'extention'] = functions.execv(ext_cmd, cwd)
-        df.at[0, 'schema'] = 'raw'
-        df.at[0, 'action'] = 'download'
-        df.at[0, 'creator'] = functions.execv(cre_cmd, cwd)
-        df.at[0, 'machine'] = functions.execv(mch_cmd, cwd)
-        df.at[0, 'ip'] = functions.execv(ip_cmd, cwd)
-        df.at[0, 'creation_date'] = functions.execv(cdt_cmd, cwd)
-        df.at[0, 'size'] = functions.execv(siz_cmd, cwd)
-        df.at[0, 'location'] = file_path
-        df.at[0, 'entries'] = functions.execv(ent_cmd, cwd)
-        df.at[0, 'variables'] = None
-        df.at[0, 'script'] = None
-        df.at[0, 'log_script'] = None
-        df.at[0, 'status'] = None
-
-        # escribir csv para guardar la info
-        self.output().makedirs()
-        df.to_csv(self.output().path, mode="w+", index=False)
-
-
-class metaPreproc(luigi.Task):
-    '''
-    Generar metadatos del preprocesamiento de datos, donde se convierten de JSON
-    a parquet.
-    '''
-    # parámetros
-    path_raw = luigi.Parameter(default="s3://prueba-nyc311/raw")
-    path_preproc = luigi.Parameter(default="s3://prueba-nyc311/preproc")
-    year = luigi.Parameter()
-    month = luigi.Parameter()
-    day = luigi.Parameter()
-    bucket_name = luigi.Parameter(default="prueba-nyc311")
-
-    def requires(self):
-        return preprocParquetSpark(year=self.year, month=self.month, day=self.day)
-        # return preprocParquetPandas(year=self.year, month=self.month, day=self.day)
-
-    def output(self):
-        output_path = f"{self.path_preproc}/{self.year}/{self.month}/{self.day}/metaData_{self.year}_{self.month}_{self.day}.csv"
-        return luigi.contrib.s3.S3Target(path=output_path)
-
-    def run(self):
-         # Autenticación en S3
-        ses = boto3.session.Session(
-        profile_name={self.bucket_name}, region_name='us-west-2')
-        s3_resource = ses.resource('s3')
-
-        cwd = os.getcwd()  # path actual
-        file_path = self.input().path
-        # encontrar todos los archivos formato parquet
-        ls_parquet_files = functions.execv("ls *.parquet", file_path)
-        names_file=ls_parquet_files.split('\n')
-        cmd_name = "echo %s | awk -F \"/\" \'{print $NF}\'" % (file_path)
-        # obterner solo el nombre del archivo
-        file_name = functions.execv(cmd_name, cwd)
-        # crea df vacío usando pandas
-        columns = ['name', 'extention', 'schema', 'action','creator', 'machine', 'ip', 'creation_date','size', 'location',
-                   'entries', 'variables', 'script', 'log_script', 'status']
-        df = pd.DataFrame(columns=columns)
-        # defnir los comandos a utilizar para llenar las celdas
-        count = 0
-        for file in names_file:
-            # introducir nombre
-            cmd_name = "echo %s | awk -F \"/\" \'{print $NF}\'" % (file)
-            df.at[count, 'name' ] = functions.execv(cmd_name, cwd)
-            # introducir extension
-            ext_cmd = "ls -lad %s | awk -F\".\" \'{print $NF}\' " % (file)
-            df.at[count, 'extention'] = functions.execv(ext_cmd, cwd)
-            # esquema y acción
-            df.at[count, 'schema'] = 'preprocessing'
-            df.at[count, 'action'] = 'transform json to parquet'
-            # otras características de la creación
-            cre_cmd = "ls -lad %s | awk \'{print $3}\'" % (file)
-            df.at[count, 'creator'] = functions.execv(cre_cmd, cwd)
-            mch_cmd = "uname -a"
-            df.at[count, 'machine'] = functions.execv(mch_cmd, cwd)
-            ip_cmd = "curl ipecho.net/plain ; echo"
-            df.at[count, 'ip'] = functions.execv(ip_cmd, cwd)
-            cdt_cmd = "ls -lad %s | awk \'{print $6\"-\"$7\"-\"$8}\'" % (file)
-            df.at[count, 'creation_date'] = functions.execv(cdt_cmd, cwd)
-            siz_cmd = "ls -lad -h %s | awk \'{print $5}\'" % (file)
-            df.at[count, 'size'] = functions.execv(siz_cmd, cwd)
-            df.at[count, 'location'] = file_path
-
-            count += 1
-
-        # escribir csv para guardar la info
-        self.output().makedirs()
-        df.to_csv(self.output().path, mode="w+", index=False)
-
