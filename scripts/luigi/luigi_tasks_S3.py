@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import json
 import boto3
 import json
@@ -19,7 +20,6 @@ from sodapy import Socrata
 path_raw = 's3://prueba-nyc311/raw'
 path_preproc = 's3://prueba-nyc311/preprocess'
 
-# path para guardar los datos
 class downloadRawJSONData(luigi.Task):
     '''
     Descarga los datos de la API de 311 NYC en formato JSON en carpetas por
@@ -37,7 +37,8 @@ class downloadRawJSONData(luigi.Task):
 
     def run(self):
         # Autenticación en S3
-        ses = boto3.session.Session(profile_name='luigi_dpa', region_name='us-west-2')
+        ses = boto3.session.Session(
+            profile_name='luigi_dpa', region_name='us-west-2')
         s3_resource = ses.resource('s3')
 
         obj = s3_resource.Bucket(self.bucket)
@@ -52,30 +53,6 @@ class downloadRawJSONData(luigi.Task):
         # convertida a una lista de Python usando sodapy
         client.timeout = 1000
         limit = 1000000000
-
-        # crear carpeta raw
-        if not os.path.exists(f'{path_raw}'):
-            os.mkdir(f'{path_raw}')
-        else:
-            None
-
-        # crear carpeta year
-        if not os.path.exists(f'{path_raw}/{self.year}'):
-            os.mkdir(f'{path_raw}/{self.year}')
-        else:
-            None
-
-        # crear carpeta year/month
-        if not os.path.exists(f'{path_raw}/{self.year}/{self.month}'):
-            os.mkdir(f'{path_raw}/{self.year}/{self.month}')
-        else:
-            None
-
-        # crear carpeta  year/month/day
-        if not os.path.exists(f'{path_raw}/{self.year}/{self.month}/{self.day}'):
-            os.mkdir(f'{path_raw}/{self.year}/{self.month}/{self.day}')
-        else:
-            None
 
         # query
         results = client.get(
