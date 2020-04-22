@@ -26,7 +26,7 @@ class downloadRawJSONData(luigi.Task):
     fecha con frecuencia diaria.
     '''
     # parametros:
-    bucket_name = luigi.Parameter(default="prueba-nyc311")
+    bucket = luigi.Parameter(default="prueba-nyc311")
     year = luigi.Parameter()
     month = luigi.Parameter()
     day = luigi.Parameter()
@@ -40,7 +40,7 @@ class downloadRawJSONData(luigi.Task):
         ses = boto3.session.Session(profile_name='luigi_dpa', region_name='us-west-2')
         s3_resource = ses.resource('s3')
 
-        obj = s3_resource.Bucket(self.bucket_name)
+        obj = s3_resource.Bucket(self.bucket)
         print(ses)
         # Autenticación del cliente:
         client = Socrata(settings.get('dburl'),
@@ -89,13 +89,13 @@ class preprocParquetPandas(luigi.Task):
     Convertir datos descargados en JSON a formato PARQUET.
     '''
     # parametros
-    bucket_name = luigi.Parameter(default="prueba-nyc311")
+    bucket = luigi.Parameter(default="prueba-nyc311")
     year = luigi.Parameter()
     month = luigi.Parameter()
     day = luigi.Parameter()
 
     def requires(self):
-        return downloadRawJSONData(bucket_name=self.bucket_name, year=self.year, month=self.month, day=self.day, bucket_name=self.bucket_name)
+        return downloadRawJSONData(bucket=self.bucket, year=self.year, month=self.month, day=self.day, bucket=self.bucket)
 
     def output(self):
         output_path = f"{path_preproc}/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
@@ -106,7 +106,7 @@ class preprocParquetPandas(luigi.Task):
         ses = boto3.session.Session(profile_name='luigi_dpa', region_name='us-west-2')
         s3_resource = ses.resource('s3')
 
-        obj = s3_resource.Bucket(self.bucket_name)
+        obj = s3_resource.Bucket(self.bucket)
         print(ses)
 
         # crear carpeta preprocess
@@ -154,13 +154,13 @@ class preprocParquetSpark(luigi.Task):
     Convertir datos descargados en JSON a formato PARQUET.
     '''
     # parametros
-    bucket_name = luigi.Parameter(default="prueba-nyc311")
+    bucket = luigi.Parameter(default="prueba-nyc311")
     year = luigi.Parameter()
     month = luigi.Parameter()
     day = luigi.Parameter()
 
     def requires(self):
-        return downloadRawJSONData(bucket_name=self.bucket_name,year=self.year, month=self.month, day=self.day)
+        return downloadRawJSONData(bucket=self.bucket,year=self.year, month=self.month, day=self.day)
 
     def output(self):
         output_path = f"{path_preproc}/{self.year}/{self.month}/{self.day}/"
@@ -171,7 +171,7 @@ class preprocParquetSpark(luigi.Task):
         ses = boto3.session.Session(profile_name='luigi_dpa', region_name='us-west-2')
         s3_resource = ses.resource('s3')
 
-        obj = s3_resource.Bucket(self.bucket_name)
+        obj = s3_resource.Bucket(self.bucket)
         print(ses)
 
         # crear carpeta preprocess
