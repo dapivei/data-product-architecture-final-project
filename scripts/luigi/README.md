@@ -23,10 +23,10 @@ ssh -i  /tu/ruta/llave-bastion.pem /tu/ruta/llave/ec2/llave.pem ubuntu@ip-ec2:/h
 ```
 
 
-**2)** Una vez dentro del EC2, se ejecuta:
+**2)** Una vez dentro del EC2, para ejecutar la tarea de descarga de detos RAW hacia la `S3` se ejecuta:
 
 ```
-PYTHONPATH='.' luigi --module luigi_tasks_S3 preprocParquetPandas --local-scheduler --year 2020 --month 3 --day 10 --bucket_name prueba-nyc311
+PYTHONPATH="." AWS_PROFILE=luigi_dpa luigi --module luigi_tasks_S3 preprocParquetSpark --local-scheduler --bucket prueba-nyc311 --year 2020 --month 3 --day 10
 ```
 
 En este ejemplo en particular, estamos pasando los parámetros: year `<2020>`, month `<3>`, day `<10>`, bucket_name `<prueba-nyc311>`. Los mismos deberán ser modificados según se requiera. Por default, el buck_name es prueba-nyc311.
