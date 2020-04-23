@@ -7,6 +7,7 @@ import os
 import pandas as pd
 import functions  # modulo propio
 
+from luigi.contrib.postgres import CopyToTable
 from datetime import date
 from dynaconf import settings
 from pyspark import SparkContext
