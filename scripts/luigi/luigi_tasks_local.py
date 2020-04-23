@@ -342,7 +342,7 @@ class guardar_rds(CopyToTable):
         for element in r:
             yield element
             
-class guardar_rds_psyc(CopyToTable):
+class guardar_rds_psyc(luigi.Task):
     '''
     Test de guardado en base de datos - usando psycopg2
     '''
