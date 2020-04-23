@@ -322,9 +322,9 @@ class guardar_rds(CopyToTable):
     '''
     Test de guardado en base de datos - tomado de ejemplo de clase
     '''
-    x = luigi.IntParameter()
-    y = luigi.IntParameter()
-    z = luigi.IntParameter()
+    x_test = 1
+    y_test = 2
+    z_test = 3
 
     credentials = pd.read_csv("postgres_credentials.csv")
     user = credentials.user[0]
@@ -346,32 +346,32 @@ class guardar_rds_psyc(luigi.Task):
     '''
     Test de guardado en base de datos - usando psycopg2
     '''
-    x = luigi.IntParameter()
-    y = luigi.IntParameter()
-    z = luigi.IntParameter()
-    
-    user = credentials.user[0]
-    password = credentials.password[0]
-    database = credentials.database[0]
-    host = credentials.host[0]
-    table = 'test' # tabla de pruebas
-    
-    # se cargan credenciales del csv    
-    conn = ps.connect(host=hots,
-                  database=table,
-                  user=user,
-                  password=password,
-                  port="5432")
-    
-    cur = conn.cursor()
-    
-    x_val = str(self.x)
-    y_val = str(self.y)
-    z_val = str(self.z)
-    
-    sql = "INSERT INTO test (x, y, z) VALUES (x_val, y_val, z_val);"
+    x = luigi.Parameter()
+    y = luigi.Parameter()
+    z = luigi.Parameter()
 
-    cur.execute(sql)
-    conn.commit()
-    cur.close()
-    conn.close()
+    def run(self):
+        credentials = pd.read_csv("postgres_credentials.csv")
+        user = credentials.user[0]
+        password = credentials.password[0]
+        database = credentials.database[0]
+        host = credentials.host[0]
+        # se cargan credenciales del csv
+        conn = ps.connect(host=host,
+                        database=database,
+                        user=user,
+                        password=password,
+                        port="5432")
+
+                        cur = conn.cursor()
+
+        x_val = str(self.x)
+        y_val = str(self.y)
+        z_val = str(self.z)
+
+        sql = "INSERT INTO test (x, y, z) VALUES (x_val, y_val, z_val);"
+                        
+        cur.execute(sql)
+        conn.commit()
+        cur.close()
+        conn.close()
