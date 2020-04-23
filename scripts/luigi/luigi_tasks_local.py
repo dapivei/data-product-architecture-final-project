@@ -8,6 +8,10 @@ import pandas as pd
 import functions   # modulo propio
 import psycopg2 as ps
 
+# carga de bases de datos
+from luigi.contrib.postgres import CopyToTable
+import psycopg2 as ps
+
 from datetime import date
 from dynaconf import settings
 from pyspark import SparkContext
@@ -349,14 +353,3 @@ class metaPreproc(luigi.Task):
         self.output().makedirs()
         df.to_csv(self.output().path, mode="w+", index=False)
 
-class ELTprocess(luigi.Task):
-        '''
-        Corre el proceso de ELT generando metadatos.
-        '''
-        # parámetros
-        year = luigi.Parameter()
-        month = luigi.Parameter()
-        day = luigi.Parameter()
-
-        def requires(self):
-            return metaPreproc(year=self.year, month=self.month, day=self.day),
