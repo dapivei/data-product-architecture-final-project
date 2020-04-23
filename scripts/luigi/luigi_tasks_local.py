@@ -6,6 +6,7 @@ import luigi
 import os
 import pandas as pd
 import functions  # modulo propio
+import psycopg2 as ps
 
 from datetime import date
 from dynaconf import settings
@@ -217,8 +218,7 @@ class metaExtract(luigi.Task):
         # obterner solo el nombre del archivo
         file_name = functions.execv(cmd_name, cwd)
         # crea df vacío usando pandas
-        columns = ['name', 'extention', 'schema', 'action', 'creator', 'machine', 'ip', 'creation_date', 'size', 'location',
-                   'entries', 'variables', 'script', 'log_script', 'status']
+        columns = ['name', 'extention', 'schema', 'action', 'creator', 'machine', 'ip', 'creation_date', 'size', 'location','entries', 'variables', 'script', 'log_script', 'status']
         df = pd.DataFrame(columns=columns)
         # defnir los comandos a utilizar para llenar las celdas
         name_cmd = "echo  %s | awk -F\".\" \'{print $1}\'" % (file_name)
@@ -280,8 +280,7 @@ class metaPreproc(luigi.Task):
         # obterner solo el nombre del archivo
         file_name = functions.execv(cmd_name, cwd)
         # crea df vacío usando pandas
-        columns = ['name', 'extention', 'schema', 'action','creator', 'machine', 'ip', 'creation_date','size', 'location',
-                   'entries', 'variables', 'script', 'log_script', 'status']
+        columns = ['name', 'extention', 'schema', 'action','creator', 'machine', 'ip', 'creation_date','size', 'location','entries', 'variables', 'script', 'log_script', 'status']
         df = pd.DataFrame(columns=columns)
         # defnir los comandos a utilizar para llenar las celdas
         count = 0
@@ -307,14 +306,34 @@ class metaPreproc(luigi.Task):
             siz_cmd = "ls -lad -h %s | awk \'{print $5}\'" % (file)
             df.at[count, 'size'] = functions.execv(siz_cmd, cwd)
             df.at[count, 'location'] = file_path
-
             count += 1
+
+        credentials = {'POSTGRES_ADDRESS' : 'dpa-nyc311.c9aurezhx2pc.us-west-2.rds.amazonaws.com',
+            'POSTGRES_PORT' : '5432',
+	    'POSTGRES_USERNAME' : 'postgres',
+	    'POSTGRES_PASSWORD' : 'itam2020',
+	    'POSTGRES_DBNAME' : 'metadata'}
+
+        conn = ps.connect(host=credentials['POSTGRES_ADDRESS'],
+            database=credentials['POSTGRES_DBNAME'],
+            user=credentials['POSTGRES_USERNAME'],
+            password=credentials['POSTGRES_PASSWORD'],
+            port=credentials['POSTGRES_PORT'])
+
+        cur = conn.cursor()
+        sql="INSERT INTO raw.etl_execution (name,action) VALUES (%s,%s);"
+        #sql="INSERT INTO raw.etl_execution ('name', 'extention', 'schema', 'action','creator',"
+        #sql=sql+ " 'machine', 'ip', 'creation_date','size', 'location','entries', 'variables', 'script', 'log_script', 'status') VALUE (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)"
+        cur.execute(sql,(ip_cmd,cdt_cmd))
+        conn.commit()
+        cur.close()
+        conn.close()
 
         # escribir csv para guardar la info
         self.output().makedirs()
         df.to_csv(self.output().path, mode="w+", index=False)
 
-    class ELTprocess(luigi.Task):
+class ELTprocess(luigi.Task):
         '''
         Corre el proceso de ELT generando metadatos.
         '''
