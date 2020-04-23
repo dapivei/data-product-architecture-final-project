@@ -7,7 +7,10 @@ import os
 import pandas as pd
 import functions  # modulo propio
 
+# carga de bases de datos
 from luigi.contrib.postgres import CopyToTable
+import psycopg2 as ps
+
 from datetime import date
 from dynaconf import settings
 from pyspark import SparkContext
@@ -324,9 +327,6 @@ class guardar_rds(CopyToTable):
     z = luigi.IntParameter()
 
     credentials = pd.read_csv("postgres_credentials.csv")
-    print("="*100)
-    print(credentials)
-    print("="*100)
     user = credentials.user[0]
     password = credentials.password[0]
     database = credentials.database[0]
@@ -341,3 +341,37 @@ class guardar_rds(CopyToTable):
         r = [("test 1", str(x_test)), ("test 2",str(y_test)), ("test 3",str(z_test))]
         for element in r:
             yield element
+            
+class guardar_rds_psyc(CopyToTable):
+    '''
+    Test de guardado en base de datos - usando psycopg2
+    '''
+    x = luigi.IntParameter()
+    y = luigi.IntParameter()
+    z = luigi.IntParameter()
+    
+    user = credentials.user[0]
+    password = credentials.password[0]
+    database = credentials.database[0]
+    host = credentials.host[0]
+    table = 'test' # tabla de pruebas
+    
+    # se cargan credenciales del csv    
+    conn = ps.connect(host=hots,
+                  database=table,
+                  user=user,
+                  password=password,
+                  port="5432")
+    
+    cur = conn.cursor()
+    
+    x_val = str(self.x)
+    y_val = str(self.y)
+    z_val = str(self.z)
+    
+    sql = "INSERT INTO test (x, y, z) VALUES (x_val, y_val, z_val);"
+
+    cur.execute(sql)
+    conn.commit()
+    cur.close()
+    conn.close()
