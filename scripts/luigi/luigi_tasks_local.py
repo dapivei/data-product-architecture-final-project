@@ -314,14 +314,29 @@ class metaPreproc(luigi.Task):
         self.output().makedirs()
         df.to_csv(self.output().path, mode="w+", index=False)
 
-    class ELTprocess(luigi.Task):
-        '''
-        Corre el proceso de ELT generando metadatos.
-        '''
-        # parámetros
-        year = luigi.Parameter()
-        month = luigi.Parameter()
-        day = luigi.Parameter()
+class guardar_rds(CopyToTable):
+    '''
+    Test de guardado en base de datos - tomado de ejemplo de clase
+    '''
+    x = luigi.IntParameter()
+    y = luigi.IntParameter()
+    z = luigi.IntParameter()
 
-        def requires(self):
-            return metaPreproc(year=self.year, month=self.month, day=self.day),
+    credentials = pd.read_csv("postgres_credentials.csv")
+    print("="*100)
+    print(credentials)
+    print("="*100)
+    user = credentials.user[0]
+    password = credentials.password[0]
+    database = credentials.database[0]
+    host = credentials.host[0]
+    table = 'test'
+
+    columns = [("x", "VARCHAR"),
+               ("y", "VARCHAR"),
+               ("z", "VARCHAR")]
+
+    def rows(self):
+        r = [("test 1", str(x_test)), ("test 2",str(y_test)), ("test 3",str(z_test))]
+        for element in r:
+            yield element
