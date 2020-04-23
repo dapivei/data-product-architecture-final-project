@@ -47,22 +47,23 @@ def get_extract_metadata(file_path,cwd):
     size = execv(siz_cmd, cwd)
     location = file_path
     entries = execv(ent_cmd, cwd)
-    variables = None
-    script = None
-    log_script = None
-    status = None
+    variables = 'a'
+    script = 'a'
+    log_script = 'a'
+    status = 'a'
 
-    return (name,
-            extention,
-            schema,
-            action,
-            creator,
-            machine,
-            ip,
-            creation_date,
-            size,
-            location,
-            entries,
+    return (str(name),
+            str(extention),
+            str(schema),
+            str(action),
+            str(creator),
+            str(machine),
+            str(ip),
+            str(creation_date),
+            str(size),
+            str(location),
+            str(entries),
             variables,
             script,
-            log_script,status)
+            log_script,
+            status)

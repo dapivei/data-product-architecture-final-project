@@ -222,7 +222,8 @@ class metaExtract(luigi.Task):
                         user=settings.get('usr'),
                         password=settings.get('password'))
         cur = conn.cursor()
-        sql="INSERT INTO raw.etl_execution VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"
+        columns = "(name, extention, schema, action, creator, machine, ip, creation_date, size, location,entries, variables, script, log_script, status)"
+        sql="INSERT INTO raw.etl_execution " + columns + " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"
         cur.execute(sql,metadat)
         conn.commit()
         cur.close()
@@ -264,8 +265,9 @@ class metaExtract(luigi.Task):
         df.at[0, 'status'] = None
         '''
         # escribir csv para guardar la info
+        df = pd.DataFrame()
         self.output().makedirs()
-        #df.to_csv(self.output().path, mode="w+", index=False)
+        df.to_csv(self.output().path, mode="w+", index=False)
 
 
 class metaPreproc(luigi.Task):
