@@ -233,41 +233,6 @@ class metaExtract(luigi.Task):
         cur.close()
         conn.close()
 
-        #file_name = functions.execv(cmd_name, cwd)
-        '''
-        cmd_name = "echo %s | awk -F \"/\" \'{print $NF}\'" % (file_path)
-        # obterner solo el nombre del archivo
-
-        # crea df vacío usando pandas
-        columns = ['name', 'extention', 'schema', 'action', 'creator', 'machine', 'ip', 'creation_date', 'size', 'location','entries', 'variables', 'script', 'log_script', 'status']
-        df = pd.DataFrame(columns=columns)
-        # defnir los comandos a utilizar para llenar las celdas
-        name_cmd = "echo  %s | awk -F\".\" \'{print $1}\'" % (file_name)
-        ext_cmd = "ls -lad %s | awk -F\".\" \'{print $NF}\' " % (file_path)
-        cre_cmd = "ls -lad %s | awk \'{print $3}\'" % (file_path)
-        mch_cmd = "  uname -a"
-        ip_cmd = "curl ipecho.net/plain ; echo"
-        cdt_cmd = "ls -lad %s | awk \'{print $6\"-\"$7\"-\"$8}'" % (file_path)
-        siz_cmd = "ls -lad -h %s | awk \'{print $5}\'" % (file_path)
-        ent_cmd = "jq length %s" % (file_path)
-
-        # llena el df
-        df.at[0, 'name'] = functions.execv(name_cmd, cwd)
-        df.at[0, 'extention'] = functions.execv(ext_cmd, cwd)
-        df.at[0, 'schema'] = 'raw'
-        df.at[0, 'action'] = 'download'
-        df.at[0, 'creator'] = functions.execv(cre_cmd, cwd)
-        df.at[0, 'machine'] = functions.execv(mch_cmd, cwd)
-        df.at[0, 'ip'] = functions.execv(ip_cmd, cwd)
-        df.at[0, 'creation_date'] = functions.execv(cdt_cmd, cwd)
-        df.at[0, 'size'] = functions.execv(siz_cmd, cwd)
-        df.at[0, 'location'] = file_path
-        df.at[0, 'entries'] = functions.execv(ent_cmd, cwd)
-        df.at[0, 'variables'] = None
-        df.at[0, 'script'] = None
-        df.at[0, 'log_script'] = None
-        df.at[0, 'status'] = None
-        '''
         # escribir csv para guardar la info
         df = pd.DataFrame()
         self.output().makedirs()
@@ -352,4 +317,3 @@ class metaPreproc(luigi.Task):
         # escribir csv para guardar la info
         self.output().makedirs()
         df.to_csv(self.output().path, mode="w+", index=False)
-
