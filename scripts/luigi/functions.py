@@ -19,3 +19,51 @@ def execv(command, path):
     if stdout == '' and not os.path.exists(stderr):
         raise Exception(stderr)
     return stdout.decode('utf-8') #, stderr.decode('utf-8')
+
+
+def get_extract_metadata(file_path,cwd):
+    # obterner solo el nombre del archivo
+    cmd_name = "echo %s | awk -F \"/\" \'{print $NF}\'" % (file_path)
+    file_name = execv(cmd_name, cwd)
+    name_cmd = "echo  %s | awk -F\".\" \'{print $1}\'" % (file_name)
+    ext_cmd = "ls -lad %s | awk -F\".\" \'{print $NF}\' " % (file_path)
+    cre_cmd = "ls -lad %s | awk \'{print $3}\'" % (file_path)
+    mch_cmd = "  uname -a"
+    ip_cmd = "curl ipecho.net/plain ; echo"
+    cdt_cmd = "ls -lad %s | awk \'{print $6\"-\"$7\"-\"$8}'" % (file_path)
+    siz_cmd = "ls -lad -h %s | awk \'{print $5}\'" % (file_path)
+    ent_cmd = "jq length %s" % (file_path)
+
+    # llena el df
+    file_name = execv(cmd_name, cwd)
+    name = execv(name_cmd, cwd)
+    extention = execv(ext_cmd, cwd)
+    schema = 'raw'
+    action = 'download'
+    creator = execv(cre_cmd, cwd)
+    machine = execv(mch_cmd, cwd)
+    ip = execv(ip_cmd, cwd)
+    creation_date = execv(cdt_cmd, cwd)
+    size = execv(siz_cmd, cwd)
+    location = file_path
+    entries = execv(ent_cmd, cwd)
+    variables = 'a'
+    script = 'a'
+    log_script = 'a'
+    status = 'a'
+
+    return (str(name),
+            str(extention),
+            str(schema),
+            str(action),
+            str(creator),
+            str(machine),
+            str(ip),
+            str(creation_date),
+            str(size),
+            str(location),
+            str(entries),
+            variables,
+            script,
+            log_script,
+            status)

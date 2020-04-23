@@ -5,7 +5,8 @@ import json
 import luigi
 import os
 import pandas as pd
-import functions  # modulo propio
+import functions   # modulo propio
+import psycopg2 as ps
 
 # carga de bases de datos
 from luigi.contrib.postgres import CopyToTable
@@ -217,12 +218,28 @@ class metaExtract(luigi.Task):
     def run(self):
         cwd = os.getcwd()  # path actual
         file_path = self.input().path
+        metadat= functions.get_extract_metadata(file_path,cwd)
+
+        conn=ps.connect(host=settings.get('host'),
+                        port=settings.get('port'),
+                        database=settings.get('database'),
+                        user=settings.get('usr'),
+                        password=settings.get('password'))
+        cur = conn.cursor()
+        columns = "(name, extention, schema, action, creator, machine, ip, creation_date, size, location,entries, variables, script, log_script, status)"
+        sql="INSERT INTO raw.etl_execution " + columns + " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"
+        cur.execute(sql,metadat)
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        #file_name = functions.execv(cmd_name, cwd)
+        '''
         cmd_name = "echo %s | awk -F \"/\" \'{print $NF}\'" % (file_path)
         # obterner solo el nombre del archivo
-        file_name = functions.execv(cmd_name, cwd)
+
         # crea df vacío usando pandas
-        columns = ['name', 'extention', 'schema', 'action', 'creator', 'machine', 'ip', 'creation_date', 'size', 'location',
-                   'entries', 'variables', 'script', 'log_script', 'status']
+        columns = ['name', 'extention', 'schema', 'action', 'creator', 'machine', 'ip', 'creation_date', 'size', 'location','entries', 'variables', 'script', 'log_script', 'status']
         df = pd.DataFrame(columns=columns)
         # defnir los comandos a utilizar para llenar las celdas
         name_cmd = "echo  %s | awk -F\".\" \'{print $1}\'" % (file_name)
@@ -250,8 +267,9 @@ class metaExtract(luigi.Task):
         df.at[0, 'script'] = None
         df.at[0, 'log_script'] = None
         df.at[0, 'status'] = None
-
+        '''
         # escribir csv para guardar la info
+        df = pd.DataFrame()
         self.output().makedirs()
         df.to_csv(self.output().path, mode="w+", index=False)
 
@@ -284,15 +302,16 @@ class metaPreproc(luigi.Task):
         # obterner solo el nombre del archivo
         file_name = functions.execv(cmd_name, cwd)
         # crea df vacío usando pandas
-        columns = ['name', 'extention', 'schema', 'action','creator', 'machine', 'ip', 'creation_date','size', 'location',
-                   'entries', 'variables', 'script', 'log_script', 'status']
+        columns = ['name', 'extention', 'schema', 'action','creator', 'machine', 'ip', 'creation_date','size', 'location','entries', 'variables', 'script', 'log_script', 'status']
         df = pd.DataFrame(columns=columns)
         # defnir los comandos a utilizar para llenar las celdas
         count = 0
+
         for file in names_file:
             # introducir nombre
             cmd_name = "echo %s | awk -F \"/\" \'{print $NF}\'" % (file)
-            df.at[count, 'name' ] = functions.execv(cmd_name, cwd)
+            #df.at[count, 'name' ] = functions.execv(cmd_name, cwd)
+            cmd_name=functions.execv(cmd_name, cwd)
             # introducir extension
             ext_cmd = "ls -lad %s | awk -F\".\" \'{print $NF}\' " % (file)
             df.at[count, 'extention'] = functions.execv(ext_cmd, cwd)
@@ -311,9 +330,26 @@ class metaPreproc(luigi.Task):
             siz_cmd = "ls -lad -h %s | awk \'{print $5}\'" % (file)
             df.at[count, 'size'] = functions.execv(siz_cmd, cwd)
             df.at[count, 'location'] = file_path
-
             count += 1
+
+        vars=(cmd_name,cdt_cmd)
+        conn=ps.connect(host=settings.get('host'),
+                        port=settings.get('port'),
+                        database=settings.get('database'),
+                        user=settings.get('usr'),
+                        password=settings.get('password'))
+        cur = conn.cursor()
+        sql="INSERT INTO raw.etl_execution (name,action) VALUES (%s,%s);"
+        #sql="INSERT INTO raw.etl_execution ('name', 'extention', 'schema', 'action','creator',"
+        #sql=sql+ " 'machine', 'ip', 'creation_date','size', 'location','entries', 'variables', 'script', 'log_script', 'status') VALUE (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)"
+
+        cur.execute(sql,vars)
+
+        conn.commit()
+        cur.close()
+        conn.close()
 
         # escribir csv para guardar la info
         self.output().makedirs()
         df.to_csv(self.output().path, mode="w+", index=False)
+

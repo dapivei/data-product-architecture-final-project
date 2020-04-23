@@ -3,3 +3,9 @@ dburl = "data.cityofnewyork.us"
 apptoken = "N2WpW61JnP5RoT5mrYGUaSUg9"
 user = "villa.lizarraga@gmail.com"
 pass = "Itam1234567890@"
+
+host = "dpa-nyc311.c9aurezhx2pc.us-west-2.rds.amazonaws.com"
+port = '5432'
+database = 'metadata'
+usr = 'postgres'
+password = 'itam2020'
