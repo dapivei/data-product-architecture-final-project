@@ -42,7 +42,7 @@ En este punto ya tenemos a los usuarios agregados: todos con la misma contraseñ
 
 Una vez creados los usuarios, copiaremos las llaves públicas de cada uno de los usuarios a su usuario correspondiente.
 
-1° Es necesario modificar el archivo `sudo nano /etc/ssh/sshd_config` y cambiar los parámetros a la siguiente configuración:
+1. Es necesario modificar el archivo `sudo nano /etc/ssh/sshd_config` y cambiar los parámetros a la siguiente configuración:
 
 ```
 PubkeyAuthentication yes
@@ -56,19 +56,19 @@ sudo service sshd restart
 
 ```
 
-2° Realizar el copiado de las llaves al bastión, de forma segura:
+2. Realizar el copiado de las llaves al bastión, de forma segura:
 
 ```
 ssh-copy-id -f -i /ruta/llave/id_llave.pub usuario@ip-ec2
 ```
 
-3° Finalmente, nos reconectamos al bastión y cambiamos la configuración del archivo `sudo nano /etc/ssh/sshd_config` dejando el siguiente parámetro:
+3. Finalmente, nos reconectamos al bastión y cambiamos la configuración del archivo `sudo nano /etc/ssh/sshd_config` dejando el siguiente parámetro:
 
 ```
 PasswordAuthentication no
 ```
 
-4° Reiniciamos el servicio `sudo service sshd restart `
+4. Reiniciamos el servicio `sudo service sshd restart `
 
 Para conectarnos usando el protocolo `ssh`  y la llave privada, utilizamos el siguiente comando:
 
