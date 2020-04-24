@@ -95,7 +95,7 @@ A continuación se presentan los pasos a seguir para configurar y levantar el cl
 
 Conectado en el servicio `EMR` de `AWS`, damos click en el botón `crear cluster`. Nombramos el cluster; en configuración de software escogemos `emr-5.29.0` con aplicaciones `Spark: Spark 2.4.4 on Hadoop 2.8.5 YARN with Ganglia 3.7.2 and Zeppelin 0.8.2` y finalmente seleccionamos `crear cluster`
 
-Para la conexión al cluster es recomendable utilizar el explorador `chrome`. En el explorador abrimos la siguiente (liga)[https://chrome.google.com/webstore/detail/foxyproxy-standard/gcknhkkoolaabfmlnjonogaaifnjlfnp?hl=es] para instalar el complemento `FoxyProxy Standard`, dentro de este complemento en `options > import/export ` subimos el archivo `foxyproxy-settings.xml`, por último en `proxy mode` seleccionamos la opción `Use proxies based on their pre-defined patterns and priorities`
+Para la conexión al cluster es recomendable utilizar el explorador `chrome`. En el explorador abrimos la siguiente [liga](https://chrome.google.com/webstore/detail/foxyproxy-standard/gcknhkkoolaabfmlnjonogaaifnjlfnp?hl=es) para instalar el complemento `FoxyProxy Standard`, dentro de este complemento en `options > import/export ` subimos el archivo `foxyproxy-settings.xml`, por último en `proxy mode` seleccionamos la opción `Use proxies based on their pre-defined patterns and priorities`
 
 + 1. Abrimos el tunel `ssh` desde la linea de comandos de la siguiente forma.
 ```
