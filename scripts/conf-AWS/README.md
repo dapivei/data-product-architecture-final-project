@@ -89,7 +89,7 @@ ssh -i  /tu/ruta/llave-bastion.pem /tu/ruta/llave/ec2/llave.pem ubuntu@ip-ec2:/h
 Nos conectamos al bastión y en la ruta `/home/ubuntu/.ssh` tendremos guardada la `llave.pem`. En este punto solo tendremos que hacer la conexión usando el protocolo `ssh`.
 
 
-### Para levantar cluster
+### V. Para levantar cluster
 
 A continuación se presentan los pasos a seguir para configurar y levantar el cluster, conexión y trabajo dentro del mismo. Para el óptimo desarrollo se tiene como consideración que los datos se encuentran guardados en una `S3`.
 
@@ -97,11 +97,11 @@ Conectado en el servicio `EMR` de `AWS`, damos click en el botón `crear cluster
 
 Para la conexión al cluster es recomendable utilizar el explorador `chrome`. En el explorador abrimos la siguiente [liga](https://chrome.google.com/webstore/detail/foxyproxy-standard/gcknhkkoolaabfmlnjonogaaifnjlfnp?hl=es "complemento FoxyProxy") para instalar el complemento `FoxyProxy Standard`, dentro de este complemento en `options > import/export ` subimos el archivo `foxyproxy-settings.xml`, por último en `proxy mode` seleccionamos la opción `Use proxies based on their pre-defined patterns and priorities`
 
-+ 1. Abrimos el tunel `ssh` desde la linea de comandos de la siguiente forma.
++  Abrimos el tunel `ssh` desde la linea de comandos de la siguiente forma.
 ```
 ssh -i ~/ruta/llave.pem -ND 8157 hadoop@dns_ip_aws
 ```
-+ 2. Desde `Choreme` nos conectamos a la siguiente ruta para utilizar `Zeppelin`.
++  Desde `Choreme` nos conectamos a la siguiente ruta para utilizar `Zeppelin`.
 ```
 dns_ip_aws:8890
 ```
