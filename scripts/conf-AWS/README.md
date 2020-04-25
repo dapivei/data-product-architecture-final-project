@@ -88,6 +88,16 @@ ssh -i  /tu/ruta/llave-bastion.pem /tu/ruta/llave/ec2/llave.pem ubuntu@ip-ec2:/h
 
 Nos conectamos al bastión y en la ruta `/home/ubuntu/.ssh` tendremos guardada la `llave.pem`. En este punto solo tendremos que hacer la conexión usando el protocolo `ssh`.
 
+Para asegurar el correcto funcionamiento del host de luigi se debe habilitar el puerto `8082`. La conexión se realiza usando el siguiente comando en la EC2
+```
+luigid
+```
+Esto activa el puerto `8082` y permite que nos conectemos usando el navegador de internet en la siguiente liga
+```
+ip_ec2:8082
+```
+
+Nota: si falla la conexión a la EC2 y por alguna razón no permite entrar a la liga debemos usar el siguiente comando ` sudo lsof -t -i tcp:8082 | xargs kill -9` esto termina la conexión previa y así podemos reiniciar.
 
 ### V. Para levantar cluster
 
