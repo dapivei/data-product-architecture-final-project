@@ -1,4 +1,96 @@
-import subprocess as sub
+import subprocess as sub # execv
+
+from sodapy import Socrata # queryApi311
+from dynaconf import settings # queryApi311
+
+from datetime import date
+from dynaconf import settings
+from pyspark.sql import SQLContext
+from pyspark import SparkContext
+from sodapy import Socrata
+
+##########################
+import datetime
+import getpass
+import platform
+import os
+import socket
+#from functionsV2 import execv
+
+class raw_metadata():
+    def __init__(self,
+                 name="",
+                 extention="json",
+                 schema="raw",
+                 action="download from NYC 311 API",
+                 creator="",
+                 machine="",
+                 localhost = "",
+                 ip="",
+                 creation_date="",
+                 size="",
+                 location="",
+                 status="sucess",
+                 param_year="",
+                 param_month="",
+                 param_day="",
+                 param_bucket=""):
+
+        # asignamos las características de los metadatos
+        self.name = name
+        self.extention = extention
+        self.schema = schema
+        self.action = action
+        self.creator = creator
+        self.machine = machine
+        self.ip = ip
+        self.creation_date = creation_date
+        self.size = size
+        self.location = location
+        self.status= status
+        self.param_year = param_year
+        self.param_month = param_month
+        self.param_day = param_day
+        self.param_bucket = param_bucket
+
+    def lista(self):
+        return (self.name, self.extention, self.schema, self.action,
+               self.creator, self.machine, self.ip, self.creation_date,
+               self.size, self.location, self.status, self.param_year,
+               self.param_month, self.param_day, self.param_bucket)
+
+def metaDataRaw():
+            cwd = os.getcwd() # directorio actual
+            raw_meta = raw_metadata()
+            raw_meta.name = f"data_{self.year}_{self.month}_{self.day}"
+            raw_meta.user = str(getpass.getuser())
+            raw_meta.machine = str(platform.platform())
+            raw_meta.ip = execv("curl ipecho.net/plain ; echo", cwd)
+            raw_meta.creation_date = str(datetime.datetime.now())
+            raw_meta.location = f"{path_raw}/{raw_meta.name}"
+            raw_meta.param_year = str(self.year)
+            raw_meta.param_month = str(self.month)
+            raw_meta.param_day = str(self.day)
+            raw_meta.param_bucket = str(self.bucket)
+
+def queryApi311(year, month, day):
+    # Usado en Task1 : Consulta a la API
+    # Autenticación del cliente:
+    client = Socrata(settings.get('dburl'),
+                     settings.get('apptoken'),
+                     username=settings.get('user'),
+                     password=settings.get('pass'))
+
+    # los resultados son retornados como un archivo JSON desde la API /
+    # convertida a una lista de Python usando sodapy
+    client.timeout = 1000
+    limit = 1000000000
+
+    # query
+    results = client.get(
+        "erm2-nwe9", limit=limit, where=f"created_date between '{year}-{month}-{day}T00:00:00.000' and '{year}-{month}-{day}T23:59:59.999'")
+
+    return results
 
 def execv(command, path):
     '''
