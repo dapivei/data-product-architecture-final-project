@@ -116,13 +116,15 @@ El desarrollo de este producto de datos tiene los siguientes objetivos:
 
 </p>  
 
-
 **Extract, Transform and Load (ETL)**
 ##### Deploy
 1. Script en python que hace peticiones a la API de **socrata** usando la librería **sodapy** solicitando todos los registros de la base de datos en formato JSON.
 2. En la EC2 se recibe el archivo de datos y se guarda en la instancia S3. El script hace las predicciones por fecha y los archivos respuesta se van guardando en una estructura de carpetas dentro de S3. El S3 está encriptado de tal manera que solamente pueden ingresar con las credenciales asignadas.
 3. Alimentamos el esquema **preprocessed** en el cual se genera la misma estructura de carpetas y los archivos JSON se guardan en formato parquet.
 4. Se genera el esquema **cleaned** a partir del esquema preprocessed. En este esquema se eliminan las columnas que no tienen variabilidad o son en su mayoría valores nulos. Se asignan los tipos de dato a cada columna y se limpian acentos y caracteres extraños de nombres de columnas y observaciones. Se conserva el formato parquet.
+
+
+Los detalles de la configuración y uso de la arquitura utilizada en AWS se encuenta en [scripts aws](https://github.com/dapivei/data-product-architecture-final-project/tree/master/scripts/conf-AWS "aws configuración")
 
 ##### Desarrollo
 ###### Extract
@@ -148,18 +150,18 @@ El desarrollo de este producto de datos tiene los siguientes objetivos:
 #### Linaje de Datos: Metadatos y Diseño de Tablas(RDS) para la fase del *Extract, Load and Transform(ETL)*
 
 ****
-##### Objetivo: 
+##### Objetivo:
 
-Presentación de los esquemas que representan el linaje de datos del ETL del proyecto "311 NYC SR". 
+Presentación de los esquemas que representan el linaje de datos del ETL del proyecto "311 NYC SR".
 ****
 
 <div align="justify">
 
-    
+
 ##### Raw
 
 > **Descripción:**
-**1)** Petición a la [API](https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2010-to-Present/erm2-nwe9) los datos, filtrados por fecha. 
+**1)** Petición a la [API](https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2010-to-Present/erm2-nwe9) los datos, filtrados por fecha.
 **2)** Guardado de los datos en formato original (json) dentro de un bucket en `S3`. Nota: Se requieren todas las variables con las que cuenta la base de datos.  
 
 > **Metadata asociada**:
@@ -225,7 +227,7 @@ Presentación de los esquemas que representan el linaje de datos del ETL del pro
 + Nombre de archivos creados
 + Ruta donde se guardaron
 + Descripción de transformaciones a cada columna
-+ Descripción de nuevas variables 
++ Descripción de nuevas variables
 + Tag de código de github que se ejecutó
 + Parámetros del script
 + Número de registros modificados
@@ -233,7 +235,7 @@ Presentación de los esquemas que representan el linaje de datos del ETL del pro
 + Estatus de ejecución
 
 ##### ML preprocessing
-    
+
 Se le hacen las transformaciónes a los datos con el fin de ponerlos en formato y poderlos procesar con algoritmos de machine learning. Se ponen etiquetas numpericas a las variables categóricas y one hot encoding.
 
 

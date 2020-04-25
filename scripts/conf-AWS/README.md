@@ -42,7 +42,7 @@ En este punto ya tenemos a los usuarios agregados: todos con la misma contraseñ
 
 Una vez creados los usuarios, copiaremos las llaves públicas de cada uno de los usuarios a su usuario correspondiente.
 
-1° Es necesario modificar el archivo `sudo nano /etc/ssh/sshd_config` y cambiar los parámetros a la siguiente configuración:
+1. Es necesario modificar el archivo `sudo nano /etc/ssh/sshd_config` y cambiar los parámetros a la siguiente configuración:
 
 ```
 PubkeyAuthentication yes
@@ -52,23 +52,23 @@ PubkeyAuthentication yes
 Ahora solo es necesario reiniciar el servicio sshd con el comando:
 
 ```
-sudo service sshd restart 
+sudo service sshd restart
 
 ```
 
-2° Realizar el copiado de las llaves al bastión, de forma segura:
+2. Realizar el copiado de las llaves al bastión, de forma segura:
 
 ```
 ssh-copy-id -f -i /ruta/llave/id_llave.pub usuario@ip-ec2
 ```
 
-3° Finalmente, nos reconectamos al bastión y cambiamos la configuración del archivo `sudo nano /etc/ssh/sshd_config` dejando el siguiente parámetro:
+3. Finalmente, nos reconectamos al bastión y cambiamos la configuración del archivo `sudo nano /etc/ssh/sshd_config` dejando el siguiente parámetro:
 
 ```
 PasswordAuthentication no
 ```
 
-4° Reiniciamos el servicio `sudo service sshd restart `
+4. Reiniciamos el servicio `sudo service sshd restart `
 
 Para conectarnos usando el protocolo `ssh`  y la llave privada, utilizamos el siguiente comando:
 
@@ -87,5 +87,35 @@ ssh -i  /tu/ruta/llave-bastion.pem /tu/ruta/llave/ec2/llave.pem ubuntu@ip-ec2:/h
 ```
 
 Nos conectamos al bastión y en la ruta `/home/ubuntu/.ssh` tendremos guardada la `llave.pem`. En este punto solo tendremos que hacer la conexión usando el protocolo `ssh`.
+
+Para asegurar el correcto funcionamiento del host de luigi se debe habilitar el puerto `8082`. La conexión se realiza usando el siguiente comando en la EC2
+```
+luigid
+```
+Esto activa el puerto `8082` y permite que nos conectemos usando el navegador de internet en la siguiente liga
+```
+ip_ec2:8082
+```
+
+Nota: si falla la conexión a la EC2 y por alguna razón no permite entrar a la liga debemos usar el siguiente comando ` sudo lsof -t -i tcp:8082 | xargs kill -9` esto termina la conexión previa y así podemos reiniciar.
+
+### V. Para levantar cluster
+
+A continuación se presentan los pasos a seguir para configurar y levantar el cluster, conexión y trabajo dentro del mismo. Para el óptimo desarrollo se tiene como consideración que los datos se encuentran guardados en una `S3`.
+
+Conectado en el servicio `EMR` de `AWS`, damos click en el botón `crear cluster`. Nombramos el cluster; en configuración de software escogemos `emr-5.29.0` con aplicaciones `Spark: Spark 2.4.4 on Hadoop 2.8.5 YARN with Ganglia 3.7.2 and Zeppelin 0.8.2` y finalmente seleccionamos `crear cluster`
+
+Para la conexión al cluster es recomendable utilizar el explorador `chrome`. En el explorador abrimos la siguiente [liga](https://chrome.google.com/webstore/detail/foxyproxy-standard/gcknhkkoolaabfmlnjonogaaifnjlfnp?hl=es "complemento FoxyProxy") para instalar el complemento `FoxyProxy Standard`, dentro de este complemento en `options > import/export ` subimos el archivo `foxyproxy-settings.xml`, por último en `proxy mode` seleccionamos la opción `Use proxies based on their pre-defined patterns and priorities`
+
++  Abrimos el tunel `ssh` desde la linea de comandos de la siguiente forma.
+```
+ssh -i ~/ruta/llave.pem -ND 8157 hadoop@dns_ip_aws
+```
++  Desde `chrome` nos conectamos a la siguiente ruta para utilizar `Zeppelin`.
+```
+dns_ip_aws:8890
+```
+
+
 
 </div>

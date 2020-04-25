@@ -13,9 +13,11 @@ dynaconf = "*"
 sodapy = "*"
 boto3 = "*"
 datetime = "*"
+psycopg2 = "==2.7.5"
 pyarrow = "*"
 wget = "*"
 requests = "*"
+s3fs = "*"
 
 [requires]
 python_version = "3.7"
