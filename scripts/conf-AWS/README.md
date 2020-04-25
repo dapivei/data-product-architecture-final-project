@@ -101,7 +101,7 @@ Para la conexión al cluster es recomendable utilizar el explorador `chrome`. En
 ```
 ssh -i ~/ruta/llave.pem -ND 8157 hadoop@dns_ip_aws
 ```
-+  Desde `Choreme` nos conectamos a la siguiente ruta para utilizar `Zeppelin`.
++  Desde `chrome` nos conectamos a la siguiente ruta para utilizar `Zeppelin`.
 ```
 dns_ip_aws:8890
 ```
