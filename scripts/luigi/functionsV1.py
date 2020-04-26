@@ -14,18 +14,23 @@ def to_cleaned(df):
         except:
             next
 
+    #crea nuevas columnas
+    df["created_date_timestamp"]=pd.to_datetime(df["created_date"])
+    df["closed_date_timestamp"]=pd.to_datetime(df["closed_date"])
+    df["due_date_timestamp"]=pd.to_datetime(df["due_date"])
+    df["resolution_action_updated_date_timestamp"]=pd.to_datetime(df["resolution_action_updated_date"])
+
     #asigna formato de fechas
     timeFmt="yyyy-MM-dd'T'HH:mm:ss.SSS"
-    df["created_date"]=pd.to_datetime(df["created_date"])
-    df["closed_date"]=pd.to_datetime(df["created_date"])
-    df["due_date"]=pd.to_datetime(df["created_date"])
-    df["resolution_action_updated_date"]=pd.to_datetime(df["created_date"])
-    print(df.shape)
+    df["created_date"]=df["created_date_timestamp"].dt.date
+    df["closed_date"]=df["closed_date_timestamp"].dt.date
+    df["due_date"]=df["due_date_timestamp"].dt.date
+    df["resolution_action_updated_date"]=df["resolution_action_updated_date_timestamp"].dt.date
+
+    #quita duplicados y columnas vacias
     df=df.drop_duplicates()
     df=df.dropna(axis=1)
-
     return df
-
 
 
 def execv(command, path):
