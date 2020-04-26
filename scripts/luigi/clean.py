@@ -27,6 +27,17 @@ closed_date = F.unix_timestamp('closed_date', format=timeFmt)
 resolution_action_updated_date = F.unix_timestamp('resolution_action_updated_date', format=timeFmt)
 due_date = F.unix_timestamp('due_date', format=timeFmt)
 
+df2 = df2.withColumn("created_date_timestamp", created_date)
+df2 = df2.withColumn("closed_date_timestamp", closed_date)
+df2 = df2.withColumn("resolution_action_updated_date_timestamp", resolution_action_updated_date)
+df2 = df2.withColumn("due_date_timestamp", due_date)
+
+
+created_date = F.from_unixtime(F.unix_timestamp(df2['created_date'],"yyyy-MM-dd'T'HH:mm:ss.SSS"),"yyyy-MM-dd").alias("created_date").cast("date")
+closed_date = F.from_unixtime(F.unix_timestamp(df2['closed_date'],"yyyy-MM-dd'T'HH:mm:ss.SSS"),"yyyy-MM-dd").alias("closed_date").cast("date")
+resolution_action_updated_date = F.from_unixtime(F.unix_timestamp(df2['resolution_action_updated_date'],"yyyy-MM-dd'T'HH:mm:ss.SSS"),"yyyy-MM-dd").alias("resolution_action_updated_date").cast("date")
+due_date =  F.from_unixtime(F.unix_timestamp(df2['due_date'],"yyyy-MM-dd'T'HH:mm:ss.SSS"),"yyyy-MM-dd").alias("due_date").cast("date")
+
 df2 = df2.withColumn("created_date", created_date)
 df2 = df2.withColumn("closed_date", closed_date)
 df2 = df2.withColumn("resolution_action_updated_date", resolution_action_updated_date)
