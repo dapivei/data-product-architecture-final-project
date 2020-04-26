@@ -8,9 +8,9 @@
 | number_cases  | número de casos registrados en el día  |
 | mean_month    | promedio de casos en el mes (historico)  |
 | **n_c  >  mean_month**| Variable indicadora fecha más casos que el promedio|
-| created_day| día de la semana (1-7) One Hot Encoding|
-| created_month | indicador del mes (1-12) One Hot Encoding|
-| created_year| año de la fecha |
+| created_date_day| día de la semana (1-7) One Hot Encoding|
+| created_date_month | indicador del mes (1-12) One Hot Encoding|
+| created_date_year| año de la fecha |
 | number_week | número de semana (1-52)|
 | number_cases_week_ago| número de casos del día de la semana pasada|
 | mean_cases_3_days_ago| promedio de casos 3 días anteriores|
