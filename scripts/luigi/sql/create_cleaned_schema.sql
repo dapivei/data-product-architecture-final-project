@@ -1,8 +1,8 @@
-create schema if not exists raw;
+create schema if not exists cleaned;
 
-drop table if exists raw.etl_execution;
+drop table if exists cleaned.etl_execution;
 
-create table raw.etl_execution (
+create table cleaned.etl_execution (
   "name" TEXT,
   "extention" TEXT,
   "schema" TEXT,
@@ -20,4 +20,4 @@ create table raw.etl_execution (
   "param_bucket" TEXT
 );
 
-comment on table raw.etl_execution is 'Metadata from ETL-RAW';
+comment on table cleaned.etl_execution is 'Metadata from ETL-Cleaned';
