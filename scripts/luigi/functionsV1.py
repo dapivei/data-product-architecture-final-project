@@ -1,4 +1,32 @@
 import subprocess as sub
+import pandas as pd
+
+
+def to_cleaned(df):
+    #estandariza notacion de nulos
+    df=df.replace(['N/A', 'nan', 'NaN', 'n/a', 'Na', ''],None)
+
+    #pasa todo a minusculas
+    cols=df.columns
+    for col in cols:
+        try:
+            df[col]=df[col].str.lower()
+        except:
+            next
+
+    #asigna formato de fechas
+    timeFmt="yyyy-MM-dd'T'HH:mm:ss.SSS"
+    df["created_date"]=pd.to_datetime(df["created_date"])
+    df["closed_date"]=pd.to_datetime(df["created_date"])
+    df["due_date"]=pd.to_datetime(df["created_date"])
+    df["resolution_action_updated_date"]=pd.to_datetime(df["created_date"])
+    print(df.shape)
+    df=df.drop_duplicates()
+    df=df.dropna(axis=1)
+
+    return df
+
+
 
 def execv(command, path):
     '''
