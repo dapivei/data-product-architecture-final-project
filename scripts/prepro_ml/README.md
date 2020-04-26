@@ -8,6 +8,11 @@
 | number_cases  | número de casos registrados en el día  |
 | mean_month    | promedio de casos en el mes (historico)  |
 | **n_c  >  mean_month**| Variable indicadora fecha más casos que el promedio|
+|day | dia del mes (1-31)|-
+| week_day| día de la semana (1-7) One Hot Encoding|
+| month | indicador del mes (1-12) One Hot Encoding|
+| year| año de la fecha |
+| number_week [ x ] | número de semana (1-52)|
 | created_date_day| día de la semana (1-7) One Hot Encoding|
 | created_date_month | indicador del mes (1-12) One Hot Encoding|
 | created_date_year| año de la fecha |
@@ -32,3 +37,4 @@
   + Buscar información de número de pobladores por zona
   + Información del tipo de residencias existentes (número de casas/departamentos/edificios)
   + Ingreso promedio por zona
+  + Etnias

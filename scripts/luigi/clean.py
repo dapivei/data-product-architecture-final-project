@@ -1,3 +1,4 @@
+import pyspark
 from pyspark.sql import functions as F
 
 
@@ -6,7 +7,6 @@ df = spark.read.parquet("s3://prueba-nyc311/preprocess/*/*/*/data_*_*_*.parquet"
 
 # Hacemos una copia del dataframe original
 df2 = df
-
 
 
 # Corregimos valores nulos
@@ -54,7 +54,7 @@ for c in cols_str:
 
 
 # Eliminamos registros repetidos
-df2.dropDuplicates()
+df2 = df2.dropDuplicates()
 
 # Eliminamos registros que tengan puros valores nulos
-df2.dropna(how='all')
+df2 = df2.dropna(how='all')
