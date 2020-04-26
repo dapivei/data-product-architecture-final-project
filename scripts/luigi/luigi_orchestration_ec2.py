@@ -133,6 +133,7 @@ class preproc_metadata():
 
 path_raw = 's3://prueba-nyc311/raw'
 path_preproc = 's3://prueba-nyc311/preprocess'
+path_cleaned = 's3://prueba-nyc311/cleaned'
 
 class Task_10_download(luigi.Task):
     '''
@@ -347,3 +348,48 @@ class Task_40_metaPreproc(luigi.task.WrapperTask):
         conn.commit()
         cur.close()
         conn.close()
+
+class Task_50_cleaned(luigi.Task):
+    '''
+    Limpiar los datos que se tienen en parquet utilizando pandas
+    '''
+    # ==============================
+    # parametros:
+    # ==============================
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+    # ==============================
+    def requires(self):
+        return Task_40_metaPreproc(year=self.year, month=self.month, day=self.day)
+
+    def output(self):
+        # guarda los datos en s3://prueba-nyc311/raw/.3..
+        output_path = f"s3://{self.bucket}/cleaned/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
+        return luigi.contrib.s3.S3Target(path=output_path)
+
+
+    def run(self):
+        import functionsV1 as f1
+        import io
+
+        # Autenticación en S3
+        ses = boto3.session.Session(
+            profile_name='luigi_dpa', region_name='us-west-2')
+        buffer=io.BytesIO()
+        s3_resource = ses.resource('s3')
+        obj = s3_resource.Bucket(name=self.bucket)
+
+        #lectura de datos
+        key = f"preprocess/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
+        parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
+        data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())#.decode() # info del objeto
+        df = pd.read_parquet(data_parquet_object)
+        df=f1.to_cleaned(df)
+
+        print(df["agency_name"])
+        print(df.head())
+        print(df.shape)
+        #pasa a formato parquet
+        df.to_parquet(self.output().path, engine='auto', compression='snappy')
