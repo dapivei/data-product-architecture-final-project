@@ -388,8 +388,5 @@ class Task_50_cleaned(luigi.Task):
         df = pd.read_parquet(data_parquet_object)
         df=f1.to_cleaned(df)
 
-        print(df["agency_name"])
-        print(df.head())
-        print(df.shape)
         #pasa a formato parquet
         df.to_parquet(self.output().path, engine='auto', compression='snappy')
