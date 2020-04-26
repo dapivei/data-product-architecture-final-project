@@ -13,11 +13,11 @@ create table preprocessed.etl_execution (
   "creation_date" TEXT,
   "size" TEXT,
   "location" TEXT,
-  "entries" TEXT,
-  "variables" TEXT,
-  "script" TEXT,
-  "log_script" TEXT,
-  "status" TEXT
+  "status" TEXT,
+  "param_year" TEXT,
+  "param_month" TEXT,
+  "param_day" TEXT,
+  "param_bucket" TEXT
 );
 
 comment on table preprocessed.etl_execution is 'Metadata from ETL-PREPROCESSED';

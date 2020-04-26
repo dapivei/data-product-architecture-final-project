@@ -23,5 +23,10 @@ sql=str(f.read())
 cur.execute(sql)
 conn.commit()
 
+f=open('sql/create_cleaned_schema.sql','r')
+sql=str(f.read())
+cur.execute(sql)
+conn.commit()
+
 cur.close()
 conn.close()
