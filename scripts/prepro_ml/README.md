@@ -8,18 +8,15 @@
 | number_cases  | número de casos registrados en el día  |
 | mean_month    | promedio de casos en el mes (historico)  |
 | **n_c  >  mean_month**| Variable indicadora fecha más casos que el promedio|
-<<<<<<< HEAD
 |day | dia del mes (1-31)|-
 | week_day| día de la semana (1-7) One Hot Encoding|
 | month | indicador del mes (1-12) One Hot Encoding|
 | year| año de la fecha |
 | number_week [ x ] | número de semana (1-52)|
-=======
 | created_date_day| día de la semana (1-7) One Hot Encoding|
 | created_date_month | indicador del mes (1-12) One Hot Encoding|
 | created_date_year| año de la fecha |
 | number_week | número de semana (1-52)|
->>>>>>> 4c1096173b0cffc7c4f27495879d71ae03641259
 | number_cases_week_ago| número de casos del día de la semana pasada|
 | mean_cases_3_days_ago| promedio de casos 3 días anteriores|
 | mean_cases_3_day/week_ago| promedio de 3 días del mismo día de la semana |
