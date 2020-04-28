@@ -880,7 +880,7 @@ class Task_100_Train(luigi.Task):
         #llama a output
         with self.output().open('w') as output_file:
            output_file.write("nombre.pickle")
-      
+
 ###################################################################
 # clase y tarea de guardado de metadatos de modelado
 class model_metadata():
@@ -933,46 +933,50 @@ class Task_110_metaModel(luigi.task.WrapperTask):
     # parametros:
     # ==============================
     bucket = luigi.Parameter(default="prueba-nyc311")
-    year = luigi.Parameter()
-    month = luigi.Parameter()
-    day = luigi.Parameter()
+    nestimators =luigi.Parameter()
+    maxdepth= luigi.Parameter()
+    criterion=luigi.Parameter()
+    #year = luigi.Parameter()
+    #month = luigi.Parameter()
+    #day = luigi.Parameter()
 
-    
+
     def requires(self):
-        return Task_100_Train(year=self.year, month=self.month, day=self.day)
+        return Task_100_Train(nestimators=self.nestimators, maxdepth=self.maxdepth, criterion=self.criterion)
         #return luigi.contrib.s3.exist(year=self.year, month=self.month, day=self.day)
         #return luigi.S3Target(f"s3://{self.bucket}/ml/ml.parquet")
-        
+
     def run(self):
+        import os
     # ==============================
     # se instancia la clase raw_metadata()
-    cwd = os.getcwd()  # directorio actual
-    model_meta = model_metadata()
-    model_meta.model_name = f"depth{self.maxdepth}_{self.criterion}_estimatros{self.nestimators}.pickle"
-    model_meta.creator = str(getpass.getuser())
-    model_meta.machine = str(platform.platform())
-    model_meta.ip = execv("curl ipecho.net/plain ; echo", cwd)
-    model_meta.date = str(datetime.datetime.now())
-    model_meta.location = f"s3://{self.bucket}/ml/modelos/depth{self.maxdepth}_{self.criterion}_estimatros{self.nestimators}.pickle"
-    model_meta.max_depth = str(self.maxdepth)
-    model_meta.criterion = str(self.criterion)
-    model_meta.n_estimators = str(self.nestimators)
+        cwd = os.getcwd()  # directorio actual
+        model_meta = model_metadata()
+        model_meta.model_name = f"depth{self.maxdepth}_{self.criterion}_estimatros{self.nestimators}.pickle"
+        model_meta.creator = str(getpass.getuser())
+        model_meta.machine = str(platform.platform())
+        model_meta.ip = execv("curl ipecho.net/plain ; echo", cwd)
+        model_meta.date = str(datetime.datetime.now())
+        model_meta.location = f"s3://{self.bucket}/ml/modelos/depth{self.maxdepth}_{self.criterion}_estimatros{self.nestimators}.pickle"
+        model_meta.max_depth = str(self.maxdepth)
+        model_meta.criterion = str(self.criterion)
+        model_meta.n_estimators = str(self.nestimators)
 
 
-    ubicacion_completa = model_meta.location
-    meta = model_meta.info()  # extrae info de la clas
+        ubicacion_completa = model_meta.location
+        meta = model_meta.info()  # extrae info de la clas
 
-    # conectarse a la base de datos y guardar a esquema raw.etl_execution
-    conn = ps.connect(host=settings.get('host'),
+        # conectarse a la base de datos y guardar a esquema raw.etl_execution
+        conn = ps.connect(host=settings.get('host'),
                           port=settings.get('port'),
                           database="nyc311_metadata",
                           user=settings.get('usr'),
                           password=settings.get('password'))
-    cur = conn.cursor()
-    columns = "(model_name, model_type, schema, action, creator, machine, ip, date, location, location,status, max_depth, criterion, n_estimators, score_train)"
-    sql = "INSERT INTO modeling.ejecucion" + columns + \
-            " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"
-    cur.execute(sql, meta)
-    conn.commit()
-    cur.close()
-    conn.close()
+        cur = conn.cursor()
+        columns = "(model_name, model_type, schema, action, creator, machine, ip, date, location, status, max_depth, criterion, n_estimators, score_train)"
+        sql = "INSERT INTO modeling.ejecucion" + columns + \
+            " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"
+        cur.execute(sql, meta)
+        conn.commit()
+        cur.close()
+        conn.close()
