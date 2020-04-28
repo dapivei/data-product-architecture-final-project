@@ -11,7 +11,7 @@ A partir de la variable *created_date (día-mes-año en que se levantó la queja
 | complain_type | tipo de queja = noise  |
 | number_cases  | número de casos registrados en el día  |
 | mean_month    | promedio de casos registrados en un mes (histórico)  |
-| **n_c  >  mean_month**| variable indicadora -- día con número de quejas superiores al promedio del mes|
+| **number_cases  >  mean_month**| variable indicadora -- día con número de quejas superiores al promedio del mes|
 | created_date_day| día del mes en que se levantó la queja (1-31) -- one hot encoding|
 | created_date_month | indicador del mes de registro de la queja (1-12) -- one hot encoding|
 |created_date_dow| día de la semana en que se levantó la queja (1-7) -- one hot encoder|
@@ -28,7 +28,7 @@ A partir de la variable *created_date (día-mes-año en que se levantó la queja
 
 
 **Propuestas a futuro:**
-+ Aumentar las variables cambiando el número de días anteriores: ${1,2,3,4,5,6,7,,8,9,10,...}$
++ Aumentar las variables cambiando el número de días anteriores: {1,2,3,4,5,6,7,,8,9,10,...}
 + Segmentar por zonas geográficas. La siguiente [liga](https://www.census.gov/en.html "censo usa") contiene información por explorar:
   + Buscar información de número de pobladores por zona
   + Información del tipo de residencias existentes (número de casas/departamentos/edificios)
