@@ -816,18 +816,21 @@ class Task_100_Train(luigi.Task):
     # parametros:
     # ==============================
     bucket = luigi.Parameter(default="prueba-nyc311")
-    year = luigi.Parameter()
-    month = luigi.Parameter()
-    day = luigi.Parameter()
+    nestimators =luigi.Parameter()
+    maxdepth= luigi.Parameter()
+    criterion=luigi.Parameter()
+    year = luigi.Parameter(default='2020')
+    month = luigi.Parameter(default='2')
+    day = luigi.Parameter(default='2')
+
+
     # ==============================
     def requires(self):
-        return Task_71_mlPreproc_firstTime(year=self.year, month=self.month, day=self.day)
-        #return luigi.contrib.s3.exist(year=self.year, month=self.month, day=self.day)
-        #return luigi.S3Target(f"s3://{self.bucket}/ml/ml.parquet")
+        return Task_91_ml_firstTime(year=self.year, month=self.month, day=self.day)
+        #return Task_71_mlPreproc_firstTime('2020', '1', '1')
 
     def output(self):
-        # guarda los datos en s3://prueba-nyc311/raw/.3..
-        output_path = f"s3://{self.bucket}/ml/modelos/pik.pkl"
+        output_path = f"s3://{self.bucket}/ml/modelos/depth{self.maxdepth}_{self.criterion}_estimatros{self.nestimators}.pickle"
         return luigi.contrib.s3.S3Target(path=output_path)
 
     def run(self):
@@ -860,22 +863,20 @@ class Task_100_Train(luigi.Task):
         y_test = y[int(df2.shape[0]*0.7):].to_numpy()
 
         #partimos los datos con temporal cv
-
         tscv=TimeSeriesSplit(n_splits=5)
         for tr_index, val_index in tscv.split(X_train):
             X_tr, X_val=X_train[tr_index], X_train[val_index]
             y_tr, y_val = y_train[tr_index], y_train[val_index]
 
-        model=RandomForestClassifier(max_depth=10,criterion='gini',n_estimators=100,n_jobs=-1)
+        #Define y entrena el modelo
+        model=RandomForestClassifier(max_depth=int(self.maxdepth),criterion=self.criterion,n_estimators=int(self.nestimators),n_jobs=-1)
         model.fit(X_tr,y_tr)
 
+        #genera el pickle
         pick=open('nombre.pickle','wb')
         pickle.dump(model,pick)
         pick.close()
 
-        #self.output(nombre.pickle)
-        #print(model.score(X_test,y_test))
-
-
+        #llama a output
         with self.output().open('w') as output_file:
            output_file.write("nombre.pickle")
