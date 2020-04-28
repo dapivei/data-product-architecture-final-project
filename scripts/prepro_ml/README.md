@@ -1,40 +1,38 @@
 
-## Tabla de datos propuesta
+## Datos generados durante el Preprocessing de Machine Learning
+***
+<div align=justify>
+
+A partir de la variable *created_date (día-mes-año en que se levantó la queja)* se crearon las siguientes variables que serán empleadas en el modelado.
+
 
 | Variable      |  Descripción |
 |---------------|---|
-| created_day         |  día-mes-año |
 | complain_type | tipo de queja = noise  |
 | number_cases  | número de casos registrados en el día  |
-| mean_month    | promedio de casos en el mes (historico)  |
-| **n_c  >  mean_month**| Variable indicadora fecha más casos que el promedio|
-|day | dia del mes (1-31)|-
-| week_day| día de la semana (1-7) One Hot Encoding|
-| month | indicador del mes (1-12) One Hot Encoding|
-| year| año de la fecha |
-| number_week [ x ] | número de semana (1-52)|
-| created_date_day| día de la semana (1-7) One Hot Encoding|
-| created_date_month | indicador del mes (1-12) One Hot Encoding|
-| created_date_year| año de la fecha |
-| number_week | número de semana (1-52)|
-| number_cases_week_ago| número de casos del día de la semana pasada|
-| mean_cases_3_days_ago| promedio de casos 3 días anteriores|
-| mean_cases_3_day/week_ago| promedio de 3 días del mismo día de la semana |
-| holiday| indicador de holiday|
-| day_before_greater_than_mean_month| indicadora de si el número de casos del día anterior supera la media del mes|
-| day/week_before_greater_than_mean_month| indicadora de si el número de casos del día de la semana pasada supera la media del mes|
-|numeber_cases_2days_ago| número de casos dos días antes|
-|numeber_cases_3days_ago| número de casos tres días antes|
-|numeber_cases_4days_ago| número de casos cuatro días antes|
-|numeber_cases_5days_ago| número de casos cinco días antes|
-|...  | ... |
+| mean_month    | promedio de casos registrados en un mes (histórico)  |
+| **n_c  >  mean_month**| variable indicadora -- día con número de quejas superiores al promedio del mes|
+| created_date_day| día del mes en que se levantó la queja (1-31) -- one hot encoding|
+| created_date_month | indicador del mes de registro de la queja (1-12) -- one hot encoding|
+|created_date_dow| día de la semana en que se levantó la queja (1-7) -- one hot encoder|
+| created_date_year| año de registro de la queja -- one hot encoding |
+| created_date_woy| número de semana del año en que fue registrada la queja (1-52) -- one hot encoding|
+| date_holiday | indicador binario si el día en que se registro la queja fue un feriado o no|
+|number_cases_1day_ago| número de casos registrados 1 día antes|
+|number_cases_2days_ago| número de casos registrados dos días antes|
+|number_cases_3days_ago| número de casos registrados tres días antes|
+|number_cases_4days_ago| número de casos registrados cuatro días antes|
+|number_cases_5days_ago| número de casos registrados cinco días antes|
 
 
 
-**Propuestas:**
-+ Aumentar las variables cambiando el número de días anteriores: {1,2,3,4,5,6,7,,8,9,10,...}
-+ Segmentar por zonas geográficas. La siguiente [liga](https://www.census.gov/en.html "censo usa") contien información por explorar
+
+**Propuestas a futuro:**
++ Aumentar las variables cambiando el número de días anteriores: ${1,2,3,4,5,6,7,,8,9,10,...}$
++ Segmentar por zonas geográficas. La siguiente [liga](https://www.census.gov/en.html "censo usa") contiene información por explorar:
   + Buscar información de número de pobladores por zona
   + Información del tipo de residencias existentes (número de casas/departamentos/edificios)
   + Ingreso promedio por zona
   + Etnias
+
+</div>
