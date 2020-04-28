@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1588069294131.000,
+    "dirty" : true,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1611479262",
+    "id" : "7ECF43EA",
+    "lastKnownWriteTime" : 1588070602,
+    "last_content_update" : 1588070602637,
+    "path" : "~/GitHub/prueba/reporte/NYC-311-Service-Request.Rmd",
+    "project_path" : "NYC-311-Service-Request.Rmd",
+    "properties" : {
+        "cursorPosition" : "21,22",
+        "scrollLine" : "16"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

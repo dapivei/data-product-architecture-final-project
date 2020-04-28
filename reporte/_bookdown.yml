@@ -1,0 +1,8 @@
+book_filename: "NYC311ServiceRequest"
+language:
+  ui:
+    chapter_name: "Capítulo "
+delete_merged_file: true
+
+repo: https://github.com/dapivei/prueba
+output_dir: "docs"

@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1588072678236.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "4019645810",
+    "id" : "9BBD5160",
+    "lastKnownWriteTime" : 1588066505,
+    "last_content_update" : 1588066505,
+    "path" : "~/GitHub/prueba/reporte/03-poblacion.Rmd",
+    "project_path" : "03-poblacion.Rmd",
+    "properties" : {
+        "cursorPosition" : "5,0",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 13,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

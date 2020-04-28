@@ -1,0 +1,23 @@
+# Set de datos {#dataset}
+
++ unique key
++ created date
++ updated
++ resolution
++ closed
++ due date
++ agency
++ complaint type
++ demographic variables
++ status
+
+## Frecuencia de actualización de datos
+
+- Los datos en la API se actualizan diariamente con un día de rezago (hoy se actualizan los datos de ayer). Nosotros descargaremos los datos diariamente desde la API utilizando `CRON` integrado con una tarea en `luigi`.
+- Cada 40 días se realiza una actualización de la base de datos (para poner al día el estatus del *service request*).
+- La descarga de datos se realizará diariamente a las 2:00 a.m. Actualmente, la estructura de carpetas agrega los datos de manera agregada.
+_En fase de modificación_: se establecerá una estructura de descarga de los datos por día, en el cual se contienen todos los *service requests* de la fecha.
+
+**Para tener en cuenta:**
+
+- Aparentemente, la carga de datos a la API solo se genera en días hábiles. Esto puede sesgar las entradas del modelo en la medida que los lunes serían los días con un mayor número de consultas (Falta identificar en el EDA). Esto podría afectar las predicciones.

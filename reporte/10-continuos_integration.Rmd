@@ -1,0 +1,16 @@
+# Continuous integration CI {#continuos_integration}
+
+
+## Pruebas de código
+
+## Tipos de pruebas
+
+## Pruebas unitarias
+
+## Unittest
+
+### Asserts
+### Fixtures
+### Mocks
+
+## Unit test para DS/ML

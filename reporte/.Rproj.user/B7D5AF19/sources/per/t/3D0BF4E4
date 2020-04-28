@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1588073386543.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2354491986",
+    "id" : "3D0BF4E4",
+    "lastKnownWriteTime" : 1588073419,
+    "last_content_update" : 1588073419855,
+    "path" : "~/GitHub/prueba/reporte/01-introduccion.Rmd",
+    "project_path" : "01-introduccion.Rmd",
+    "properties" : {
+        "cursorPosition" : "0,37",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 15,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}
