@@ -4,5 +4,5 @@ language:
     chapter_name: "Capítulo "
 delete_merged_file: true
 
-repo: https://github.com/dapivei/prueba
+repo: data-product-architecture-final-project
 output_dir: "docs"
