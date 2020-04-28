@@ -11,10 +11,6 @@ def create_feature_table(df):
     Devuleve un registro del dia que estamos analizando
     '''
 
-    #creamos variable con numero de casos
-    df['number_cases']=df.shape[0]
-    df=df.loc[:,['created_date','number_cases']]
-
     # Created date (Obtenemos año, mes y dia)
     df['created_date_year'] = pd.DatetimeIndex(df['created_date']).year
     df['created_date_month'] = pd.DatetimeIndex(df['created_date']).month
@@ -27,10 +23,60 @@ def create_feature_table(df):
     df['created_date_woy'] = pd.DatetimeIndex(df['created_date']).week
 
     # Creamos variable holiday
-    #fest=festivo()
-    df["date_holiday"]=festivo(df['created_date'][0])
+    df["date_holiday"]=df["created_date"].apply(festivo)
+
+    history_days=10
+    #fecha de inicio
+    for i in range(1,history_days):
+        for j in range(len(df["counts"])):
+            if(j==0):
+                var_name =  f"number_cases_{i}_days_ago"
+                df[var_name]=0
+            if(j<i):
+                df[var_name][j]=0
+            else:
+                df[var_name][j]=df["counts"][(j-i)]
+
+    #variable respuesta
+    means=df.loc[:,['created_date_month','counts']]
+    means=means.groupby(['created_date_month'],as_index=False).mean()
+    means.columns=['created_date_month','month_mean']
+    df=pd.merge(df,means,how='left',on=["created_date_month"])
+
+    #flag de arriba o abajo del promedio
+    df["mean_flag"]= df["counts"] - df["month_mean"]
+    df["mean_flag"]=df["mean_flag"].apply(flags)
+
+    #one hot encodings
+    #year
+    dummies=pd.get_dummies(df["created_date_year"],prefix='y')
+    df=pd.concat([df,dummies],axis=1)
+
+    #month
+    dummies=pd.get_dummies(df["created_date_month"],prefix='m')
+    df=pd.concat([df,dummies],axis=1)
+
+    #day
+    dummies=pd.get_dummies(df["created_date_day"],prefix='d')
+    df=pd.concat([df,dummies],axis=1)
+
+    #day of week
+    dummies=pd.get_dummies(df["created_date_dow"],prefix='dow')
+    df=pd.concat([df,dummies],axis=1)
+
+    #week of year
+    dummies=pd.get_dummies(df["created_date_woy"],prefix='woy')
+    df=pd.concat([df,dummies],axis=1)
+
+    #drop original cols
+    df=df.drop(["created_date_year","created_date_month","created_date_day","created_date_dow","created_date_woy"],axis=1)
     return df
 
+def flags(x):
+    if(x<0):
+        return 0
+    else:
+        return 1
 
 def festivo(date):
     '''
