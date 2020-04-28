@@ -2,9 +2,10 @@
 
 #________________________________________________________________________________________
 
-CREATING ONE ENCODERS
+CREATING ONE HOT ENCODERS
 
 #----------------------------------------------------------------------------------------
+import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 le_created_date_year = LabelEncoder()
 le_created_date_month = LabelEncoder()
