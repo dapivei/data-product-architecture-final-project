@@ -16,6 +16,7 @@ import pyarrow as pa
 import s3fs
 import socket
 import numpy as np
+import pickle
 
 from functionsV2 import queryApi311
 from functionsV2 import execv
@@ -806,3 +807,75 @@ class Task_91_ml_firstTime(luigi.Task):
         #falta pasar a un solo parquet que vaya haciendo append de las fechas
         #pasa a formato parquet
         df_features.to_parquet(self.output().path, engine='auto', compression='snappy')
+
+class Task_100_Train(luigi.Task):
+    '''
+    Entrena un modelo
+    '''
+    # ==============================
+    # parametros:
+    # ==============================
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+    # ==============================
+    def requires(self):
+        return Task_71_mlPreproc_firstTime(year=self.year, month=self.month, day=self.day)
+        #return luigi.contrib.s3.exist(year=self.year, month=self.month, day=self.day)
+        #return luigi.S3Target(f"s3://{self.bucket}/ml/ml.parquet")
+
+    def output(self):
+        # guarda los datos en s3://prueba-nyc311/raw/.3..
+        output_path = f"s3://{self.bucket}/ml/modelos/pik.pkl"
+        return luigi.contrib.s3.S3Target(path=output_path)
+
+    def run(self):
+        import functionsV1 as f1
+        import io
+        import numpy as np
+        from sklearn.model_selection import TimeSeriesSplit
+        from sklearn.ensemble import RandomForestClassifier
+
+        # Autenticación en S3
+        ses = boto3.session.Session(profile_name='luigi_dpa', region_name='us-west-2')
+        buffer=io.BytesIO()
+        s3_resource = ses.resource('s3')
+        obj = s3_resource.Bucket(name=self.bucket)
+
+        #lectura de datos
+        key = f"ml/ml.parquet"
+        parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
+        data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
+        df = pd.read_parquet(data_parquet_object)
+
+        # output variable
+        y=df["mean_flag"]
+        df2=df.drop(columns=["mean_flag","created_date"])
+
+        #separamos los primeros 70% de los datos para entrenar
+        X_train = df2[:int(df2.shape[0]*0.7)].to_numpy()
+        X_test = df2[int(df2.shape[0]*0.7):].to_numpy()
+        y_train = y[:int(df2.shape[0]*0.7)].to_numpy()
+        y_test = y[int(df2.shape[0]*0.7):].to_numpy()
+
+        #partimos los datos con temporal cv
+
+        tscv=TimeSeriesSplit(n_splits=5)
+        for tr_index, val_index in tscv.split(X_train):
+            X_tr, X_val=X_train[tr_index], X_train[val_index]
+            y_tr, y_val = y_train[tr_index], y_train[val_index]
+
+        model=RandomForestClassifier(max_depth=10,criterion='gini',n_estimators=100,n_jobs=-1)
+        model.fit(X_tr,y_tr)
+
+        pick=open('nombre.pickle','wb')
+        pickle.dump(model,pick)
+        pick.close()
+
+        #self.output(nombre.pickle)
+        #print(model.score(X_test,y_test))
+
+
+        with self.output().open('w') as output_file:
+           output_file.write("nombre.pickle")
