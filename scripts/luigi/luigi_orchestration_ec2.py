@@ -826,11 +826,11 @@ class Task_100_Train(luigi.Task):
 
     # ==============================
     def requires(self):
-        return Task_71_mlPreproc_firstTime(year=self.year, month=self.month, day=self.day)
+        return Task_91_ml_firstTime(year=self.year, month=self.month, day=self.day)
         #return Task_71_mlPreproc_firstTime('2020', '1', '1')
 
     def output(self):
-        output_path = f"s3://{self.bucket}/ml/modelos/md{self.maxdepth}_{self.criterion}_{self.nestimators}.pickle"
+        output_path = f"s3://{self.bucket}/ml/modelos/depth{self.maxdepth}_{self.criterion}_estimatros{self.nestimators}.pickle"
         return luigi.contrib.s3.S3Target(path=output_path)
 
     def run(self):
