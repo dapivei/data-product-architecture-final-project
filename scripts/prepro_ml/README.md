@@ -3,7 +3,7 @@
 ***
 <div align=justify>
 
-A partir de la variable *created_date (día-mes-año en que se levantó la queja)* se crearon las siguientes variables que serán empleadas en el modelado.
+A partir de la variable *created_date (día-mes-año en que se levantó la queja)* se crearon las siguientes variables que serán empleadas en el modelado:
 
 
 | Variable      |  Descripción |
@@ -25,7 +25,15 @@ A partir de la variable *created_date (día-mes-año en que se levantó la queja
 |number_cases_5days_ago| número de casos registrados cinco días antes|
 
 
+El código asociado a la creación de cada una de estas variables, se encuentra en las siguientes documents:
 
+> [NumberCases.py](https://github.com/dapivei/data-product-architecture-final-project/blob/master/scripts/prepro_ml/NumberCases.py)
+
+> [Feature.py](https://github.com/dapivei/data-product-architecture-final-project/blob/master/scripts/prepro_ml/feature.py)
+
+> [holidasyUsa.py](https://github.com/dapivei/data-product-architecture-final-project/blob/master/scripts/prepro_ml/holidaysUsa.py)
+
+> [oneHotEncoders.py](https://github.com/dapivei/data-product-architecture-final-project/blob/master/scripts/prepro_ml/oneHotEncoders.py)
 
 **Propuestas a futuro:**
 + Aumentar las variables cambiando el número de días anteriores: {1,2,3,4,5,6,7,,8,9,10,...}
