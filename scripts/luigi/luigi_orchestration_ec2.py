@@ -953,9 +953,9 @@ class Task_110_metaModel(luigi.task.WrapperTask):
     model_meta.ip = execv("curl ipecho.net/plain ; echo", cwd)
     model_meta.date = str(datetime.datetime.now())
     model_meta.location = f"s3://{self.bucket}/ml/modelos/depth{self.maxdepth}_{self.criterion}_estimatros{self.nestimators}.pickle"
-    model_meta.max_depth = str(self.max_depth)
+    model_meta.max_depth = str(self.maxdepth)
     model_meta.criterion = str(self.criterion)
-    model_meta.n_estimators = str(self.n_estimators)
+    model_meta.n_estimators = str(self.nestimators)
 
 
     ubicacion_completa = model_meta.location
