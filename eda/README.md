@@ -1,6 +1,8 @@
 ## Exploratory Data Analysis (EDA): NYC 311 Service Request
 ***
 
+## Hallazgos
+
 <div align="justify">
 
 Con el propósito de limpiar la base de datos *NYC 311 Service Request* e identificar las quejas más frecuentes y las agencias con mayor número de peticiones o quejas (que servirá como base para el modelado posterior), realizamos el siguiente análisis exploratorio con *pyspark* (medinate el uso de zeppelin).
@@ -9,7 +11,7 @@ El output de este análisis es el siguiente documento: [eda_nyc311.json](https:/
 
 Acá se presenta un breve resumen.
 
-#### Estructura Inicial
+### Estructura Inicial
 En el momento en que realizamos el EDA, la base datos tenía la siguiente estructura:
 
 ```
@@ -65,7 +67,7 @@ root
 + *Registros totales (quejas)*: $22,601,839$.
 
 
-#### Valores nulos
+### Valores nulos
 
 - *Problemas:* Los valores nulos no estaban homogenizados; existían registros 'N/A', 'nan', 'NaN', 'n/a', 'Na', '.'
 
@@ -83,79 +85,96 @@ root
 
 - *Observación 2:* Tras la limipieza correspondiente, no quedarán valores numéricos: únicamente valores de string y timestamp.
 
-#### Registros con mayúsculas y minúsculas
+### Registros con mayúsculas y minúsculas
 
 - *Solución*: Cambiar todos los registros a minúsculas.
 
-#### Valores únicos
+### Valores únicos
 
 La mayoría de las variables son variables de tipo categórico. Aún así, conforme con la tabla que se muestra a continucaión, cada variable tiepo múltiples categorías.
 
-<p align="center">
+<div align="center">
 
-<image width="300" height="330" src="./images/unique_values.png">
+<image width="250" height="270" src="./images/unique_values.png">
 
-</p>
+</div>
 
-#### Quejas según su estatus
+### Quejas según su estatus
 
 Las quejas son clasificadas en 12 categorías; $95$ por ciento de las quejas se encuentran con estatus *cerrado*.
 
-<p align="center">
+<div align="center">
 
-<image width="600" height="330" src="./images/cases_status.png">
+<image width="600" height="200" src="./images/cases_status.png">
 
-</p>
+</div>
 
-#### Quejas según municipio
+### Quejas según municipio
 
 El municipio/condado con mayor número de quejas es *Brooklyn*, con cerca de 6.72 millones de quejas en total (desde el 2010); le siguen, Queens, Manhattan, Bronx y Staten Island.
 
-<p align="center">
+<div align="center">
 
-<image width="600" height="330" src="./images/cases_borough.png">
+<image width="600" height="200" src="./images/cases_borough.png">
 
-</p>
+</div>
 
-#### Quejas según agencia
+### Quejas según agencia
 
-Existe 31 distintos registros de tipos de agencia en la base de datos. Entre estos distintos tipos de agencias, las agencias con mayor número 
+Existe 31 distintos registros de tipos de agencia en la base de datos. Entre estos distintos tipos de agencias, las agencias con mayor número registros históricos son: New York City Department of Housing Preservation and Development (HDP) y New York City Police Department. Cada uno con 6.08 y 5.44 millones de quejas, respectivamente.
 
-<p align="center">
+<div align="center">
 
-<image width="600" height="330" src="./images/cases_agency.png">
+<image width="600" height="200" src="./images/cases_agency.png">
 
-</p>
+</div>
 
 
-#### Quejas según tipo de quejas
+### Quejas según tipo de quejas
 
 Como se vio anteriormente, los tipos de quejas se clasifican en 428 tipos, previo a realizar cualquier tipo de limipieza.
 
 Sin realizar ninguna limpieza previa, es notorio que la mayoría de las quejas tienen que ver con temas de ruido residencial; para ser precisos, históricamente, cerca del 8 por ciento (1.86 milllones) de las quejas han sido relativas a este asunto.
 
-<p align="center">
+<div align="center">
 
 
-<image width="600" height="330" src="./images/cases_complaint.png">
+<image width="600" height="200" src="./images/cases_complaint.png">
 
-#### Ruido $\bigcup$ NYPD
+</div>
 
-<p align="center">
+### Ruido $\bigcup$ NYPD
 
+Cuando filtramos Ruido por NYPD, observamos que hay seis distintas categorías de quejas de "ruido". Recordemos que, de acuerdo con unas cuántas gráficas anteriores, el tipo de queja más frecuente era el "ruido residencial".
 
-<image width="600" height="330" src="./images/noise_nypd.png">
-
-
-</p>
+En etapas posteriores, se retomará esta observación para orientar nuestra predicción únicamente a las quejas de "ruido" que recibe el Departamento de la Policía de la Nueva York.
 
 
-#### Quejas por año
+<div align="center">
 
-<p align="center">
 
-<image width="300" height="330" src="./images/cases_year.png">
+<image width="600" height="200" src="./images/noise_nypd.png">
 
-</p>
+
+</div>
+
+
+### Quejas por año
+
+
+Identificamos que para nuestros propósitos, las variables existentes en la base de datos de *NYC 311 Service Request* no son de mucha utilidad. La única que realmente nos interesa, luego de filtrar la base de datos por agencia y tipo de queja, son los conteos de registros de quejas y las fechas de creación de las quejas o solicitudes de servicio. 
+
+Considerando esta última variable, comenzamos a explorar más datos relacionados con las fechas de creación de las quejas. Comenzamos revisando el número de quejas históricas, según el año.
+
+<div align="center">
+
+<image width="250" height="270" src="./images/cases_year.png">
+
+</div>
+
+
+
+
+En la etapa de preprocesamiento para comenzar con el modelado, crearemos más varibles  a partir de la fecha de creación de las solicitudes de servicios.
 
 </div>
