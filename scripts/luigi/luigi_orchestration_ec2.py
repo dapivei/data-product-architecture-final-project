@@ -821,13 +821,13 @@ class Task_100_Train(luigi.Task):
     day = luigi.Parameter()
     # ==============================
     def requires(self):
-        #return Task_71_mlPreproc_firstTime(year=self.year, month=self.month, day=self.day)
+        return Task_71_mlPreproc_firstTime(year=self.year, month=self.month, day=self.day)
         #return luigi.contrib.s3.exist(year=self.year, month=self.month, day=self.day)
-        return luigi.S3Target(f"s3://{self.bucket}/ml/ml.parquet")
+        #return luigi.S3Target(f"s3://{self.bucket}/ml/ml.parquet")
 
     def output(self):
         # guarda los datos en s3://prueba-nyc311/raw/.3..
-        output_path = f"s3://{self.bucket}/ml/model/.parquet"
+        output_path = f"s3://{self.bucket}/ml/modelos/pik.pkl"
         return luigi.contrib.s3.S3Target(path=output_path)
 
     def run(self):
@@ -844,7 +844,7 @@ class Task_100_Train(luigi.Task):
         obj = s3_resource.Bucket(name=self.bucket)
 
         #lectura de datos
-        key = f"mlpreproc/mlPreproc.parquet"
+        key = f"ml/ml.parquet"
         parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
         data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
         df = pd.read_parquet(data_parquet_object)
@@ -868,12 +868,14 @@ class Task_100_Train(luigi.Task):
 
         model=RandomForestClassifier(max_depth=10,criterion='gini',n_estimators=100,n_jobs=-1)
         model.fit(X_tr,y_tr)
-        print(model.score(X_test,y_test))
-        #pickle=pickle.dumps(model)
-        #with open('model.pkl', 'wb') as f:
-        #    with.self.output().open('w',pickle.dump(model, f))
-        #self.output()
+
+        pick=open('nombre.pickle','wb')
+        pickle.dump(model,pick)
+        pick.close()
+
+        #self.output(nombre.pickle)
+        #print(model.score(X_test,y_test))
 
 
         with self.output().open('w') as output_file:
-            output_file.write("model.pkl")
+           output_file.write("nombre.pickle")
