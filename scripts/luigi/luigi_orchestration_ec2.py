@@ -507,7 +507,7 @@ class Task_60_metaClean(luigi.task.WrapperTask):
 
 class Task_70_mlPreproc(luigi.Task):
     '''
-    Limpiar los datos que se tienen en parquet utilizando pandas
+    Contar los registros por fecha y colapsar en una sola tabla que contendra las columnas de created_date y numero de registros
     '''
     # ==============================
     # parametros:
@@ -522,15 +522,12 @@ class Task_70_mlPreproc(luigi.Task):
 
     def output(self):
         # guarda los datos en s3://prueba-nyc311/raw/.3..
-        output_path = f"s3://{self.bucket}/mlpreproc/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
+        output_path = f"s3://{self.bucket}/mlpreproc/mlPreproc.parquet"
         return luigi.contrib.s3.S3Target(path=output_path)
 
 
     def run(self):
-        import functionsV1 as f1
         import io
-        from datetime import datetime, timedelta
-
         # Autenticación en S3
         ses = boto3.session.Session(
             profile_name='luigi_dpa', region_name='us-west-2')
@@ -548,6 +545,155 @@ class Task_70_mlPreproc(luigi.Task):
         print(df.shape)
         df=df.loc[(df["agency"]=='nypd') & (df["complaint_type"].str.contains("noise")),:]
         df=df.reset_index(drop=True)
+
+        #cuenta los registros y colapsa el df
+        #df['counts']=1
+        #df=df.loc[:,['created_date','counts']]
+        #df=df.groupby(['created_date']).count()
+
+        key = f"s3://{self.bucket}/mlpreproc/mlPreproc.parquet"
+        parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
+        data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
+        df2 = pd.read_parquet(data_parquet_object)
+
+        df2=df2.append(df)
+        df2.drop_duplicates(inplace=True)
+        print(df2)
+        #pasa a formato parquet
+        df2.to_parquet(self.output().path, engine='auto', compression='snappy')
+
+        #table = pa.Table.from_pandas(df)
+        #s3 = fs.S3FileSystem(region='us-west-2')
+        # Write direct to your parquet file
+        #output_path = f"s3://{self.bucket}/mlpreproc/mlPreproc.parquet"
+        #pq.write_to_dataset(table , root_path=output_path,filesystem=s3)
+
+
+
+class Task_71_mlPreproc_firstTime(luigi.Task):
+    '''
+    Contar los registros por fecha y colapsar en una sola tabla que contendra las columnas de created_date y numero de registros
+    '''
+    # ==============================
+    # parametros:
+    # ==============================
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+
+    # ==============================
+    def requires(self):
+        return Task_60_metaClean(year=self.year, month=self.month, day=self.day)
+
+    def output(self):
+        # guarda los datos en s3://prueba-nyc311/raw/.3..
+        output_path = f"s3://{self.bucket}/mlpreproc/mlPreproc.parquet"
+        return luigi.contrib.s3.S3Target(path=output_path)
+
+    def run(self):
+        import io
+        from datetime import datetime, timedelta
+        # Autenticación en S3
+        ses = boto3.session.Session(
+            profile_name='luigi_dpa', region_name='us-west-2')
+        buffer=io.BytesIO()
+        s3_resource = ses.resource('s3')
+        obj = s3_resource.Bucket(name=self.bucket)
+
+        end_date=datetime(int(self.year),int(self.month),int(self.day))
+        start_date= datetime(2009,12,31)
+        date=start_date
+
+        flag=0
+        count=0
+        while(date<end_date):
+            date=date+timedelta(days=1)
+
+            #lectura de datos
+            try:
+                key = f"cleaned/{date.year}/{date.month}/{date.day}/data_{date.year}_{date.month}_{date.day}.parquet"
+                parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
+                data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
+                df = pd.read_parquet(data_parquet_object)
+            except:
+                #para generar metadata
+                print(date)
+                continue
+
+            # Filtramos los casos de ruido para la agencia NYPD
+            df=df.loc[(df["agency"]=='nypd') & (df["complaint_type"].str.contains("noise")),:]
+            df=df.reset_index(drop=True)
+
+            #cuenta los registros y colapsa el df
+            df['counts']=1
+            df=df.loc[:,['created_date','counts']]
+            df=df.groupby(['created_date'],as_index=False).count()
+
+            if(flag==0):
+                df2=df
+                flag=1
+            else:
+                #pegamos los dataframes
+                df2=df2.append(df)
+
+            del(df)
+            count=count+1
+            if(count%100==0):
+                print(count)
+            #aumentamos un dia
+
+            #print(date)
+
+        df2.drop_duplicates(inplace=True)
+        df2=df2.reset_index(drop=True)
+
+        #pasa a formato parquet
+        df2.to_parquet(self.output().path, engine='auto', compression='snappy')
+
+
+
+'''
+falta class 80 mlPreproc metadata
+'''
+class Task_90_mlPreproc(luigi.Task):
+    '''
+    Contar los registros por fecha y colapsar en una sola tabla que contendra las columnas de created_date y numero de registros
+    '''
+    # ==============================
+    # parametros:
+    # ==============================
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+    # ==============================
+    def requires(self):
+        return Task_71_mlPreproc_firstTime(year=self.year, month=self.month, day=self.day)
+
+    def output(self):
+        # guarda los datos en s3://prueba-nyc311/raw/.3..
+        output_path = f"s3://{self.bucket}/ml/ml.parquet"
+        return luigi.contrib.s3.S3Target(path=output_path)
+
+
+    def run(self):
+        import functionsV1 as f1
+        import io
+        from datetime import datetime, timedelta
+
+        # Autenticación en S3
+        ses = boto3.session.Session(
+            profile_name='luigi_dpa', region_name='us-west-2')
+        buffer=io.BytesIO()
+        s3_resource = ses.resource('s3')
+        obj = s3_resource.Bucket(name=self.bucket)
+
+        #lectura de datos
+        key = f"mlPreproc/mlPreproc.parquet"
+        parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
+        data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
+        df = pd.read_parquet(data_parquet_object)
 
         # funcion de procesamiento de datos
         # crea un df con las variables nuevas
