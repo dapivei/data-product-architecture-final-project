@@ -879,3 +879,99 @@ class Task_100_Train(luigi.Task):
 
         with self.output().open('w') as output_file:
            output_file.write("nombre.pickle")
+      
+###################################################################
+# clase y tarea de guardado de metadatos de modelado
+class model_metadata():
+    def __init__(self,
+                 model_name="",
+                 model_type="sklearn model",
+                 schema="modelling",
+                 action="ML training model",
+                 creator="-",
+                 machine="",
+                 ip="",
+                 date="",
+                 location="",
+                 status="sucess",
+                 max_depth="",
+                 criterion="",
+                 n_estimators="",
+                 score_train=""):
+
+        # asignamos las características de los metadatos
+        self.model_name = model_name
+        self.model_type = model_type
+        self.schema = schema
+        self.action = action
+        self.creator = creator
+        self.machine = machine
+        self.ip = ip
+        self.date = date
+        self.location = location
+        self.status = status
+        self.max_depth = max_depth
+        self.criterion = criterion
+        self.n_estimators = n_estimators
+        self.score_train = score_train
+
+    def info(self):
+        return (self.model_name, self.model_type, self.schema, self.action,
+                self.creator, self.machine, self.ip, self.date, self.location,
+                self.status, self.max_depth, self.criterion, self.n_estimators,
+                self.score_train)
+
+
+
+
+class Task_110_metaModel(luigi.task.WrapperTask):
+    '''
+    Guardar los metadatos del entrenamiento de modelos
+    '''
+    # ==============================
+    # parametros:
+    # ==============================
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+
+    
+    def requires(self):
+        return Task_100_Train(year=self.year, month=self.month, day=self.day)
+        #return luigi.contrib.s3.exist(year=self.year, month=self.month, day=self.day)
+        #return luigi.S3Target(f"s3://{self.bucket}/ml/ml.parquet")
+        
+    def run(self):
+    # ==============================
+    # se instancia la clase raw_metadata()
+    cwd = os.getcwd()  # directorio actual
+    model_meta = model_metadata()
+    model_meta.model_name = f"depth{self.maxdepth}_{self.criterion}_estimatros{self.nestimators}.pickle"
+    model_meta.creator = str(getpass.getuser())
+    model_meta.machine = str(platform.platform())
+    model_meta.ip = execv("curl ipecho.net/plain ; echo", cwd)
+    model_meta.date = str(datetime.datetime.now())
+    model_meta.location = f"s3://{self.bucket}/ml/modelos/depth{self.maxdepth}_{self.criterion}_estimatros{self.nestimators}.pickle"
+    model_meta.max_depth = str(self.max_depth)
+    model_meta.criterion = str(self.criterion)
+    model_meta.n_estimators = str(self.n_estimators)
+
+
+    ubicacion_completa = model_meta.location
+    meta = model_meta.info()  # extrae info de la clas
+
+    # conectarse a la base de datos y guardar a esquema raw.etl_execution
+    conn = ps.connect(host=settings.get('host'),
+                          port=settings.get('port'),
+                          database="nyc311_metadata",
+                          user=settings.get('usr'),
+                          password=settings.get('password'))
+    cur = conn.cursor()
+    columns = "(model_name, model_type, schema, action, creator, machine, ip, date, location, location,status, max_depth, criterion, n_estimators, score_train)"
+    sql = "INSERT INTO modeling.ejecucion" + columns + \
+            " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"
+    cur.execute(sql, meta)
+    conn.commit()
+    cur.close()
+    conn.close()
