@@ -15,6 +15,7 @@ import psycopg2 as ps
 import pyarrow as pa
 import s3fs
 import socket
+import numpy as np
 
 from functionsV2 import queryApi311
 from functionsV2 import execv
@@ -518,7 +519,7 @@ class Task_70_mlPreproc(luigi.Task):
     day = luigi.Parameter()
     # ==============================
     def requires(self):
-        return Task_60_metaClean(year=self.year, month=self.month, day=self.day)
+        return Task_71_mlPreproc_firstTime(year=self.year, month=self.month, day=self.day)
 
     def output(self):
         # guarda los datos en s3://prueba-nyc311/raw/.3..
@@ -656,7 +657,8 @@ class Task_71_mlPreproc_firstTime(luigi.Task):
 '''
 falta class 80 mlPreproc metadata
 '''
-class Task_90_mlPreproc(luigi.Task):
+
+class Task_91_ml_firstTime(luigi.Task):
     '''
     Contar los registros por fecha y colapsar en una sola tabla que contendra las columnas de created_date y numero de registros
     '''
@@ -676,55 +678,28 @@ class Task_90_mlPreproc(luigi.Task):
         output_path = f"s3://{self.bucket}/ml/ml.parquet"
         return luigi.contrib.s3.S3Target(path=output_path)
 
-
     def run(self):
         import functionsV1 as f1
         import io
-        from datetime import datetime, timedelta
+        import numpy as np
+
 
         # Autenticación en S3
-        ses = boto3.session.Session(
-            profile_name='luigi_dpa', region_name='us-west-2')
+        ses = boto3.session.Session(profile_name='luigi_dpa', region_name='us-west-2')
         buffer=io.BytesIO()
         s3_resource = ses.resource('s3')
         obj = s3_resource.Bucket(name=self.bucket)
 
         #lectura de datos
-        key = f"mlPreproc/mlPreproc.parquet"
+        key = f"mlpreproc/mlPreproc.parquet"
         parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
         data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
         df = pd.read_parquet(data_parquet_object)
 
         # funcion de procesamiento de datos
-        # crea un df con las variables nuevas
         df_features=f1.create_feature_table(df)
-
-        #crea datos de dias anteriores
-        history_days=10
-        #fecha de inicio
-        date_init=pd.to_datetime(f"{self.year}/{self.month}/{self.day}")
-        for i in range(history_days):
-            #lee datos dias anteriores
-            date=date_init-timedelta(days=i+1)
-            key = f"cleaned/{date.year}/{date.month}/{date.day}/data_{date.year}_{date.month}_{date.day}.parquet"
-            parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
-            data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
-            data = pd.read_parquet(data_parquet_object)
-            #filtra por nypd y tipo de queja
-            data=data.loc[(data["agency"]=='nypd') & (data["complaint_type"].str.contains("noise")),:]
-            counts=data.shape[0]
-            #crea variable nueva en el df de las variables
-            var_name =  f"number_cases_{i}_days_ago"
-            df_features[var_name]=counts
-            #borra la data temporal
-            del(data)
-
-        #junta el df de vars nuevas con el df original
-        df=df.join(df_features, lsuffix='', rsuffix='_feat')
-
-        #quita columna duplicada
-        df.drop(["created_date_feat"],axis=1)
-
+        del(df)
+        print(df_features)
         #falta pasar a un solo parquet que vaya haciendo append de las fechas
         #pasa a formato parquet
-        #df.to_parquet(self.output().path, engine='auto', compression='snappy')
+        df_features.to_parquet(self.output().path, engine='auto', compression='snappy')
