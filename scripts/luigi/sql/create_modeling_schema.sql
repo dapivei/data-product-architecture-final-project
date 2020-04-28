@@ -1,8 +1,8 @@
 create schema if not exists modeling;
 
-drop table if exists modeling.etl_ejecucion;
+drop table if exists modeling.ejecucion;
 
-create table modeling.etl_ejecucion (
+create table modeling.ejecucion (
   "model_name" TEXT,
   "model_type" TEXT,
   "max_depth" TEXT,
