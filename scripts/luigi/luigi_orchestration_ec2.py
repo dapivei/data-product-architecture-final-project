@@ -872,6 +872,7 @@ class Task_100_Train(luigi.Task):
         model=RandomForestClassifier(max_depth=int(self.maxdepth),criterion=self.criterion,n_estimators=int(self.nestimators),n_jobs=-1)
         model.fit(X_tr,y_tr)
 
+
         #genera el pickle
         pick=open('nombre.pickle','wb')
         pickle.dump(model,pick)
