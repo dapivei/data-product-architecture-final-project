@@ -14,7 +14,7 @@ df = pd.read_parquet(file)
 #df['y_2010'].iloc[2] = 0
 #df['m_1'].iloc[2] = 5
 
-class YearTestCase(marbles.core.TestCase):
+class OneHotTestCase(marbles.core.TestCase):
 
     def setUp(self):
         self.df = df
