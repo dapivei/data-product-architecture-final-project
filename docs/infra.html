@@ -4,11 +4,11 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>Capítulo 6 Modelos | NYC 311 Service Request Data Product</title>
+  <title>Capítulo 3 Data Pipeline e Infraestructura de AWS | NYC 311 Service Request Data Product</title>
   <meta name="description" content="Descripción de la implementación de un producto de datos: predicciones sobre el flujo de quejas diarias (por encima), del flujo promedio de quejas." />
   <meta name="generator" content="bookdown 0.18 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="Capítulo 6 Modelos | NYC 311 Service Request Data Product" />
+  <meta property="og:title" content="Capítulo 3 Data Pipeline e Infraestructura de AWS | NYC 311 Service Request Data Product" />
   <meta property="og:type" content="book" />
   
   
@@ -16,7 +16,7 @@
   <meta name="github-repo" content="https://github.com/dapivei/prueba" />
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Capítulo 6 Modelos | NYC 311 Service Request Data Product" />
+  <meta name="twitter:title" content="Capítulo 3 Data Pipeline e Infraestructura de AWS | NYC 311 Service Request Data Product" />
   
   <meta name="twitter:description" content="Descripción de la implementación de un producto de datos: predicciones sobre el flujo de quejas diarias (por encima), del flujo promedio de quejas." />
   
@@ -31,8 +31,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-<link rel="prev" href="eda.html"/>
-<link rel="next" href="metricas.html"/>
+<link rel="prev" href="dataset.html"/>
+<link rel="next" href="governanza.html"/>
 <script src="libs/header-attrs-2.1/header-attrs.js"></script>
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
@@ -132,6 +132,8 @@
 <li class="chapter" data-level="6" data-path="modelos.html"><a href="modelos.html"><i class="fa fa-check"></i><b>6</b> Modelos</a>
 <ul>
 <li class="chapter" data-level="6.1" data-path="modelos.html"><a href="modelos.html#feature-engineering"><i class="fa fa-check"></i><b>6.1</b> Feature engineering</a></li>
+<li class="chapter" data-level="6.2" data-path="modelos.html"><a href="modelos.html#tuneo-de-hiperparámetros"><i class="fa fa-check"></i><b>6.2</b> Tuneo de hiperparámetros</a></li>
+<li class="chapter" data-level="6.3" data-path="modelos.html"><a href="modelos.html#selección-de-modelos"><i class="fa fa-check"></i><b>6.3</b> Selección de Modelos</a></li>
 </ul></li>
 <li class="chapter" data-level="7" data-path="metricas.html"><a href="metricas.html"><i class="fa fa-check"></i><b>7</b> Métricas de Desempeño</a></li>
 <li class="chapter" data-level="8" data-path="continuos-integration.html"><a href="continuos-integration.html"><i class="fa fa-check"></i><b>8</b> Continuous integration CI</a>
@@ -180,137 +182,131 @@
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="modelos" class="section level1" number="6">
-<h1><span class="header-section-number">Capítulo 6</span> Modelos</h1>
-<div id="feature-engineering" class="section level2" number="6.1">
-<h2><span class="header-section-number">6.1</span> Feature engineering</h2>
-<div align="justify">
-<p>A partir de la variable <em>created_date (día-mes-año en que se levantó la queja)</em> se crearon las siguientes variables:</p>
-<table>
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Variable</th>
-<th>Descripción</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>complain_type</td>
-<td>tipo de queja = noise</td>
-</tr>
-<tr class="even">
-<td>number_cases</td>
-<td>número de casos registrados en el día</td>
-</tr>
-<tr class="odd">
-<td>mean_month</td>
-<td>promedio de casos registrados en un mes (histórico)</td>
-</tr>
-<tr class="even">
-<td><strong>number_cases &gt; mean_month</strong></td>
-<td>variable indicadora – día con número de quejas superiores al promedio del mes</td>
-</tr>
-<tr class="odd">
-<td>created_date_day</td>
-<td>día del mes en que se levantó la queja (1-31) – one hot encoding</td>
-</tr>
-<tr class="even">
-<td>created_date_month</td>
-<td>indicador del mes de registro de la queja (1-12) – one hot encoding</td>
-</tr>
-<tr class="odd">
-<td>created_date_dow</td>
-<td>día de la semana en que se levantó la queja (1-7) – one hot encoder</td>
-</tr>
-<tr class="even">
-<td>created_date_year</td>
-<td>año de registro de la queja – one hot encoding</td>
-</tr>
-<tr class="odd">
-<td>created_date_woy</td>
-<td>número de semana del año en que fue registrada la queja (1-52) – one hot encoding</td>
-</tr>
-<tr class="even">
-<td>date_holiday</td>
-<td>indicador binario si el día en que se registro la queja fue un feriado o no</td>
-</tr>
-<tr class="odd">
-<td>number_cases_1day_ago</td>
-<td>número de casos registrados 1 día antes</td>
-</tr>
-<tr class="even">
-<td>number_cases_2days_ago</td>
-<td>número de casos registrados dos días antes</td>
-</tr>
-<tr class="odd">
-<td>number_cases_3days_ago</td>
-<td>número de casos registrados tres días antes</td>
-</tr>
-<tr class="even">
-<td>number_cases_4days_ago</td>
-<td>número de casos registrados cuatro días antes</td>
-</tr>
-<tr class="odd">
-<td>number_cases_5days_ago</td>
-<td>número de casos registrados cinco días antes</td>
-</tr>
-</tbody>
-</table>
-<p>Estas variables fueron empleadas en el modelado.</p>
-<p><strong>Propuestas a futuro:</strong></p>
-<ul>
-<li>Aumentar las variables cambiando el número de días anteriores: {1,2,3,4,5,6,7,,8,9,10,…}</li>
-<li>Segmentar por zonas geográficas. La siguiente <a href="https://www.census.gov/en.html" title="censo usa">liga</a> contiene información por explorar:
-<ul>
-<li>Buscar información de número de pobladores por zona</li>
-<li>Información del tipo de residencias existentes (número de casas/departamentos/edificios)</li>
-<li>Ingreso promedio por zona</li>
-<li>Etnias</li>
-</ul></li>
-</ul>
-<div id="tuneo-de-hiperparámetros" class="section level2" number="6.2">
-<h2><span class="header-section-number">6.2</span> Tuneo de hiperparámetros</h2>
-<p>Pendiente.</p>
+<div id="infra" class="section level1" number="3">
+<h1><span class="header-section-number">Capítulo 3</span> Data Pipeline e Infraestructura de AWS</h1>
+<div id="data-pipeline" class="section level2" number="3.1">
+<h2><span class="header-section-number">3.1</span> Data Pipeline</h2>
+<div id="deployment" class="section level3" number="3.1.1">
+<h3><span class="header-section-number">3.1.1</span> Deployment</h3>
+<strong>Gráfica 2.Data Product Pipeline: Deployment</strong>
+<div align="center">
+<p><image width="700" height="100" src="./images/deployment.png"></p>
 </div>
-<div id="selección-de-modelos" class="section level2" number="6.3">
-<h2><span class="header-section-number">6.3</span> Selección de Modelos</h2>
-<p>Para predecir si la Policía Departamental de Nueva York, en un día determinado, recibirá un número de quejas (o peticiones de servicio) por encima del promedio diario esperado para un mes determinado, implementamos los siguientes modelos:</p>
 <ol style="list-style-type: decimal">
-<li>Random Forest</li>
+<li>Script en python que hace peticiones a la API de <strong>socrata</strong> usando la librería <strong>sodapy</strong> solicitando todos los registros de la base de datos en formato JSON.</li>
+<li>En la EC2 se recibe el archivo de datos y se guarda en la instancia S3. El script hace las predicciones por fecha y los archivos respuesta se van guardando en una estructura de carpetas dentro de S3. El S3 está encriptado de tal manera que solamente pueden ingresar con las credenciales asignadas.</li>
+<li>Alimentamos el esquema <strong>preprocessed</strong> en el cual se genera la misma estructura de carpetas y los archivos JSON se guardan en formato parquet.</li>
+<li>Se genera el esquema <strong>cleaned</strong> a partir del esquema preprocessed. En este esquema se eliminan las columnas que no tienen variabilidad o son en su mayoría valores nulos. Se asignan los tipos de dato a cada columna y se limpian acentos y caracteres extraños de nombres de columnas y observaciones. Se conserva el formato parquet.</li>
 </ol>
-<p><em>Hiperparámetros asociados</em>:</p>
-<ul>
-<li>max_depth =<span class="math inline">\(10\)</span></li>
-<li>criterio =‘gini’</li>
-<li>n_estimators= <span class="math inline">\(100\)</span></li>
-</ul>
-<p><em>Acurracy</em>:</p>
-<table>
-<thead>
-<tr class="header">
-<th>Training</th>
-<th>Validation</th>
-<th>Test</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>0.959496</td>
-<td>0.839449</td>
-<td>0.75935</td>
-</tr>
-</tbody>
-</table>
-<p><em>Nota</em>:
-Para ver el código asociado a cada modelo, remitirse a la siguiente carpeta: <a href="https://github.com/dapivei/data-product-architecture-final-project/tree/master/scripts/model">model</a>.</p>
-<p>Para ver el código asociado a los tasks que mandan a correr estos modelos y los guardan en un pickle en S3, revisar la carpeta: <a href="https://github.com/dapivei/data-product-architecture-final-project/tree/master/scripts/luigi">luigi</a>.</p>
+<p>Los detalles de la configuración y uso de la arquitura utilizada en AWS se encuenta en <a href="https://github.com/dapivei/data-product-architecture-final-project/tree/master/scripts/conf-AWS" title="aws configuración">scripts aws</a></p>
 </div>
+<div id="desarrollo" class="section level3" number="3.1.2">
+<h3><span class="header-section-number">3.1.2</span> Desarrollo</h3>
+<p><strong>Gráfica 3.Data Product Pipeline: Desarrollo y Producción</strong></p>
+<div align="center">
+<p><image width="700" height="100" src="./images/desarrollo_produccion.png"></p>
+</div>
+<div id="extract" class="section level4" number="3.1.2.1">
+<h4><span class="header-section-number">3.1.2.1</span> Extract</h4>
+<ol style="list-style-type: decimal">
+<li>Hacemos una petición a la API solicitando los datos en formato JSON por medio de un script en python. Se hará un petición al día en la que filtramos para incluir solamente los registros que se crearon el día anterior (registros nuevos). La petición actualmente se hace por número de registros. Se modificará para realizar un filtrado utilizando la variable <strong>created_date</strong>.</li>
+<li>Hacemos una segunda petición a la API solicitando los registros que se cerraron el día anterior en formato JSON. Filtramos la petición por medio de las variables <strong>closed_date</strong> (actualización de registros existentes).</li>
+</ol>
+</div>
+<div id="load" class="section level4" number="3.1.2.2">
+<h4><span class="header-section-number">3.1.2.2</span> Load</h4>
+<ol style="list-style-type: decimal">
+<li>La petición de los datos en <em>extract</em> nos permite obtener los archivos JSON de la API, uno por cada petición y los registros nuevos se incorporan a la estructura de carpetas en S3 con la fecha de creación del registro (futura estructura). Los registros obtenidos por la variable closed_date se guardan en otra estructura de carpatas generada a partir de las fechas.</li>
+</ol>
+</div>
+<div id="transform" class="section level4" number="3.1.2.3">
+<h4><span class="header-section-number">3.1.2.3</span> Transform</h4>
+<ol style="list-style-type: decimal">
+<li>Se corre un script en python (pyspark) que hace consultas a los datos almacenados en parquet, se limpian los datos, se quitan las columnas nulas o que no tienen variabilidad y incorporan los registros al esquema cleaned de la estructura de carpetas.<br />
+</li>
+<li>Se corre un segundo script en python que transforma el archivo JSON que tiene la actualización de registros existentes a parquet, se lleva al formato cleaned y es guarda en la estructura de carpetas.</li>
+</ol>
+<p><strong>Gráfica 4.Extract, Load &amp; Transform</strong></p>
+<div align="center">
+<p><image width="700" height="500" src="./images/elt_aws.png"></p>
+</div>
+</div>
+</div>
+</div>
+<div id="infraestructura-aws" class="section level2" number="3.2">
+<h2><span class="header-section-number">3.2</span> Infraestructura AWS</h2>
+<p><em>Nota</em>: Los scripts asociados a este apartado se encuentran en el archivo <a href="https://github.com/dapivei/data-product-architecture-final-project/tree/master/scripts/conf-AWS">conf-AWS</a>.</p>
+<div id="configuración-del-bastión" class="section level3" number="3.2.1">
+<h3><span class="header-section-number">3.2.1</span> Configuración del bastión</h3>
+<p>El bastión es una instancia pequeña <code>t2.micro</code> con <code>8gb</code> de memoria (no es necesario tener algo con mayor capacidad en este punto). Funciona como punto de seguridad y administra a los usuarios para que puedan entrar a la arquitectura de AWS.</p>
+<p>Este <code>ec2</code> vive dentro de una subnet pública en una VPC.</p>
+<p>Para tener la conexión al bastión, ocupamos el protocolo <code>ssh</code> como sigue:</p>
+<pre><code>ssh -o &quot;ServerAliveInterval 60&quot; -i /ruta/llave.pem  ubuntu@ip-ec2</code></pre>
+<p>Para salir, basta con poner <code>exit</code> en el shell de la instancia.</p>
+</div>
+<div id="addus.sh" class="section level3" number="3.2.2">
+<h3><span class="header-section-number">3.2.2</span> addus.sh</h3>
+<p>Este script crea los usuarios dentro del bastión y asigna la misma contraseña a cada uno de ellos, por lo que debemos estar conectados a la instancia. Para poder hacer uso es necesario darle los permisos, es decir, <code>chmod +x addus.sh</code>. También es importante mencionar que se utiliza un archivo txt <code>users.txt</code> que contiene el nombre de los usuarios que queremos agregar.</p>
+<p>Para la selección de contraseña, utilizamos el encriptador <code>crypt</code> contenido en python 3.6.5 usando los siguientes comandos:</p>
+<pre><code>import crypt
+crypt.crypt(&quot;contraseña&quot;,&quot;salt&quot;)</code></pre>
+<p>La salida de estos comandos debe verse como: <code>'sa1O7Z1pCJzK.'</code>; esta debe agregarse al script <code>addus.ssh</code> en la parte indicada. Para correr el archivo solo es necesario correr el siguiente comando:</p>
+<pre><code>./addus.sh</code></pre>
+<p>En este punto ya tenemos a los usuarios agregados: todos con la misma contraseña y permisos de super usuario.</p>
+</div>
+<div id="agregar-llaves-para-conexión" class="section level3" number="3.2.3">
+<h3><span class="header-section-number">3.2.3</span> Agregar llaves para conexión</h3>
+<p>Una vez creados los usuarios, copiaremos las llaves públicas de cada uno de los usuarios a su usuario correspondiente.</p>
+<ol style="list-style-type: decimal">
+<li>Es necesario modificar el archivo <code>sudo nano /etc/ssh/sshd_config</code> y cambiar los parámetros a la siguiente configuración:</li>
+</ol>
+<pre><code>PubkeyAuthentication yes
+PubkeyAuthentication yes</code></pre>
+<p>Ahora solo es necesario reiniciar el servicio sshd con el comando:</p>
+<pre><code>sudo service sshd restart
+</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li>Realizar el copiado de las llaves al bastión, de forma segura:</li>
+</ol>
+<pre><code>ssh-copy-id -f -i /ruta/llave/id_llave.pub usuario@ip-ec2</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li>Finalmente, nos reconectamos al bastión y cambiamos la configuración del archivo <code>sudo nano /etc/ssh/sshd_config</code> dejando el siguiente parámetro:</li>
+</ol>
+<pre><code>PasswordAuthentication no</code></pre>
+<ol start="4" style="list-style-type: decimal">
+<li>Reiniciamos el servicio <code>sudo service sshd restart</code></li>
+</ol>
+<p>Para conectarnos usando el protocolo <code>ssh</code> y la llave privada, utilizamos el siguiente comando:</p>
+<pre><code>ssh -o &quot;ServerAliveInterval 60&quot; -i /ruta/llave_privada  usuario@ip-ec2</code></pre>
+</div>
+<div id="ec2-procesamiento" class="section level3" number="3.2.4">
+<h3><span class="header-section-number">3.2.4</span> EC2 procesamiento</h3>
+<p>Esta máquina es para el procesamiento de la información y es donde viven las tareas que realiza <code>luigi</code>; cabe mencionar que esta instancia es de mayor capacidad. Aquí también debe ser instalado <code>docker</code> para la reproducibilidad del proyecto.</p>
+<p>Esta maquina vive dentro de una VPC con una subnet privada. Para tener acceso a la misma tenemos que hacer un secure copy de la llave.pem al bastion:</p>
+<pre><code>ssh -i  /tu/ruta/llave-bastion.pem /tu/ruta/llave/ec2/llave.pem ubuntu@ip-ec2:/home/ubuntu/.ssh</code></pre>
+<p>Nos conectamos al bastión y en la ruta <code>/home/ubuntu/.ssh</code> tendremos guardada la <code>llave.pem</code>. En este punto solo tendremos que hacer la conexión usando el protocolo <code>ssh</code>.</p>
+<p>Para asegurar el correcto funcionamiento del host de luigi se debe habilitar el puerto <code>8082</code>. La conexión se realiza usando el siguiente comando en la EC2</p>
+<pre><code>luigid</code></pre>
+<p>Esto activa el puerto <code>8082</code> y permite que nos conectemos usando el navegador de internet en la siguiente liga</p>
+<pre><code>ip_ec2:8082</code></pre>
+<p>Nota: si falla la conexión a la EC2 y por alguna razón no permite entrar a la liga debemos usar el siguiente comando <code>sudo lsof -t -i tcp:8082 | xargs kill -9</code> esto termina la conexión previa y así podemos reiniciar.</p>
+</div>
+<div id="para-levantar-cluster" class="section level3" number="3.2.5">
+<h3><span class="header-section-number">3.2.5</span> Para levantar cluster</h3>
+<p>A continuación se presentan los pasos a seguir para configurar y levantar el cluster, conexión y trabajo dentro del mismo. Para el óptimo desarrollo se tiene como consideración que los datos se encuentran guardados en una <code>S3</code>.</p>
+<p>Conectado en el servicio <code>EMR</code> de <code>AWS</code>, damos click en el botón <code>crear cluster</code>. Nombramos el cluster; en configuración de software escogemos <code>emr-5.29.0</code> con aplicaciones <code>Spark: Spark 2.4.4 on Hadoop 2.8.5 YARN with Ganglia 3.7.2 and Zeppelin 0.8.2</code> y finalmente seleccionamos <code>crear cluster</code></p>
+<p>Para la conexión al cluster es recomendable utilizar el explorador <code>chrome</code>. En el explorador abrimos la siguiente <a href="https://chrome.google.com/webstore/detail/foxyproxy-standard/gcknhkkoolaabfmlnjonogaaifnjlfnp?hl=es" title="complemento FoxyProxy">liga</a> para instalar el complemento <code>FoxyProxy Standard</code>, dentro de este complemento en <code>options &gt; import/export</code> subimos el archivo <code>foxyproxy-settings.xml</code>, por último en <code>proxy mode</code> seleccionamos la opción <code>Use proxies based on their pre-defined patterns and priorities</code></p>
+<ul>
+<li>Abrimos el tunel <code>ssh</code> desde la linea de comandos de la siguiente forma.</li>
+</ul>
+<pre><code>ssh -i ~/ruta/llave.pem -ND 8157 hadoop@dns_ip_aws</code></pre>
+<ul>
+<li>Desde <code>chrome</code> nos conectamos a la siguiente ruta para utilizar <code>Zeppelin</code>.</li>
+</ul>
+<pre><code>dns_ip_aws:8890</code></pre>
 </div>
 
+</div>
 </div>
 </div>
             </section>
@@ -318,8 +314,8 @@ Para ver el código asociado a cada modelo, remitirse a la siguiente carpeta: <a
           </div>
         </div>
       </div>
-<a href="eda.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="metricas.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="dataset.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="governanza.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -350,7 +346,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/dapivei/prueba05-modelos.Rmd",
+"link": "https://github.com/dapivei/prueba02-infra.Rmd",
 "text": "Edit"
 },
 "history": {

@@ -1,0 +1,35 @@
+# Continuous integration CI {#continuos_integration}
+
+<div align='justify'>
+
+Para identificar los  posibles *bugs* lo más antes posible que se pueda, verificar de manera más o menos automática que nuestro código hace lo que se supone debe hacer y permitir que nuevos usuarios entiendan lo que hace nuestro código, implementamos los siguientes test para probar la funcionalidad de nuestro código y las suposiciones de las cuáles partimos al momento de trabajar con los datos: unit tests.
+
+## Supuestos
+
+* *Supuesto 1*: La fecha de cierre de *service request* es posterior o igual a la fecha de creación del *service request*.
+
+* *Supuesto 2*: De acuerdo con la API de dónde se extrajeron los datos, los registros de quejas vertidas a través de SR NYC 311, comprenden el periodo 2010 a la fecha. Confiando en la legitimidad de la API, suponemos que los valores de la fecha de creación y cierre de los SR están entre 2010 y la fecha actual.
+
+
+* *Supuesto 3*: Suponemos que las transformaciones que realizamos durante el feature engineering, especificamente durante la transformación de variable correspondiente al año de creación de SR a formato one hot encoding, fue correctas.
+
+* *Supuesto 4*: Suponemos que las transformaciones que realizamos durante el feature engineering, específicamente durante la transformación de variable correspondiente al mes de creación de SR a formato one hot encoding, fueron correctas.
+
+* *Supuesto 5*:
+
+## Pruebas unitarias
+
+Para probar nuestras suposiciones iniciales, empleamos las librería `marbles` y `pandas`. En particular, la librería marbles nos facilitó la visualización y explicitación de errores en los datos extraidos de la API.
+
+
++ `test_for_closed_date_greater_than_created_date`: implementada en marbles.
+
++ `test_for_years_out_of_range`: implementada en marbles.
+
++ `test_created_date_year_vs_onehot`: implementada en marbles.
+
++ `test_created_date_month_vs_onehot`: implementada en marbles.
+
++  `prueba_casos_dia`: implementada en pandas.
+
+</div>

@@ -1,0 +1,117 @@
+# Governanza de Datos {#governanza}
+
+## Linaje de Datos: Metadatos y Diseño de Tablas(RDS) para la fase del *Extract, Load and Transform(ETL)*
+
+****
+
+**Objetivo**
+
+Presentación de los esquemas que representan el linaje de datos del ETL del proyecto "311 NYC SR".
+
+****
+
+<div align="justify">
+
+
+### Raw
+
+> **Descripción:**
+**1)** Petición a la [API](https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2010-to-Present/erm2-nwe9) los datos, filtrados por fecha.
+**2)** Guardado de los datos en formato original (json) dentro de un bucket en `S3`. Nota: Se requieren todas las variables con las que cuenta la base de datos.  
+
+> **Metadata asociada**:
+
++ Fecha de ejecución
++ Hora de ejecución
++ Parámetros con los que ejecutaste tu task. Lista en formato JSON.
+    + year
+    + month
+    + day
+    + bucket_name
++ Quién ejecutó el task (usuario)
++ Desde donde se ejecutó (ip, instancia EC2)
++ Número de registros ingestados
++ Nombre del archivo generado
++ Ruta de almacentamiento en S3 (incluyendo el bucket)
++ Usuario en BD
++ Variables (en el orden en el que aparecen)
++ Tipos de datos **Hay que sacar todos en tipo texto y luego asignamos tipos**
++ Qué script se ejecutó (tag de github): **este paso no es trivial**.
++ Logs del script
++ Estatus de ejecución
+
+### Preprocessed
+
+>**Descripción**: Cambio del formato original (json) al formato de procesamiento (parquet).
+
+> **Metadata asociada**:
+
++ Fecha de ejecución
++ Hora de ejecución
++ Quién ejecutó (usuario)
++ Cambio de formato, de JSON a Parquet.
++ Tag de código de github que se ejecutó
++ Dónde se ejecutó
++ Idealmente # de registros modificados
++ Logs del scrpit
++ Estatus de ejecución: Fallido, exitoso, etc.
+
+### Clean
+
+>**Descripción**: **1)** Limpieza de títulos de las columnas, por ejemplo: pasar los datos a minúsculas y quitar caracteres especiales. **2)** Asignación del tipo de dato a las columnas. **3)** Eliminación de las columnas vacías o sin variabilidad.
+
+
+>**Metadata asociada**:
+
++ Fecha de ejecución
++ Quién ejecutó (usuario)
++ Dónde se ejecutó
++ Descripción de transformaciones a cada columna
++ Tag de código de github que se ejecutó
++ Número de registros modificados
++ Logs del script (estatus de ejecución por columna)
++ Estatus de ejecución
+
+### Semantic
+
+> **Descripción:** Las entidades son las agencias; los eventos son los requerimentos de servicio que se tienen. Haremos la predicción de si al día siguiente (granularidad por definir) el número de eventos será mayor que un límite establecido previamente (promedio o por definir). En este paso se generan nuevas variables relevantes para el análisis.
+
+> **Metadata asociada:**
+
++ Fecha de ejecución
++ Quién ejecutó (usuario)
++ Dónde se ejecutó
++ Nombre de archivos creados
++ Ruta donde se guardaron
++ Descripción de transformaciones a cada columna
++ Descripción de nuevas variables
++ Tag de código de github que se ejecutó
++ Parámetros del script
++ Número de registros modificados
++ Logs del script (estatus de ejecución por columna)
++ Estatus de ejecución
+
+### ML preprocessing
+
+Se le hacen las transformaciónes a los datos con el fin de ponerlos en formato y poderlos procesar con algoritmos de machine learning. Se ponen etiquetas numpericas a las variables categóricas y one hot encoding.
+
+
+> **Metadata Asociada**:
+
++ Fecha de ejecución
++ Quién ejecutó (usuario)
++ Dónde se ejecutó
++ Nombre de archivos creados
++ Ruta donde se guardaron
++ Descripción de transformaciones a cada columna
++ Tag de código de github que se ejecutó
++ Parámetros del script
++ Número de registros modificados
++ Logs del script (estatus de ejecución por columna)
++ Estatus de ejecución
+
+## Linaje de Datos: Metadatos y Diseño de Tablas(RDS) para la fase: *Modeling*
+
+## Linaje de Datos: Metadatos y Diseño de Tablas(RDS) para la fase: *Unit Testing*
+
+</div>

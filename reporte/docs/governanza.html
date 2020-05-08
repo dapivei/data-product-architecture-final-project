@@ -4,11 +4,11 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>Capítulo 6 Modelos | NYC 311 Service Request Data Product</title>
+  <title>Capítulo 4 Governanza de Datos | NYC 311 Service Request Data Product</title>
   <meta name="description" content="Descripción de la implementación de un producto de datos: predicciones sobre el flujo de quejas diarias (por encima), del flujo promedio de quejas." />
   <meta name="generator" content="bookdown 0.18 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="Capítulo 6 Modelos | NYC 311 Service Request Data Product" />
+  <meta property="og:title" content="Capítulo 4 Governanza de Datos | NYC 311 Service Request Data Product" />
   <meta property="og:type" content="book" />
   
   
@@ -16,7 +16,7 @@
   <meta name="github-repo" content="https://github.com/dapivei/prueba" />
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Capítulo 6 Modelos | NYC 311 Service Request Data Product" />
+  <meta name="twitter:title" content="Capítulo 4 Governanza de Datos | NYC 311 Service Request Data Product" />
   
   <meta name="twitter:description" content="Descripción de la implementación de un producto de datos: predicciones sobre el flujo de quejas diarias (por encima), del flujo promedio de quejas." />
   
@@ -24,15 +24,15 @@
 <meta name="author" content="Cadavid-Sánchez Sebastián, Herrera Musi Juan Pablo, Paz Cendejas Francisco, Villa Lizárraga Diego M. &amp; Pinto Veizaga Daniela" />
 
 
-<meta name="date" content="2020-04-29" />
+<meta name="date" content="2020-05-08" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-<link rel="prev" href="eda.html"/>
-<link rel="next" href="metricas.html"/>
+<link rel="prev" href="infra.html"/>
+<link rel="next" href="eda.html"/>
 <script src="libs/header-attrs-2.1/header-attrs.js"></script>
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
@@ -103,14 +103,7 @@
 </ul></li>
 <li class="chapter" data-level="4" data-path="governanza.html"><a href="governanza.html"><i class="fa fa-check"></i><b>4</b> Governanza de Datos</a>
 <ul>
-<li class="chapter" data-level="4.1" data-path="governanza.html"><a href="governanza.html#linaje-de-datos-metadatos-y-diseño-de-tablasrds-para-la-fase-del-extract-load-and-transformetl"><i class="fa fa-check"></i><b>4.1</b> Linaje de Datos: Metadatos y Diseño de Tablas(RDS) para la fase del <em>Extract, Load and Transform(ETL)</em></a>
-<ul>
-<li class="chapter" data-level="4.1.1" data-path="governanza.html"><a href="governanza.html#raw"><i class="fa fa-check"></i><b>4.1.1</b> Raw</a></li>
-<li class="chapter" data-level="4.1.2" data-path="governanza.html"><a href="governanza.html#preprocessed"><i class="fa fa-check"></i><b>4.1.2</b> Preprocessed</a></li>
-<li class="chapter" data-level="4.1.3" data-path="governanza.html"><a href="governanza.html#clean"><i class="fa fa-check"></i><b>4.1.3</b> Clean</a></li>
-<li class="chapter" data-level="4.1.4" data-path="governanza.html"><a href="governanza.html#semantic"><i class="fa fa-check"></i><b>4.1.4</b> Semantic</a></li>
-<li class="chapter" data-level="4.1.5" data-path="governanza.html"><a href="governanza.html#ml-preprocessing"><i class="fa fa-check"></i><b>4.1.5</b> ML preprocessing</a></li>
-</ul></li>
+<li class="chapter" data-level="4.1" data-path="governanza.html"><a href="governanza.html#linaje-de-datos-metadatos-y-diseño-de-tablasrds-para-la-fase-del-extract-load-and-transformetl"><i class="fa fa-check"></i><b>4.1</b> Linaje de Datos: Metadatos y Diseño de Tablas(RDS) para la fase del <em>Extract, Load and Transform(ETL)</em></a></li>
 </ul></li>
 <li class="chapter" data-level="5" data-path="eda.html"><a href="eda.html"><i class="fa fa-check"></i><b>5</b> Exploratory Data Analysis (EDA)</a>
 <ul>
@@ -132,6 +125,8 @@
 <li class="chapter" data-level="6" data-path="modelos.html"><a href="modelos.html"><i class="fa fa-check"></i><b>6</b> Modelos</a>
 <ul>
 <li class="chapter" data-level="6.1" data-path="modelos.html"><a href="modelos.html#feature-engineering"><i class="fa fa-check"></i><b>6.1</b> Feature engineering</a></li>
+<li class="chapter" data-level="6.2" data-path="modelos.html"><a href="modelos.html#tuneo-de-hiperparámetros"><i class="fa fa-check"></i><b>6.2</b> Tuneo de hiperparámetros</a></li>
+<li class="chapter" data-level="6.3" data-path="modelos.html"><a href="modelos.html#selección-de-modelos"><i class="fa fa-check"></i><b>6.3</b> Selección de Modelos</a></li>
 </ul></li>
 <li class="chapter" data-level="7" data-path="metricas.html"><a href="metricas.html"><i class="fa fa-check"></i><b>7</b> Métricas de Desempeño</a></li>
 <li class="chapter" data-level="8" data-path="continuos-integration.html"><a href="continuos-integration.html"><i class="fa fa-check"></i><b>8</b> Continuous integration CI</a>
@@ -149,14 +144,23 @@
 </ul></li>
 <li class="chapter" data-level="9" data-path="biasFairness.html"><a href="biasFairness.html"><i class="fa fa-check"></i><b>9</b> Bias y Fairness</a>
 <ul>
-<li class="chapter" data-level="9.1" data-path="biasFairness.html"><a href="biasFairness.html#aequitas"><i class="fa fa-check"></i><b>9.1</b> Aequitas</a></li>
-<li class="chapter" data-level="9.2" data-path="biasFairness.html"><a href="biasFairness.html#aifairness360-aif360"><i class="fa fa-check"></i><b>9.2</b> AIFairness360 (AIF360)</a></li>
+<li class="chapter" data-level="9.1" data-path="biasFairness.html"><a href="biasFairness.html#atributo-protegido"><i class="fa fa-check"></i><b>9.1</b> Atributo protegido</a></li>
+<li class="chapter" data-level="9.2" data-path="biasFairness.html"><a href="biasFairness.html#grupo-de-referencia"><i class="fa fa-check"></i><b>9.2</b> Grupo de referencia</a></li>
+<li class="chapter" data-level="9.3" data-path="biasFairness.html"><a href="biasFairness.html#métricas-de-equidad-y-sesgo"><i class="fa fa-check"></i><b>9.3</b> Métricas de equidad y sesgo</a></li>
+<li class="chapter" data-level="9.4" data-path="biasFairness.html"><a href="biasFairness.html#input"><i class="fa fa-check"></i><b>9.4</b> Input</a></li>
+<li class="chapter" data-level="9.5" data-path="biasFairness.html"><a href="biasFairness.html#resultados"><i class="fa fa-check"></i><b>9.5</b> Resultados</a></li>
 </ul></li>
-<li class="chapter" data-level="10" data-path="solucion.html"><a href="solucion.html"><i class="fa fa-check"></i><b>10</b> Solución Propuesta: Producto Final</a></li>
+<li class="chapter" data-level="10" data-path="frontend.html"><a href="frontend.html"><i class="fa fa-check"></i><b>10</b> Solución Propuesta: Producto Final</a></li>
 <li class="chapter" data-level="11" data-path="orquestacion.html"><a href="orquestacion.html"><i class="fa fa-check"></i><b>11</b> Orquestación del flujo de trabajo</a>
 <ul>
-<li class="chapter" data-level="11.1" data-path="orquestacion.html"><a href="orquestacion.html#tasks"><i class="fa fa-check"></i><b>11.1</b> Tasks</a></li>
-<li class="chapter" data-level="11.2" data-path="orquestacion.html"><a href="orquestacion.html#dag"><i class="fa fa-check"></i><b>11.2</b> DAG</a></li>
+<li class="chapter" data-level="11.1" data-path="orquestacion.html"><a href="orquestacion.html#pipeline-principal"><i class="fa fa-check"></i><b>11.1</b> Pipeline principal</a>
+<ul>
+<li class="chapter" data-level="11.1.1" data-path="orquestacion.html"><a href="orquestacion.html#dag-asociado"><i class="fa fa-check"></i><b>11.1.1</b> DAG Asociado</a></li>
+</ul></li>
+<li class="chapter" data-level="11.2" data-path="orquestacion.html"><a href="orquestacion.html#pipeline-de-unit-testing"><i class="fa fa-check"></i><b>11.2</b> Pipeline de Unit Testing</a>
+<ul>
+<li class="chapter" data-level="11.2.1" data-path="orquestacion.html"><a href="orquestacion.html#dag-asociado-1"><i class="fa fa-check"></i><b>11.2.1</b> DAG Asociado</a></li>
+</ul></li>
 </ul></li>
 <li class="chapter" data-level="12" data-path="conclusiones.html"><a href="conclusiones.html"><i class="fa fa-check"></i><b>12</b> Conclusiones</a></li>
 <li class="chapter" data-level="13" data-path="referencias.html"><a href="referencias.html"><i class="fa fa-check"></i><b>13</b> Referencias</a></li>
@@ -180,134 +184,135 @@
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="modelos" class="section level1" number="6">
-<h1><span class="header-section-number">Capítulo 6</span> Modelos</h1>
-<div id="feature-engineering" class="section level2" number="6.1">
-<h2><span class="header-section-number">6.1</span> Feature engineering</h2>
+<div id="governanza" class="section level1" number="4">
+<h1><span class="header-section-number">Capítulo 4</span> Governanza de Datos</h1>
+<div id="linaje-de-datos-metadatos-y-diseño-de-tablasrds-para-la-fase-del-extract-load-and-transformetl" class="section level2" number="4.1">
+<h2><span class="header-section-number">4.1</span> Linaje de Datos: Metadatos y Diseño de Tablas(RDS) para la fase del <em>Extract, Load and Transform(ETL)</em></h2>
+<hr />
+<p><strong>Objetivo</strong></p>
+<p>Presentación de los esquemas que representan el linaje de datos del ETL del proyecto “311 NYC SR”.</p>
+<hr />
 <div align="justify">
-<p>A partir de la variable <em>created_date (día-mes-año en que se levantó la queja)</em> se crearon las siguientes variables:</p>
-<table>
-<colgroup>
-<col width="50%" />
-<col width="50%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Variable</th>
-<th>Descripción</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>complain_type</td>
-<td>tipo de queja = noise</td>
-</tr>
-<tr class="even">
-<td>number_cases</td>
-<td>número de casos registrados en el día</td>
-</tr>
-<tr class="odd">
-<td>mean_month</td>
-<td>promedio de casos registrados en un mes (histórico)</td>
-</tr>
-<tr class="even">
-<td><strong>number_cases &gt; mean_month</strong></td>
-<td>variable indicadora – día con número de quejas superiores al promedio del mes</td>
-</tr>
-<tr class="odd">
-<td>created_date_day</td>
-<td>día del mes en que se levantó la queja (1-31) – one hot encoding</td>
-</tr>
-<tr class="even">
-<td>created_date_month</td>
-<td>indicador del mes de registro de la queja (1-12) – one hot encoding</td>
-</tr>
-<tr class="odd">
-<td>created_date_dow</td>
-<td>día de la semana en que se levantó la queja (1-7) – one hot encoder</td>
-</tr>
-<tr class="even">
-<td>created_date_year</td>
-<td>año de registro de la queja – one hot encoding</td>
-</tr>
-<tr class="odd">
-<td>created_date_woy</td>
-<td>número de semana del año en que fue registrada la queja (1-52) – one hot encoding</td>
-</tr>
-<tr class="even">
-<td>date_holiday</td>
-<td>indicador binario si el día en que se registro la queja fue un feriado o no</td>
-</tr>
-<tr class="odd">
-<td>number_cases_1day_ago</td>
-<td>número de casos registrados 1 día antes</td>
-</tr>
-<tr class="even">
-<td>number_cases_2days_ago</td>
-<td>número de casos registrados dos días antes</td>
-</tr>
-<tr class="odd">
-<td>number_cases_3days_ago</td>
-<td>número de casos registrados tres días antes</td>
-</tr>
-<tr class="even">
-<td>number_cases_4days_ago</td>
-<td>número de casos registrados cuatro días antes</td>
-</tr>
-<tr class="odd">
-<td>number_cases_5days_ago</td>
-<td>número de casos registrados cinco días antes</td>
-</tr>
-</tbody>
-</table>
-<p>Estas variables fueron empleadas en el modelado.</p>
-<p><strong>Propuestas a futuro:</strong></p>
+<div id="raw" class="section level3" number="4.1.1">
+<h3><span class="header-section-number">4.1.1</span> Raw</h3>
+<blockquote>
+<p><strong>Descripción:</strong>
+<strong>1)</strong> Petición a la <a href="https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2010-to-Present/erm2-nwe9">API</a> los datos, filtrados por fecha.
+<strong>2)</strong> Guardado de los datos en formato original (json) dentro de un bucket en <code>S3</code>. Nota: Se requieren todas las variables con las que cuenta la base de datos.</p>
+</blockquote>
+<blockquote>
+<p><strong>Metadata asociada</strong>:</p>
+</blockquote>
 <ul>
-<li>Aumentar las variables cambiando el número de días anteriores: {1,2,3,4,5,6,7,,8,9,10,…}</li>
-<li>Segmentar por zonas geográficas. La siguiente <a href="https://www.census.gov/en.html" title="censo usa">liga</a> contiene información por explorar:
+<li>Fecha de ejecución</li>
+<li>Hora de ejecución</li>
+<li>Parámetros con los que ejecutaste tu task. Lista en formato JSON.
 <ul>
-<li>Buscar información de número de pobladores por zona</li>
-<li>Información del tipo de residencias existentes (número de casas/departamentos/edificios)</li>
-<li>Ingreso promedio por zona</li>
-<li>Etnias</li>
+<li>year</li>
+<li>month</li>
+<li>day</li>
+<li>bucket_name</li>
 </ul></li>
+<li>Quién ejecutó el task (usuario)</li>
+<li>Desde donde se ejecutó (ip, instancia EC2)</li>
+<li>Número de registros ingestados</li>
+<li>Nombre del archivo generado</li>
+<li>Ruta de almacentamiento en S3 (incluyendo el bucket)</li>
+<li>Usuario en BD</li>
+<li>Variables (en el orden en el que aparecen)</li>
+<li>Tipos de datos <strong>Hay que sacar todos en tipo texto y luego asignamos tipos</strong></li>
+<li>Qué script se ejecutó (tag de github): <strong>este paso no es trivial</strong>.</li>
+<li>Logs del script</li>
+<li>Estatus de ejecución</li>
 </ul>
-<div id="tuneo-de-hiperparámetros" class="section level2" number="6.2">
-<h2><span class="header-section-number">6.2</span> Tuneo de hiperparámetros</h2>
-<p>Pendiente.</p>
 </div>
-<div id="selección-de-modelos" class="section level2" number="6.3">
-<h2><span class="header-section-number">6.3</span> Selección de Modelos</h2>
-<p>Para predecir si la Policía Departamental de Nueva York, en un día determinado, recibirá un número de quejas (o peticiones de servicio) por encima del promedio diario esperado para un mes determinado, implementamos los siguientes modelos:</p>
-<ol style="list-style-type: decimal">
-<li>Random Forest</li>
-</ol>
-<p><em>Hiperparámetros asociados</em>:</p>
+<div id="preprocessed" class="section level3" number="4.1.2">
+<h3><span class="header-section-number">4.1.2</span> Preprocessed</h3>
+<blockquote>
+<p><strong>Descripción</strong>: Cambio del formato original (json) al formato de procesamiento (parquet).</p>
+</blockquote>
+<blockquote>
+<p><strong>Metadata asociada</strong>:</p>
+</blockquote>
 <ul>
-<li>max_depth =<span class="math inline">\(10\)</span></li>
-<li>criterio =‘gini’</li>
-<li>n_estimators= <span class="math inline">\(100\)</span></li>
+<li>Fecha de ejecución</li>
+<li>Hora de ejecución</li>
+<li>Quién ejecutó (usuario)</li>
+<li>Cambio de formato, de JSON a Parquet.</li>
+<li>Tag de código de github que se ejecutó</li>
+<li>Dónde se ejecutó</li>
+<li>Idealmente # de registros modificados</li>
+<li>Logs del scrpit</li>
+<li>Estatus de ejecución: Fallido, exitoso, etc.</li>
 </ul>
-<p><em>Acurracy</em>:</p>
-<table>
-<thead>
-<tr class="header">
-<th>Training</th>
-<th>Validation</th>
-<th>Test</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>0.959496</td>
-<td>0.839449</td>
-<td>0.75935</td>
-</tr>
-</tbody>
-</table>
-<p><em>Nota</em>:
-Para ver el código asociado a cada modelo, remitirse a la siguiente carpeta: <a href="https://github.com/dapivei/data-product-architecture-final-project/tree/master/scripts/model">model</a>.</p>
-<p>Para ver el código asociado a los tasks que mandan a correr estos modelos y los guardan en un pickle en S3, revisar la carpeta: <a href="https://github.com/dapivei/data-product-architecture-final-project/tree/master/scripts/luigi">luigi</a>.</p>
+</div>
+<div id="clean" class="section level3" number="4.1.3">
+<h3><span class="header-section-number">4.1.3</span> Clean</h3>
+<blockquote>
+<p><strong>Descripción</strong>: <strong>1)</strong> Limpieza de títulos de las columnas, por ejemplo: pasar los datos a minúsculas y quitar caracteres especiales. <strong>2)</strong> Asignación del tipo de dato a las columnas. <strong>3)</strong> Eliminación de las columnas vacías o sin variabilidad.</p>
+</blockquote>
+<blockquote>
+<p><strong>Metadata asociada</strong>:</p>
+</blockquote>
+<ul>
+<li>Fecha de ejecución</li>
+<li>Quién ejecutó (usuario)</li>
+<li>Dónde se ejecutó</li>
+<li>Descripción de transformaciones a cada columna</li>
+<li>Tag de código de github que se ejecutó</li>
+<li>Número de registros modificados</li>
+<li>Logs del script (estatus de ejecución por columna)</li>
+<li>Estatus de ejecución</li>
+</ul>
+</div>
+<div id="semantic" class="section level3" number="4.1.4">
+<h3><span class="header-section-number">4.1.4</span> Semantic</h3>
+<blockquote>
+<p><strong>Descripción:</strong> Las entidades son las agencias; los eventos son los requerimentos de servicio que se tienen. Haremos la predicción de si al día siguiente (granularidad por definir) el número de eventos será mayor que un límite establecido previamente (promedio o por definir). En este paso se generan nuevas variables relevantes para el análisis.</p>
+</blockquote>
+<blockquote>
+<p><strong>Metadata asociada:</strong></p>
+</blockquote>
+<ul>
+<li>Fecha de ejecución</li>
+<li>Quién ejecutó (usuario)</li>
+<li>Dónde se ejecutó</li>
+<li>Nombre de archivos creados</li>
+<li>Ruta donde se guardaron</li>
+<li>Descripción de transformaciones a cada columna</li>
+<li>Descripción de nuevas variables</li>
+<li>Tag de código de github que se ejecutó</li>
+<li>Parámetros del script</li>
+<li>Número de registros modificados</li>
+<li>Logs del script (estatus de ejecución por columna)</li>
+<li>Estatus de ejecución</li>
+</ul>
+</div>
+<div id="ml-preprocessing" class="section level3" number="4.1.5">
+<h3><span class="header-section-number">4.1.5</span> ML preprocessing</h3>
+<p>Se le hacen las transformaciónes a los datos con el fin de ponerlos en formato y poderlos procesar con algoritmos de machine learning. Se ponen etiquetas numpericas a las variables categóricas y one hot encoding.</p>
+<blockquote>
+<p><strong>Metadata Asociada</strong>:</p>
+</blockquote>
+<ul>
+<li>Fecha de ejecución</li>
+<li>Quién ejecutó (usuario)</li>
+<li>Dónde se ejecutó</li>
+<li>Nombre de archivos creados</li>
+<li>Ruta donde se guardaron</li>
+<li>Descripción de transformaciones a cada columna</li>
+<li>Tag de código de github que se ejecutó</li>
+<li>Parámetros del script</li>
+<li>Número de registros modificados</li>
+<li>Logs del script (estatus de ejecución por columna)</li>
+<li>Estatus de ejecución</li>
+</ul>
+</div>
+<div id="linaje-de-datos-metadatos-y-diseño-de-tablasrds-para-la-fase-modeling" class="section level2" number="4.2">
+<h2><span class="header-section-number">4.2</span> Linaje de Datos: Metadatos y Diseño de Tablas(RDS) para la fase: <em>Modeling</em></h2>
+</div>
+<div id="linaje-de-datos-metadatos-y-diseño-de-tablasrds-para-la-fase-unit-testing" class="section level2" number="4.3">
+<h2><span class="header-section-number">4.3</span> Linaje de Datos: Metadatos y Diseño de Tablas(RDS) para la fase: <em>Unit Testing</em></h2>
 </div>
 </div>
 
@@ -318,8 +323,8 @@ Para ver el código asociado a cada modelo, remitirse a la siguiente carpeta: <a
           </div>
         </div>
       </div>
-<a href="eda.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="metricas.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="infra.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="eda.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -350,7 +355,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/dapivei/prueba05-modelos.Rmd",
+"link": "https://github.com/dapivei/prueba03-governanza.Rmd",
 "text": "Edit"
 },
 "history": {

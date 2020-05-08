@@ -1,0 +1,44 @@
+# Orquestación del flujo de trabajo {#orquestacion}
+
+
+## Pipeline principal
+
+<div align="justify">
+
+Para la orquestación del flujo de trabajo que implementamos, utilizamos [luigi](https://luigi.readthedocs.io/en/stable/index.html). Hasta el momento contamos con los siguientes tasks.
+
+|Task| Descripción de la Tarea| Dependencias|
+|-|-|-|
+|Task_10_download |Baja los datos de la api | Sin dependencias|
+|Task_20_metaDownload | Genera metadatos de la extraccion de la API |Task_10_download|
+|Task_30_preproc|Cambia los datos de json a parquet| Task_20_metaDownload|
+|Task_40_metaPreproc | Genera los metadatos del preprocesamiento| Task_30_preproc|
+|Task_50_cleaned|Limpia los datos y los regresa en formato parquet|Task_40_metaPreproc|
+Task_60_metaClean |Guarda los metadatos de clean| Task_50_cleaned|
+Task_70_mlPreproc | Actualiza la matriz base de prerpocesamiento de ML|Task_60_metaClean|
+|Task_71_mlPreproc_firstTime|Genera la matriz base de preprocesamiento de ML|Task_60_metaClean completo|
+|Task_80_metaMlPreproc|Genera los metadatos del task 71|Task_71_mlPreproc_firstTime|
+|Task_91_ml_firstTime|Feature engineering |Task_71_mlPreproc_firstTime|
+|Task_100_Train |Entrena el modelo con un rando forest y guarda el pickle|Task_91_ml_firstTime|
+|Task_110_metaModel|Genera los metadatos del entrenamiento|Task_100_Train completo|
+
+
+### DAG Asociado
+
+Al momento de correr el *task* correspondiente a la corrida y guardado del modelo, la gráfica de dependencia se ve de la siguiente manera:
+
+<div align="center">
+
+<image width="500" height="200" src="./images/dag_fromModel.png">
+
+
+</div>
+
+Cada nodo representa una tarea (*task*) que debe ser corrida. Los *task* en verde indican que la tarea que representa ese nodo ha sido completada; los *nodos* en amarillo representan a aquellos *task* que están pendientes.  
+
+
+
+## Pipeline de Unit Testing
+
+### DAG Asociado
+</div>

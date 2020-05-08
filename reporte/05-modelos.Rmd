@@ -1,0 +1,73 @@
+# Modelos {#modelos}
+
+## Feature engineering
+
+<div align=justify>
+
+A partir de la variable *created_date (día-mes-año en que se levantó la queja)* se crearon las siguientes variables:
+
+
+| Variable      |  Descripción |
+|-|-|
+| complain_type | tipo de queja = noise  |
+| number_cases  | número de casos registrados en el día  |
+| mean_month    | promedio de casos registrados en un mes (histórico)  |
+| **number_cases  >  mean_month**| variable indicadora -- día con número de quejas superiores al promedio del mes|
+| created_date_day| día del mes en que se levantó la queja (1-31) -- one hot encoding|
+| created_date_month | indicador del mes de registro de la queja (1-12) -- one hot encoding|
+|created_date_dow| día de la semana en que se levantó la queja (1-7) -- one hot encoder|
+| created_date_year| año de registro de la queja -- one hot encoding |
+| created_date_woy| número de semana del año en que fue registrada la queja (1-52) -- one hot encoding|
+| date_holiday | indicador binario si el día en que se registro la queja fue un feriado o no|
+|number_cases_1day_ago| número de casos registrados 1 día antes|
+|number_cases_2days_ago| número de casos registrados dos días antes|
+|number_cases_3days_ago| número de casos registrados tres días antes|
+|number_cases_4days_ago| número de casos registrados cuatro días antes|
+|number_cases_5days_ago| número de casos registrados cinco días antes|
+
+Estas variables fueron empleadas en el modelado.
+
+
+**Propuestas a futuro:**
+
++ Aumentar las variables cambiando el número de días anteriores: {1,2,3,4,5,6,7,,8,9,10,...}
++ Segmentar por zonas geográficas. La siguiente [liga](https://www.census.gov/en.html "censo usa") contiene información por explorar:
+  + Buscar información de número de pobladores por zona
+  + Información del tipo de residencias existentes (número de casas/departamentos/edificios)
+  + Ingreso promedio por zona
+  + Etnias
+
+
+## Tuneo de hiperparámetros
+
+Pendiente.
+
+## Selección de Modelos
+
+
+Para predecir si la Policía Departamental de Nueva York, en un día determinado, recibirá un número de quejas (o peticiones de servicio) por encima del promedio diario esperado para un mes determinado, implementamos los siguientes modelos:
+
+1) Random Forest 
+
+*Hiperparámetros asociados*:  
+
++ max_depth =$10$
++ criterio ='gini'
++ n_estimators= $100$
+
+*Acurracy*:
+
+|Training|Validation| Test|
+|-|-|-|
+|0.959496|0.839449|0.75935|
+
+
+
+
+
+*Nota*:
+Para ver el código asociado a cada modelo, remitirse a la siguiente carpeta: [model](https://github.com/dapivei/data-product-architecture-final-project/tree/master/scripts/model).
+
+Para ver el código asociado a los tasks que mandan a correr estos modelos y los guardan en un pickle en S3, revisar la carpeta: [luigi](https://github.com/dapivei/data-product-architecture-final-project/tree/master/scripts/luigi).
+
+</div>

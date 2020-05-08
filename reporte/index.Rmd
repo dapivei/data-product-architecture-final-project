@@ -1,5 +1,5 @@
 --- 
-title: "NYC 311 Service Request"
+title: "NYC 311 Service Request Data Product"
 author: "Cadavid-Sánchez Sebastián, Herrera Musi Juan Pablo, Paz Cendejas Francisco, Villa Lizárraga Diego M. & Pinto Veizaga Daniela"
 date: "`r Sys.Date()`"
 site: bookdown::bookdown_site
@@ -9,25 +9,73 @@ documentclass: book
 bibliography: [book.bib, packages.bib]
 biblio-style: apalike
 link-citations: yes
-github-repo: https://github.com/dapivei/data-product-architecture-final-project
+github-repo: https://github.com/dapivei/prueba
 description: "Descripción de la implementación de un producto de datos: predicciones sobre el flujo de quejas diarias (por encima), del flujo promedio de quejas."
 
 ---
-
+<div align="justify">
 
 # Introducción
 
-El gobierno de Nueva York, con el fin de proveer a la comunidad *newyorkina* con acceso directo a los servicios gubernamentales  y mejorar el seguimiento y control de los servicios gubernamentales, implementó el servicio de petición *NYC311*, disponible las 24 horas del día, los 7 días de la semana, los 365 días del año. De esta manera, según el portal web principal de [*NYC311*](https://portal.311.nyc.gov/about-nyc-311/), la misión del servicio de petición es:
 
->* "es proporcionar al público un acceso rápido y fácil a todos los servicios e información del gobierno de la ciudad de Nueva York al tiempo que ofrece el mejor servicio al cliente. Ayudamos a las agencias a mejorar la prestación de servicios permitiéndoles centrarse en sus misiones principales y administrar su carga de trabajo de manera eficiente. También proporcionamos información para mejorar el gobierno de la Ciudad a través de mediciones y análisis precisos y consistentes de la prestación de servicios".
+Existe una brecha, aparentemente "infranqueable" entre el Estado y la ciudadanía: los ciudadanos carecen de herramientas y canales para monitorear, participar y colaborar de manera directa en el quehacer público. 
+Atendiendo la problemática antes descrita, el gobierno de Nueva York, implementó el servicio de quejas y peticiones *NYC311*, disponible las 24 horas del día, los 7 días de la semana, los 365 días del año; cuya misión principal, según su portal web [*NYC311*](https://portal.311.nyc.gov/about-nyc-311/),es:
 
-**Gráfica 1.Portal-Web "NYC311 Service Request**
+>* "proporcionar al público un acceso rápido y fácil a todos los servicios e información del gobierno de la ciudad de Nueva York al tiempo que ofrece el mejor servicio al cliente. Ayudamos a las agencias a mejorar la prestación de servicios permitiéndoles centrarse en sus misiones principales y administrar su carga de trabajo de manera eficiente. También proporcionamos información para mejorar el gobierno de la Ciudad a través de mediciones y análisis precisos y consistentes de la prestación de servicios".
+
+Es decir, con este servicio, el gobierno de Nueva York, pretende proveer a la comunidad *newyorkina* acceso directo a los servicios gubernamentales y mejorar el seguimiento y control de los servicios gubernamentales
+
+**Imagen 1.Portal-Web "NYC311 Service Request"**
 
 <div align="center">
 
-<image width="300" height="330" src="./images/nyc_311_sr_website.png">
+<image width="300" height="290" src="./images/nyc_311_sr_website.png">
 
 </div>
 
 
+## Descripción del Problema
 
+Este avance tecnológico supone un desafío nuevo para la administración pública: posibles excesos de demanda de servicios que conllevarían, en caso de no existir una adecuada planeación, una sobrecarga y colapso de la capacidad administrativa. Previendo está situación, nuestro propósito es dotar a las agencias gubernamentales con una **herramienta de planeación y gestión de recursos** que les permita conocer, con anticipación, momentos en que se dará un exceso de demanda de servicios y quejas.
+
+## Objetivos del producto de datos
+
+El desarrollo de este producto de datos tiene los siguientes objetivos:
+
+### Objetivo generales
+
+* Proveer una herramienta a las agencias gubernamentales para conocer con anticipación momentos en que se dará un exceso de demanda de servicios con el fin de tener una planeación y asignación adecuada.
+
+### Objetivos específicos
+
+* Pronosticar días en que la demanda de recursos por agencia supere un límite (umbral) oreviamente establecido; el umbral es el promedio observado en el mes correspondiente. En específico, para esta etapa del producto de datos, nos concentraremos en una sola agencia (la Policía Departamental de Nueva York, NYPD) y un tipo de queja (ruido). *Los motivos en los que nos basamos para esta elección, serán desarrollados en la parte del análisis exploratorios de datos (EDA, por sus siglas en inglés).*
+
+> *En un futuro próximo:* Medir la divergencia en el tiempo de respuesta por distritos de la ciudad, por agencia y por tipo de solicitud.
+
+## Predicción
+
+- Predicción binaria que indica si el número de servicios requeridos a la NYPD por ruido superará un límite previamente establecido.
+
+- Re-entrenamiento 6 meses aproximadamente, luego de evaluar las métricas del modelo.
+
+
+## Población objetivo
+
+Con la herramienta desarrollada, nuestra intención es beneficiar de manera **directa** a las:
+
+ - Agencias gubernamentales de la ciudad de NY que deseen tener una herramienta de predicción sobre el exceso de demanda de sus servicios. En específico, para esta primera parte del proyecto, la Policía Departamental de la Ciudad de Nueva York.
+ 
+De manera **indirecta**, también esperamos beneficiar a la *población newyorkina*, pues en última instancia, una mejor gestión y atención de los servicios y requerimientos que interponga la población *newyorkina*, beneficia en última instancia a la población.
+
+
+
+<image width="50" height="50" src="./images/warning_sign.png"> **Implicaciones Éticas**
+
+
+- Las predicciones pueden estar sesgadas hacia las zonas (distritos) con mayor número de *service requests*;
+- La credibilidad de las agencias públicas puede ser afectada por predicciones erróneas de tiempos de respuestas a los *service request*;
+- Ciertas zonas y distritos pueden ser marginados o rezagados por lo posible reubicación de recursos gubernamentales para atender mejor a los requerimientos en las llamadas de los ciudadanos. Estas decisiones podrían ser derivadas del *output* del producto de datos;
+- El producto de datos puede dar juicios de valor con respecto a la asignación de servicios de las agencias. Sin embargo, también se debe tener en cuenta que puede haber información omitida por el modelo que se tiene al interior de las agencias cuando estas toman las decisiones;
+- Las agencias asignarán recursos para habilitar operaciones que cubran la demanda predicha, en caso de falsos positivos estos recursos serán desperdiciados.  
+
+</div>

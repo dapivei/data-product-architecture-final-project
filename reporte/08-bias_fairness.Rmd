@@ -1,0 +1,55 @@
+# Bias y Fairness {#biasFairness}
+
+<div align="justify">
+Con el fin de identificar si los modelos y predicciones, desarrollados para este proyecto, brindan ventajas o desventajas sistemáticas a ciertos grupos (distritos), ya sea por algún tipo de prejuicio o por un sobre/sub sampleo, utilizamos [aequitas](http://www.datasciencepublicpolicy.org/projects/aequitas/), un *tool kit* que permite auditar modelos de *machine learning*, en términos de discriminación y sesgo, para tomar decisiones informadas y **equitativas**, que no solamente prioricen el desempeño del modelo.
+
+## Atributo protegido
+
+Al no contar con datos personales (como raza o género de los solicitantes del servicio de quejas NYC 311), decidimos identificar a la variable *borough* como atributo protegido; este atributo consta de 6 grupos o valores únicos: Brooklyn, Queens, Manhattan, No especificado, Staten Island. 
+
+**Mapa de la ciudad de Nueva York**
+<div align="center">
+
+<image width="500" height="500" src="./images/nyc_boroughs.png">
+
+</div>
+
+
+Fuente: [alamy](https://www.alamy.com/stock-image-modern-city-map-new-york-city-of-the-usa-with-boroughs-and-titles-160125612.html)
+
+## Grupo de referencia
+
+El grupo de referencia será Brooklyn, mismo que fue escogido por tener el mayor tamaño entre todos los grupos existentes, con un valor aproximado de $6.72$ millones de quejas del total de $22,601,839$.
+
+
+## Métricas de equidad y sesgo
+
+Probamos las siguientes métricas de equidad y sesgo:
+
+* Proportional Parity: auditamos si cada condado está representado proporcionalmente a su represetnación en la población en general.
+* False Positive Parity: auditamos si el modelo genera, proporcionalmente, la misma cantidad de errores falsos positivos.
+
+* False Negative Parity: auditamos si el modelo genera, proporcionalmente, la misma cantidad de errores falsos negativos.
+
+## Input
+
+Para obtener los resultados preliminares, subimos un archivo .csv al sitio-web de Aequitas, con las siguientes columnas:
+
++ Score (binaria): predicción generada por el modelo que queremos auditar.
+
++ label_value (binaria): etiqueta real asociada a la observación.
+
++ columna de atributos: los que vamos a auditar por sesgo; cada fila estaba asociada a una queja de *ruido* a la agencia *NYPD*.
+
+| score |etiqueta_binaria | atributo_protegido|
+|-|-|-|
+|0|1|brooklyn|
+|1|0|queens|
+|$\vdots$|$\vdots$|$\vdots$|
+
+## Resultados
+
+
+
+
+</div>

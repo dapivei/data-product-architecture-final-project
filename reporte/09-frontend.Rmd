@@ -1,0 +1,13 @@
+# Solución Propuesta: Producto Final {#frontend}
+
+
+
+**Gráfica 5.Portal-Web "NYC311 Service Request Engagement"**
+
+<div align="center">
+
+<image width="350" height="250" src="./images/web_service_proposal.png">
+
+</div>
+
+El producto de datos va a ser un dashboard que genere predicciones diarias de los *service request recibidos* una vez se realice la ingesta de datos. El dashboard va a permitir filtrar las predicciones por fecha de creación, días para completar, distrito, agencia, tipo de *service request*.

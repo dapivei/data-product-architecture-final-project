@@ -1,0 +1,8 @@
+# Métricas de Desempeño {#metricas}
+
+
+<div align= "justify">
+
+Para la selección de métricas de desempeño, consideramos de suma importancia la implicación ética que tiene; por los puntos mencionados, y basados en la premisa de que el modelo se utilizara para la toma de decisiones respecto a la reasignación de recursos, tomaremos en cuenta el recall, donde buscaremos tener una alta tasa de reales positivos y con ello, anticipar la demanda  para dar pronta solución a los casos.
+
+</div>
