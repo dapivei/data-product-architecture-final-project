@@ -668,9 +668,10 @@ class Task_71_mlPreproc_firstTime(luigi.Task):
 
             #cuenta los registros y colapsa el df
             df['counts']=1
-            df=df.loc[:,['created_date','counts']]
-            df=df.groupby(['created_date'],as_index=False).count()
+            df=df.loc[:,['created_date','counts','borough']]
+            df=df.groupby(['created_date','borough'],as_index=False).count()
 
+            #create or append df
             if(flag==0):
                 df2=df
                 flag=1
@@ -679,6 +680,8 @@ class Task_71_mlPreproc_firstTime(luigi.Task):
                 df2=df2.append(df)
 
             del(df)
+
+            #keep track of progress
             count=count+1
             if(count%100==0):
                 print(count)
@@ -688,7 +691,7 @@ class Task_71_mlPreproc_firstTime(luigi.Task):
 
         df2.drop_duplicates(inplace=True)
         df2=df2.reset_index(drop=True)
-
+        #print(df2)
         #pasa a formato parquet
         df2.to_parquet(self.output().path, engine='auto', compression='snappy')
 
