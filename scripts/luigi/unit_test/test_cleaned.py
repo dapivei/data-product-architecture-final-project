@@ -11,6 +11,7 @@ import io
 import boto3
 import botocore
 import getpass
+import warnings
 
 class DateTestCase(marbles.core.TestCase):
     DAY=1
