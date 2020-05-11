@@ -4,7 +4,9 @@ import sys
 
 # path a leer
 df_o = pd.read_parquet('./tests/ml.parquet')
-
+#df['m_1'].iloc[2] = 5
+#Cambio para que truene :(
+#df_o['number_cases_1_days_ago'].iloc[2] = 500
 
 class NumberCases():
 
@@ -18,19 +20,19 @@ class NumberCases():
         history_days = 10
         for i in range(1, history_days):
             var_name = "number_cases_" + str(i) + "_days_ago"
-            a = self.df.loc[0:largo_base-i, ['counts']].reset_index(drop=True)
+            a = self.df.loc[0:largo_base -i, ['counts']].reset_index(drop=True)
             b = self.df.loc[i:largo_base, [var_name]].reset_index(drop=True)
             b.columns = ['counts']
-            try:
-                assert_frame_equal(a, b, check_column_type=False,
-                                   check_dtype=False,
-                                   check_names=False)
-                print("Sin error en la variable: " + var_name)
-            except:
+            #try:
+            assert_frame_equal(a, b, check_column_type=False,
+                                  check_dtype=False,
+                                  check_names=False)
+                #print("Sin error en la variable: " + var_name)
+            #except:
                 # En que variable ocurrio el error
-                print("El error ocurre en la variable:  " + var_name)
+                #print("El error ocurre en la variable:  " + var_name)
                 # Error de la prueba
-                print(sys.exc_info()[1])
+                #print(sys.exc_info()[1])
 
 
 if __name__ == '__main__':
