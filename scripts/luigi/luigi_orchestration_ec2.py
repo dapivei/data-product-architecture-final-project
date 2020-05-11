@@ -8,6 +8,7 @@ import datetime
 import getpass
 import luigi
 import luigi.contrib.s3
+
 import os
 import pandas as pd
 import platform
@@ -27,6 +28,7 @@ from luigi.contrib.s3 import S3Client, S3Target
 from pyspark import SparkContext
 from pyspark.sql import SQLContext
 from sodapy import Socrata
+
 
 # ===================== Clases para guardar metadatos  =========================
 # Se definen dos clases que guarden las características de los metadatos
@@ -283,7 +285,6 @@ class Task_20_metaDownload(luigi.task.WrapperTask):
         cur.close()
         conn.close()
 
-
 class Task_30_preproc(luigi.Task):
     '''
     Convertir datos descargados en JSON y los transforma a formato parquet utilizando pandas.
@@ -436,6 +437,19 @@ class Task_50_cleaned(luigi.Task):
 
         #pasa a formato parquet
         df.to_parquet(self.output().path, engine='auto', compression='snappy')
+
+from luigi.contrib.external_program import ExternalProgramTask
+
+
+class Task_52_cleaned_test(ExternalProgramTask):
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+
+    def program_args(self):
+        return ["./unit_test/run_clean_test.sh",self.day,self.month,self.year,self.bucket]
+
 
 class Task_60_metaClean(luigi.task.WrapperTask):
     '''
