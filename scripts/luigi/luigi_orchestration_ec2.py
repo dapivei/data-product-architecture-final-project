@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from luigi.contrib.external_program import ExternalProgramTask
 import json
 import boto3
 import botocore
@@ -14,7 +15,6 @@ import pandas as pd
 import platform
 import psycopg2 as ps
 import pyarrow as pa
-import s3fs
 import socket
 import numpy as np
 import pickle
@@ -25,10 +25,8 @@ from functionsV2 import execv
 from datetime import date
 from dynaconf import settings
 from luigi.contrib.s3 import S3Client, S3Target
-from pyspark import SparkContext
-from pyspark.sql import SQLContext
 from sodapy import Socrata
-
+import marbles.core
 
 # ===================== Clases para guardar metadatos  =========================
 # Se definen dos clases que guarden las características de los metadatos
@@ -41,9 +39,47 @@ from sodapy import Socrata
 # - Archivo de origen: (key de S3 object)
 # - Size: tamaño de object en bucket de S3.
 # - corregir status de tarea de luigi
-# ==============================================================================
 
-# ========== schema raw  ==========
+# ******************************************************************************
+path_raw = 's3://prueba-nyc311/raw'
+path_preproc = 's3://prueba-nyc311/preprocess'
+path_cleaned = 's3://prueba-nyc311/cleaned'
+# ******************************************************************************
+
+class Task_10_download(luigi.Task):
+    '''
+    Task 1.0: Ingesta de datos de la API de 311 NYC en formato JSON en carpetas
+    por fecha con frecuencia diaria.
+    / esta versión importa del modulo functionsV2 la petición hecha a la API.
+    '''
+    # ==============================
+    # parametros:
+    # ==============================
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+    # ==============================
+
+    def output(self):
+        # guarda los datos en s3://prueba-nyc311/raw/...
+        output_path = f"{path_raw}/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.json"
+        return luigi.contrib.s3.S3Target(path=output_path)
+
+    def run(self):
+        # Autenticación en S3
+        ses = boto3.session.Session(
+            profile_name='luigi_dpa', region_name='us-west-2')
+        s3_resource = ses.resource('s3')
+        obj = s3_resource.Bucket(self.bucket)
+
+        # query a la API
+        results = queryApi311(self.year, self.month, self.day)
+
+        with self.output().open('w') as json_file:
+            json.dump(results, json_file)
+
+# ========== metadatos schema raw  ==========
 
 
 class raw_metadata():
@@ -87,133 +123,6 @@ class raw_metadata():
                 self.creator, self.machine, self.ip, self.creation_date,
                 self.size, self.location, self.status, self.param_year,
                 self.param_month, self.param_day, self.param_bucket)
-
-# ========== schema preprocess  ==========
-
-
-class preproc_metadata():
-    def __init__(self,
-                 name="",
-                 extention="parquet",
-                 schema="preprocess",
-                 action="transform JSON to parquet",
-                 creator="-",
-                 machine="",
-                 localhost="",
-                 ip="",
-                 creation_date="",
-                 size="-",
-                 location="",
-                 status="sucess",
-                 param_year="",
-                 param_month="",
-                 param_day="",
-                 param_bucket=""):
-
-        # asignamos las características de los metadatos
-        self.name = name
-        self.extention = extention
-        self.schema = schema
-        self.action = action
-        self.creator = creator
-        self.machine = machine
-        self.ip = ip
-        self.creation_date = creation_date
-        self.size = size
-        self.location = location
-        self.status = status
-        self.param_year = param_year
-        self.param_month = param_month
-        self.param_day = param_day
-        self.param_bucket = param_bucket
-
-    def info(self):
-        return (self.name, self.extention, self.schema, self.action,
-                self.creator, self.machine, self.ip, self.creation_date,
-                self.size, self.location, self.status, self.param_year,
-                self.param_month, self.param_day, self.param_bucket)
-
-###############################################################################
-
-class cleaned_metadata():
-    def __init__(self,
-                 name="",
-                 extention="parquet",
-                 schema="cleaned",
-                 action="clean parquet",
-                 creator="-",
-                 machine="",
-                 localhost="",
-                 ip="",
-                 creation_date="",
-                 size="-",
-                 location="",
-                 status="sucess",
-                 param_year="",
-                 param_month="",
-                 param_day="",
-                 param_bucket=""):
-
-        # asignamos las características de los metadatos
-        self.name = name
-        self.extention = extention
-        self.schema = schema
-        self.action = action
-        self.creator = creator
-        self.machine = machine
-        self.ip = ip
-        self.creation_date = creation_date
-        self.size = size
-        self.location = location
-        self.status = status
-        self.param_year = param_year
-        self.param_month = param_month
-        self.param_day = param_day
-        self.param_bucket = param_bucket
-
-    def info(self):
-        return (self.name, self.extention, self.schema, self.action,
-                self.creator, self.machine, self.ip, self.creation_date,
-                self.size, self.location, self.status, self.param_year,
-                self.param_month, self.param_day, self.param_bucket)
-
-###############################################################################
-
-path_raw = 's3://prueba-nyc311/raw'
-path_preproc = 's3://prueba-nyc311/preprocess'
-path_cleaned = 's3://prueba-nyc311/cleaned'
-
-class Task_10_download(luigi.Task):
-    '''
-    Task 1.0: Ingesta de datos de la API de 311 NYC en formato JSON en carpetas por fecha con frecuencia diaria.
-    / esta versión importa del modulo functionsV2 la petición hecha a la API.
-    '''
-    # ==============================
-    # parametros:
-    # ==============================
-    bucket = luigi.Parameter(default="prueba-nyc311")
-    year = luigi.Parameter()
-    month = luigi.Parameter()
-    day = luigi.Parameter()
-    # ==============================
-
-    def output(self):
-        # guarda los datos en s3://prueba-nyc311/raw/...
-        output_path = f"{path_raw}/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.json"
-        return luigi.contrib.s3.S3Target(path=output_path)
-
-    def run(self):
-        # Autenticación en S3
-        ses = boto3.session.Session(
-            profile_name='luigi_dpa', region_name='us-west-2')
-        s3_resource = ses.resource('s3')
-        obj = s3_resource.Bucket(self.bucket)
-
-        # query a la API
-        results = queryApi311(self.year, self.month, self.day)
-
-        with self.output().open('w') as json_file:
-            json.dump(results, json_file)
 
 
 class Task_20_metaDownload(luigi.task.WrapperTask):
@@ -285,9 +194,13 @@ class Task_20_metaDownload(luigi.task.WrapperTask):
         cur.close()
         conn.close()
 
+# ******************************************************************************
+
+
 class Task_30_preproc(luigi.Task):
     '''
-    Convertir datos descargados en JSON y los transforma a formato parquet utilizando pandas.
+    Convertir datos descargados en JSON y los transforma a formato parquet
+    utilizando pandas.
     '''
     # ==============================
     # parametros:
@@ -297,6 +210,7 @@ class Task_30_preproc(luigi.Task):
     month = luigi.Parameter()
     day = luigi.Parameter()
     # ==============================
+
     def requires(self):
         return Task_20_metaDownload(year=self.year, month=self.month, day=self.day)
 
@@ -313,9 +227,11 @@ class Task_30_preproc(luigi.Task):
         obj = s3_resource.Bucket(name=self.bucket)
         # key (ruta) del archivo JSON en el bucket
         key = f"raw/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.json"
-        json_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
-        data_json_object = json_object.get()['Body'].read().decode('utf-8') # info del objeto
-        df = pd.read_json(data_json_object) # lectura en pandas
+        json_object = s3_resource.Object(
+            bucket_name=self.bucket, key=key)  # objeto
+        data_json_object = json_object.get()['Body'].read().decode(
+            'utf-8')  # info del objeto
+        df = pd.read_json(data_json_object)  # lectura en pandas
         # Solving  problems of datatype: "nested column branch had multiple children"
         for col in df.columns:
             weird = (df[[col]].applymap(type) !=
@@ -327,9 +243,55 @@ class Task_30_preproc(luigi.Task):
         # write parquet file
         df.to_parquet(self.output().path, engine='auto', compression='snappy')
 
+# ========== metadatos schema preprocess  ==========
+
+
+class preproc_metadata():
+    def __init__(self,
+                 name="",
+                 extention="parquet",
+                 schema="preprocess",
+                 action="transform JSON to parquet",
+                 creator="-",
+                 machine="",
+                 localhost="",
+                 ip="",
+                 creation_date="",
+                 size="-",
+                 location="",
+                 status="sucess",
+                 param_year="",
+                 param_month="",
+                 param_day="",
+                 param_bucket=""):
+
+        # asignamos las características de los metadatos
+        self.name = name
+        self.extention = extention
+        self.schema = schema
+        self.action = action
+        self.creator = creator
+        self.machine = machine
+        self.ip = ip
+        self.creation_date = creation_date
+        self.size = size
+        self.location = location
+        self.status = status
+        self.param_year = param_year
+        self.param_month = param_month
+        self.param_day = param_day
+        self.param_bucket = param_bucket
+
+    def info(self):
+        return (self.name, self.extention, self.schema, self.action,
+                self.creator, self.machine, self.ip, self.creation_date,
+                self.size, self.location, self.status, self.param_year,
+                self.param_month, self.param_day, self.param_bucket)
+
+
 class Task_40_metaPreproc(luigi.task.WrapperTask):
     '''
-    Guardar los metadatos de la descarga de datos del schema RAW
+    Guardar los metadatos de la descarga de datos del schema metaPreproc.
     Son guardados en la base de datos nyc311_metadata en la tabla raw.etl_execution
     '''
     # ==============================
@@ -396,6 +358,9 @@ class Task_40_metaPreproc(luigi.task.WrapperTask):
         cur.close()
         conn.close()
 
+# ******************************************************************************
+
+
 class Task_50_cleaned(luigi.Task):
     '''
     Limpiar los datos que se tienen en parquet utilizando pandas
@@ -408,6 +373,7 @@ class Task_50_cleaned(luigi.Task):
     month = luigi.Parameter()
     day = luigi.Parameter()
     # ==============================
+
     def requires(self):
         return Task_40_metaPreproc(year=self.year, month=self.month, day=self.day)
 
@@ -416,7 +382,6 @@ class Task_50_cleaned(luigi.Task):
         output_path = f"s3://{self.bucket}/cleaned/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
         return luigi.contrib.s3.S3Target(path=output_path)
 
-
     def run(self):
         import functionsV1 as f1
         import io
@@ -424,84 +389,63 @@ class Task_50_cleaned(luigi.Task):
         # Autenticación en S3
         ses = boto3.session.Session(
             profile_name='luigi_dpa', region_name='us-west-2')
-        buffer=io.BytesIO()
+        buffer = io.BytesIO()
         s3_resource = ses.resource('s3')
         obj = s3_resource.Bucket(name=self.bucket)
 
-        #lectura de datos
+        # lectura de datos
         key = f"preprocess/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
-        parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
-        data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())#.decode() # info del objeto
+        parquet_object = s3_resource.Object(
+            bucket_name=self.bucket, key=key)  # objeto
+        data_parquet_object = io.BytesIO(
+            parquet_object.get()['Body'].read())  # .decode() # info del objeto
         df = pd.read_parquet(data_parquet_object)
-        df=f1.to_cleaned(df)
+        df = f1.to_cleaned(df)
 
-        #pasa a formato parquet
+        # pasa a formato parquet
         df.to_parquet(self.output().path, engine='auto', compression='snappy')
 
-from luigi.contrib.external_program import ExternalProgramTask
+class cleaned_metadata():
+    def __init__(self,
+                 name="",
+                 extention="parquet",
+                 schema="cleaned",
+                 action="clean parquet",
+                 creator="-",
+                 machine="",
+                 localhost="",
+                 ip="",
+                 creation_date="",
+                 size="-",
+                 location="",
+                 status="sucess",
+                 param_year="",
+                 param_month="",
+                 param_day="",
+                 param_bucket=""):
 
+        # asignamos las características de los metadatos
+        self.name = name
+        self.extention = extention
+        self.schema = schema
+        self.action = action
+        self.creator = creator
+        self.machine = machine
+        self.ip = ip
+        self.creation_date = creation_date
+        self.size = size
+        self.location = location
+        self.status = status
+        self.param_year = param_year
+        self.param_month = param_month
+        self.param_day = param_day
+        self.param_bucket = param_bucket
 
-class Task_52_cleaned_test(ExternalProgramTask):
-    bucket = luigi.Parameter(default="prueba-nyc311")
-    year = luigi.Parameter()
-    month = luigi.Parameter()
-    day = luigi.Parameter()
-
-    def program_args(self):
-        return ["./prueba.sh",self.day,self.month,self.year,self.bucket]
-
-
-#class Task_51_cleaned_test(luigi.contrib.external_program.ExternalProgramTask):
-class Task_51_cleaned_test(luigi.Task):
-
-    '''
-    Limpiar los datos que se tienen en parquet utilizando pandas
-    '''
-    # ==============================
-    # parametros:
-    # ==============================
-    bucket = luigi.Parameter(default="prueba-nyc311")
-    year = luigi.Parameter()
-    month = luigi.Parameter()
-    day = luigi.Parameter()
-    # ==============================
-    def requires(self):
-        return Task_50_cleaned(year=self.year, month=self.month, day=self.day)
-
-
-        #def output(self):
-        # guarda los datos en s3://prueba-nyc311/raw/.3..
-#        output_path = f"s3://{self.bucket}/cleaned/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
-#        return luigi.contrib.s3.S3Target(path=output_path)
-    def run(self):
-
-        import io
-        #import luigi.contrib.external_program
-
-        ses = boto3.session.Session(
-            profile_name='luigi_dpa', region_name='us-west-2')
-        buffer=io.BytesIO()
-        s3_resource = ses.resource('s3')
-        obj = s3_resource.Bucket(name=self.bucket)
-
-                #lectura de datos
-        key = f"cleaned/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
-        parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
-        data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())#.decode() # info del objeto
-        df2 = pd.read_parquet(data_parquet_object)
-
-        print(df2.head())
-        #import test_cleaned as tc
-        exec(open('test_cleaned.py').read(),{},{'df':df2})
-        #print(open('test_cleaned.py').read())
-        cwd = os.getcwd()+"/"
-        print(cwd)
-        #from luigi.contrib.external_program import ExternalProgramTask
-        print('#################################################3333333333###########################3')
-        #luigi.contrib.external_program.ExternalProgramTask.run(test_cleaned.py)
-        #execv(open('test_cleaned.py').read(),cwd)
-        #execv('python3 -m unittest test_cleaned.py',cwd)
-        print('#################################################3333333333###########################3')
+    def info(self):
+        return (self.name, self.extention, self.schema, self.action,
+                self.creator, self.machine, self.ip, self.creation_date,
+                self.size, self.location, self.status, self.param_year,
+                self.param_month, self.param_day, self.param_bucket)
 
 
 class Task_60_metaClean(luigi.task.WrapperTask):
@@ -573,6 +517,189 @@ class Task_60_metaClean(luigi.task.WrapperTask):
         cur.close()
         conn.close()
 
+class Task_71_cleaned_test(ExternalProgramTask):
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+
+    def requires(self):
+        return Task_60_metaClean(year=self.year, month=self.month, day=self.day)
+
+    def program_args(self):
+        return ["./prueba.sh", self.day, self.month, self.year, self.bucket]
+
+
+class cleaned_metadataUnitTest():
+    def __init__(self,
+                 name="",
+                 extention="parquet",
+                 schema="cleaned",
+                 action="Prueba unitaria de datos cleaned",
+                 test="cleaned_metadataUnitTest",
+                 creator="-",
+                 machine="",
+                 ip="",
+                 execution_date="",
+                 location="",
+                 status="OK",
+                 param_year="",
+                 param_month="",
+                 param_day="",
+                 param_bucket=""):
+
+        # asignamos las características de los metadatos
+        self.name = name
+        self.extention = extention
+        self.schema = schema
+        self.action = action
+        self.test = test
+        self.creator = creator
+        self.machine = machine
+        self.ip = ip
+        self.execution_date = creation_date
+        self.location = location
+        self.status = status
+        self.param_year = param_year
+        self.param_month = param_month
+        self.param_day = param_day
+        self.param_bucket = param_bucket
+
+    def info(self):
+        return (self.name, self.extention, self.schema, self.action,self.test,
+                self.creator, self.machine, self.ip, self.execution_date,
+                self.location, self.status, self.param_year,
+                self.param_month, self.param_day, self.param_bucket)
+
+
+class Task_81_metaCleanUnitTest(luigi.task.WrapperTask):
+    '''
+    Guardar los metadatos pruebas unitarias sobre datos del schema cleaned
+    Son guardados en la base de datos nyc311_metadata en la tabla clean.ut_execution
+    '''
+    # ==============================
+    # parametros:
+    # ==============================
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+    # ==============================
+
+    def requires(self):
+        return Task_71_cleaned_test(year=self.year, month=self.month, day=self.day)
+
+    def run(self):
+        # se instancia la clase raw_metadata()
+        cwd = os.getcwd()  # directorio actual
+        cleanedUT = cleaned_metadataUnitTest()
+        cleanedUT.name = f"data_{self.year}_{self.month}_{self.day}"
+        cleanedUT.user = str(getpass.getuser())
+        cleanedUT.machine = str(platform.platform())
+        cleanedUT.ip = execv("curl ipecho.net/plain ; echo", cwd)
+        cleanedUT.creation_date = str(datetime.datetime.now())
+        cleanedUT.location = f"{path_raw}/{raw_prep.name}"
+        cleanedUT.param_year = str(self.year)
+        cleanedUT.param_month = str(self.month)
+        cleanedUT.param_day = str(self.day)
+        cleanedUT.param_bucket = str(self.bucket)
+
+        ubicacion_completa = f"{cleanedUT.location}.parquet"
+        meta = cleanedUT.info()  # extraer información de la clase
+
+        print("=" * 100)
+        print(meta)
+        print("complete name: ", ubicacion_completa)
+        print("name: ", cleanedUT.name)
+        print("extensión: ", cleanedUT.extention)
+        print("action: ", cleanedUT.action)
+        print("usuario: ", cleanedUT.user)
+        print("maquina: ", cleanedUT.machine)
+        print("ip: ", cleanedUT.ip)
+        print("fecha de creación: ", cleanedUT.creation_date)
+        print("ubicación: ", cleanedUT.location)
+        print("param [year]: ", cleanedUT.param_year)
+        print("param [month]: ", cleanedUT.param_month)
+        print("param [day]: ", cleanedUT.param_day)
+        print("param [bucket]: ", cleanedUT.param_bucket)
+        print("=" * 100)
+
+        # conectarse a la base de datos y guardar a esquema raw.etl_execution
+        conn = ps.connect(host=settings.get('host'),
+                          port=settings.get('port'),
+                          database="nyc311_metadata",
+                          user=settings.get('usr'),
+                          password=settings.get('password'))
+        cur = conn.cursor()
+        columns = "(name, extention, schema, action, test, creator, machine, ip, creation_date, location,status, param_year, param_month, param_day, param_bucket)"
+        sql = "INSERT INTO cleaned.etl_execution" + columns + \
+            " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"
+
+        cur.execute(sql, meta)
+        conn.commit()
+        cur.close()
+        conn.close()
+# ******************************************************************************
+# class Task_51_cleaned_test(luigi.contrib.external_program.ExternalProgramTask):
+
+
+class Task_51_cleaned_test(luigi.Task):
+
+    '''
+    Limpiar los datos que se tienen en parquet utilizando pandas
+    '''
+    # ==============================
+    # parametros:
+    # ==============================
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+    # ==============================
+
+    def requires(self):
+        return Task_50_cleaned(year=self.year, month=self.month, day=self.day)
+
+        # def output(self):
+        # guarda los datos en s3://prueba-nyc311/raw/.3..
+#        output_path = f"s3://{self.bucket}/cleaned/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
+#        return luigi.contrib.s3.S3Target(path=output_path)
+    def run(self):
+
+        import io
+        #import luigi.contrib.external_program
+
+        ses = boto3.session.Session(
+            profile_name='luigi_dpa', region_name='us-west-2')
+        buffer = io.BytesIO()
+        s3_resource = ses.resource('s3')
+        obj = s3_resource.Bucket(name=self.bucket)
+
+        # lectura de datos
+        key = f"cleaned/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
+        parquet_object = s3_resource.Object(
+            bucket_name=self.bucket, key=key)  # objeto
+        data_parquet_object = io.BytesIO(
+            parquet_object.get()['Body'].read())  # .decode() # info del objeto
+        df2 = pd.read_parquet(data_parquet_object)
+
+        print(df2.head())
+        #import test_cleaned as tc
+        exec(open('test_cleaned.py').read(), {}, {'df': df2})
+        # print(open('test_cleaned.py').read())
+        cwd = os.getcwd() + "/"
+        print(cwd)
+        #from luigi.contrib.external_program import ExternalProgramTask
+        print('#################################################3333333333###########################3')
+        # luigi.contrib.external_program.ExternalProgramTask.run(test_cleaned.py)
+        # execv(open('test_cleaned.py').read(),cwd)
+        #execv('python3 -m unittest test_cleaned.py',cwd)
+        print('#################################################3333333333###########################3')
+
+
+
+# ******************************************************************************
+
 
 class Task_70_mlPreproc(luigi.Task):
     '''
@@ -587,6 +714,7 @@ class Task_70_mlPreproc(luigi.Task):
     day = luigi.Parameter()
     parte = luigi.Parameter()
     # ==============================
+
     def requires(self):
         return Task_60_metaClean(year=self.year, month=self.month, day=self.day)
 
@@ -598,17 +726,19 @@ class Task_70_mlPreproc(luigi.Task):
         # Autenticación en S3
         ses = boto3.session.Session(
             profile_name='luigi_dpa', region_name='us-west-2')
-        buffer=io.BytesIO()
+        buffer = io.BytesIO()
         s3_resource = ses.resource('s3')
         obj = s3_resource.Bucket(name=self.bucket)
-        #lectura de datos
+        # lectura de datos
         #key = f"mlpreproc/mlPreproc_until_part{part_num-1}.parquet"
         key = f"cleaned/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
-        parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
+        parquet_object = s3_resource.Object(
+            bucket_name=self.bucket, key=key)  # objeto
         data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
         df = pd.read_parquet(data_parquet_object)
-        df=df.loc[(df["agency"]=='nypd') & (df["complaint_type"].str.contains("noise")),:]
-        df=df.reset_index(drop=True)
+        df = df.loc[(df["agency"] == 'nypd') & (
+            df["complaint_type"].str.contains("noise")), :]
+        df = df.reset_index(drop=True)
         return df
 
     def output(self):
@@ -627,18 +757,18 @@ class Task_70_mlPreproc(luigi.Task):
         day_of_year = (date - datetime.datetime(year_num, 1, 1)).days + 1
 
         print(day_of_year)
-        #cuenta los registros y colapsa el df
+        # cuenta los registros y colapsa el df
         df = self.input()
-        df['counts']=1
-        df=df.loc[:,['created_date','counts']]
-        df=df.groupby(['created_date']).count()
+        df['counts'] = 1
+        df = df.loc[:, ['created_date', 'counts']]
+        df = df.groupby(['created_date']).count()
         print(df.head())
 
         # Autenticación en S3
         import io
         ses = boto3.session.Session(
             profile_name='luigi_dpa', region_name='us-west-2')
-        buffer=io.BytesIO()
+        buffer = io.BytesIO()
         s3_resource = ses.resource('s3')
         obj = s3_resource.Bucket(name=self.bucket)
         # acá leemos los
@@ -648,27 +778,28 @@ class Task_70_mlPreproc(luigi.Task):
         data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
         df2 = pd.read_parquet(data_parquet_object)
 
-        print("="*50)
+        print("=" * 50)
         print("segundo dataframe ingresado")
         print(day_of_year)
         print(df.head())
         print(df.shape)
         print(df2.head())
         print(df2.shape)
-        print("="*50)
+        print("=" * 50)
 
         # append los dataframes
-        joined_df=df2.append(df)
+        joined_df = df2.append(df)
         joined_df.drop_duplicates(inplace=True)
 
-        print("*"*50)
-        print("*"*50)
+        print("*" * 50)
+        print("*" * 50)
         print("*** Appended dataframe ***")
         print(joined_df.head())
-        print("*"*50)
-        print("*"*50)
+        print("*" * 50)
+        print("*" * 50)
         # #pasa a formato parquet
-        joined_df.to_parquet(self.output().path, engine='auto', compression='snappy')
+        joined_df.to_parquet(self.output().path,
+                             engine='auto', compression='snappy')
         #df.to_parquet(self.output().path, engine='auto', compression='snappy')
 
         #table = pa.Table.from_pandas(df)
@@ -705,63 +836,66 @@ class Task_71_mlPreproc_firstTime(luigi.Task):
         # Autenticación en S3
         ses = boto3.session.Session(
             profile_name='luigi_dpa', region_name='us-west-2')
-        buffer=io.BytesIO()
+        buffer = io.BytesIO()
         s3_resource = ses.resource('s3')
         obj = s3_resource.Bucket(name=self.bucket)
 
-        end_date=datetime(int(self.year),int(self.month),int(self.day))
-        start_date= datetime(2009,12,31)
-        date=start_date
+        end_date = datetime(int(self.year), int(self.month), int(self.day))
+        start_date = datetime(2009, 12, 31)
+        date = start_date
 
-        flag=0
-        count=0
-        while(date<end_date):
-            date=date+timedelta(days=1)
+        flag = 0
+        count = 0
+        while(date < end_date):
+            date = date + timedelta(days=1)
 
-            #lectura de datos
+            # lectura de datos
             try:
                 key = f"cleaned/{date.year}/{date.month}/{date.day}/data_{date.year}_{date.month}_{date.day}.parquet"
-                parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
-                data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
+                parquet_object = s3_resource.Object(
+                    bucket_name=self.bucket, key=key)  # objeto
+                data_parquet_object = io.BytesIO(
+                    parquet_object.get()['Body'].read())
                 df = pd.read_parquet(data_parquet_object)
             except:
-                #para generar metadata
+                # para generar metadata
                 print(date)
                 continue
 
             # Filtramos los casos de ruido para la agencia NYPD
-            df=df.loc[(df["agency"]=='nypd') & (df["complaint_type"].str.contains("noise")),:]
-            df=df.reset_index(drop=True)
+            df = df.loc[(df["agency"] == 'nypd') & (
+                df["complaint_type"].str.contains("noise")), :]
+            df = df.reset_index(drop=True)
 
-            #cuenta los registros y colapsa el df
-            df['counts']=1
-            df=df.loc[:,['created_date','counts','borough']]
-            df=df.groupby(['created_date','borough'],as_index=False).count()
+            # cuenta los registros y colapsa el df
+            df['counts'] = 1
+            df = df.loc[:, ['created_date', 'counts', 'borough']]
+            df = df.groupby(['created_date', 'borough'],
+                            as_index=False).count()
 
-            #create or append df
-            if(flag==0):
-                df2=df
-                flag=1
+            # create or append df
+            if(flag == 0):
+                df2 = df
+                flag = 1
             else:
-                #pegamos los dataframes
-                df2=df2.append(df)
+                # pegamos los dataframes
+                df2 = df2.append(df)
 
             del(df)
 
-            #keep track of progress
-            count=count+1
-            if(count%100==0):
+            # keep track of progress
+            count = count + 1
+            if(count % 100 == 0):
                 print(count)
-            #aumentamos un dia
+            # aumentamos un dia
 
-            #print(date)
+            # print(date)
 
         df2.drop_duplicates(inplace=True)
-        df2=df2.reset_index(drop=True)
-        #print(df2)
-        #pasa a formato parquet
+        df2 = df2.reset_index(drop=True)
+        # print(df2)
+        # pasa a formato parquet
         df2.to_parquet(self.output().path, engine='auto', compression='snappy')
-
 
 
 class Task_80_metaMlPreproc(luigi.task.WrapperTask):
@@ -826,11 +960,12 @@ class Task_80_metaMlPreproc(luigi.task.WrapperTask):
         cur = conn.cursor()
         columns = "(name, extention, schema, action, creator, machine, ip, creation_date, size, location,status, param_year, param_month, param_day, param_bucket)"
         sql = "INSERT INTO mlpreproc.feature_engineering" + columns + \
-            " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"
+            " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"
         cur.execute(sql, meta)
         conn.commit()
         cur.close()
         conn.close()
+
 
 class Task_91_ml_firstTime(luigi.Task):
     '''
@@ -844,6 +979,7 @@ class Task_91_ml_firstTime(luigi.Task):
     month = luigi.Parameter()
     day = luigi.Parameter()
     # ==============================
+
     def requires(self):
         return Task_71_mlPreproc_firstTime(year=self.year, month=self.month, day=self.day)
 
@@ -857,26 +993,29 @@ class Task_91_ml_firstTime(luigi.Task):
         import io
         import numpy as np
 
-
         # Autenticación en S3
-        ses = boto3.session.Session(profile_name='luigi_dpa', region_name='us-west-2')
-        buffer=io.BytesIO()
+        ses = boto3.session.Session(
+            profile_name='luigi_dpa', region_name='us-west-2')
+        buffer = io.BytesIO()
         s3_resource = ses.resource('s3')
         obj = s3_resource.Bucket(name=self.bucket)
 
-        #lectura de datos
+        # lectura de datos
         key = f"mlpreproc/mlPreproc.parquet"
-        parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
+        parquet_object = s3_resource.Object(
+            bucket_name=self.bucket, key=key)  # objeto
         data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
         df = pd.read_parquet(data_parquet_object)
 
         # funcion de procesamiento de datos
-        df_features=f1.create_feature_table(df)
+        df_features = f1.create_feature_table(df)
         del(df)
         print(df_features)
-        #falta pasar a un solo parquet que vaya haciendo append de las fechas
-        #pasa a formato parquet
-        df_features.to_parquet(self.output().path, engine='auto', compression='snappy')
+        # falta pasar a un solo parquet que vaya haciendo append de las fechas
+        # pasa a formato parquet
+        df_features.to_parquet(
+            self.output().path, engine='auto', compression='snappy')
+
 
 class Task_100_Train(luigi.Task):
     '''
@@ -886,18 +1025,18 @@ class Task_100_Train(luigi.Task):
     # parametros:
     # ==============================
     bucket = luigi.Parameter(default="prueba-nyc311")
-    nestimators =luigi.Parameter()
-    maxdepth= luigi.Parameter()
-    criterion=luigi.Parameter()
+    nestimators = luigi.Parameter()
+    maxdepth = luigi.Parameter()
+    criterion = luigi.Parameter()
     year = luigi.Parameter(default='2020')
     month = luigi.Parameter(default='2')
     day = luigi.Parameter(default='2')
 
-
     # ==============================
+
     def requires(self):
         return Task_91_ml_firstTime(year=self.year, month=self.month, day=self.day)
-        #return Task_71_mlPreproc_firstTime('2020', '1', '1')
+        # return Task_71_mlPreproc_firstTime('2020', '1', '1')
 
     def output(self):
         output_path = f"s3://{self.bucket}/ml/modelos/depth{self.maxdepth}_{self.criterion}_estimatros{self.nestimators}.pickle"
@@ -911,49 +1050,53 @@ class Task_100_Train(luigi.Task):
         from sklearn.ensemble import RandomForestClassifier
 
         # Autenticación en S3
-        ses = boto3.session.Session(profile_name='luigi_dpa', region_name='us-west-2')
-        buffer=io.BytesIO()
+        ses = boto3.session.Session(
+            profile_name='luigi_dpa', region_name='us-west-2')
+        buffer = io.BytesIO()
         s3_resource = ses.resource('s3')
         obj = s3_resource.Bucket(name=self.bucket)
 
-        #lectura de datos
+        # lectura de datos
         key = f"ml/ml.parquet"
-        parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
+        parquet_object = s3_resource.Object(
+            bucket_name=self.bucket, key=key)  # objeto
         data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
         df = pd.read_parquet(data_parquet_object)
 
         # output variable
-        y=df["mean_flag"]
-        df2=df.drop(columns=["mean_flag","created_date"])
+        y = df["mean_flag"]
+        df2 = df.drop(columns=["mean_flag", "created_date"])
 
-        #separamos los primeros 70% de los datos para entrenar
-        X_train = df2[:int(df2.shape[0]*0.7)].to_numpy()
-        X_test = df2[int(df2.shape[0]*0.7):].to_numpy()
-        y_train = y[:int(df2.shape[0]*0.7)].to_numpy()
-        y_test = y[int(df2.shape[0]*0.7):].to_numpy()
+        # separamos los primeros 70% de los datos para entrenar
+        X_train = df2[:int(df2.shape[0] * 0.7)].to_numpy()
+        X_test = df2[int(df2.shape[0] * 0.7):].to_numpy()
+        y_train = y[:int(df2.shape[0] * 0.7)].to_numpy()
+        y_test = y[int(df2.shape[0] * 0.7):].to_numpy()
 
-        #partimos los datos con temporal cv
-        tscv=TimeSeriesSplit(n_splits=5)
+        # partimos los datos con temporal cv
+        tscv = TimeSeriesSplit(n_splits=5)
         for tr_index, val_index in tscv.split(X_train):
-            X_tr, X_val=X_train[tr_index], X_train[val_index]
+            X_tr, X_val = X_train[tr_index], X_train[val_index]
             y_tr, y_val = y_train[tr_index], y_train[val_index]
 
-        #Define y entrena el modelo
-        model=RandomForestClassifier(max_depth=int(self.maxdepth),criterion=self.criterion,n_estimators=int(self.nestimators),n_jobs=-1)
-        model.fit(X_tr,y_tr)
+        # Define y entrena el modelo
+        model = RandomForestClassifier(max_depth=int(
+            self.maxdepth), criterion=self.criterion, n_estimators=int(self.nestimators), n_jobs=-1)
+        model.fit(X_tr, y_tr)
 
-
-        #genera el pickle
-        pick=open('nombre.pickle','wb')
-        pickle.dump(model,pick)
+        # genera el pickle
+        pick = open('nombre.pickle', 'wb')
+        pickle.dump(model, pick)
         pick.close()
 
-        #llama a output
+        # llama a output
         with self.output().open('w') as output_file:
-           output_file.write("nombre.pickle")
+            output_file.write("nombre.pickle")
 
 ###################################################################
 # clase y tarea de guardado de metadatos de modelado
+
+
 class model_metadata():
     def __init__(self,
                  model_name="",
@@ -994,8 +1137,6 @@ class model_metadata():
                 self.score_train)
 
 
-
-
 class Task_110_metaModel(luigi.task.WrapperTask):
     '''
     Guardar los metadatos del entrenamiento de modelos
@@ -1004,18 +1145,17 @@ class Task_110_metaModel(luigi.task.WrapperTask):
     # parametros:
     # ==============================
     bucket = luigi.Parameter(default="prueba-nyc311")
-    nestimators =luigi.Parameter()
-    maxdepth= luigi.Parameter()
-    criterion=luigi.Parameter()
+    nestimators = luigi.Parameter()
+    maxdepth = luigi.Parameter()
+    criterion = luigi.Parameter()
     #year = luigi.Parameter()
     #month = luigi.Parameter()
     #day = luigi.Parameter()
 
-
     def requires(self):
         return Task_100_Train(nestimators=self.nestimators, maxdepth=self.maxdepth, criterion=self.criterion)
-        #return luigi.contrib.s3.exist(year=self.year, month=self.month, day=self.day)
-        #return luigi.S3Target(f"s3://{self.bucket}/ml/ml.parquet")
+        # return luigi.contrib.s3.exist(year=self.year, month=self.month, day=self.day)
+        # return luigi.S3Target(f"s3://{self.bucket}/ml/ml.parquet")
 
     def run(self):
         import os
@@ -1032,7 +1172,6 @@ class Task_110_metaModel(luigi.task.WrapperTask):
         model_meta.max_depth = str(self.maxdepth)
         model_meta.criterion = str(self.criterion)
         model_meta.n_estimators = str(self.nestimators)
-
 
         ubicacion_completa = model_meta.location
         meta = model_meta.info()  # extrae info de la clas
