@@ -11,7 +11,6 @@ import io
 import boto3
 import botocore
 import getpass
-import warnings
 
 class DateTestCase(marbles.core.TestCase):
     DAY=1
@@ -35,7 +34,6 @@ class DateTestCase(marbles.core.TestCase):
         parquet_object = s3_resource.Object(bucket_name=DateTestCase.BUCKET, key=key) # objeto
         data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())#.decode() # info del objeto
         df = pd.read_parquet(data_parquet_object)
-        del(ses)
         self.df = df
 
 
