@@ -12,13 +12,13 @@ class NumberCases():
         # Para calcular segun el distrito (descomentar las siguientes lineas)
         # distrito = ['dist1','dist2','dist3','dist4','dist5','dist6']
         # for j in distrito:
-        #   df = df_o[df_o[i] == 1]
+        #   self.df = df_o[df_o[j] == 1]
         self.df = df_o  # comentar esta linea cuando se tengan los distritos
         largo_base = len(self.df['counts'])-1
         history_days = 10
         for i in range(1, history_days):
             var_name = "number_cases_" + str(i) + "_days_ago"
-            a = self.df.loc[0:largo_base-1, ['counts']].reset_index(drop=True)
+            a = self.df.loc[0:largo_base-i, ['counts']].reset_index(drop=True)
             b = self.df.loc[i:largo_base, [var_name]].reset_index(drop=True)
             b.columns = ['counts']
             try:
