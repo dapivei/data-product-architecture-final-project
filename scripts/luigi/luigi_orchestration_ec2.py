@@ -8,6 +8,7 @@ import datetime
 import getpass
 import luigi
 import luigi.contrib.s3
+
 import os
 import pandas as pd
 import platform
@@ -27,6 +28,7 @@ from luigi.contrib.s3 import S3Client, S3Target
 from pyspark import SparkContext
 from pyspark.sql import SQLContext
 from sodapy import Socrata
+
 
 # ===================== Clases para guardar metadatos  =========================
 # Se definen dos clases que guarden las características de los metadatos
@@ -283,7 +285,6 @@ class Task_20_metaDownload(luigi.task.WrapperTask):
         cur.close()
         conn.close()
 
-
 class Task_30_preproc(luigi.Task):
     '''
     Convertir datos descargados en JSON y los transforma a formato parquet utilizando pandas.
@@ -436,6 +437,72 @@ class Task_50_cleaned(luigi.Task):
 
         #pasa a formato parquet
         df.to_parquet(self.output().path, engine='auto', compression='snappy')
+
+from luigi.contrib.external_program import ExternalProgramTask
+
+
+class Task_52_cleaned_test(ExternalProgramTask):
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+
+    def program_args(self):
+        return ["./prueba.sh",self.day,self.month,self.year,self.bucket]
+
+
+#class Task_51_cleaned_test(luigi.contrib.external_program.ExternalProgramTask):
+class Task_51_cleaned_test(luigi.Task):
+
+    '''
+    Limpiar los datos que se tienen en parquet utilizando pandas
+    '''
+    # ==============================
+    # parametros:
+    # ==============================
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+    # ==============================
+    def requires(self):
+        return Task_50_cleaned(year=self.year, month=self.month, day=self.day)
+
+
+        #def output(self):
+        # guarda los datos en s3://prueba-nyc311/raw/.3..
+#        output_path = f"s3://{self.bucket}/cleaned/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
+#        return luigi.contrib.s3.S3Target(path=output_path)
+    def run(self):
+
+        import io
+        #import luigi.contrib.external_program
+
+        ses = boto3.session.Session(
+            profile_name='luigi_dpa', region_name='us-west-2')
+        buffer=io.BytesIO()
+        s3_resource = ses.resource('s3')
+        obj = s3_resource.Bucket(name=self.bucket)
+
+                #lectura de datos
+        key = f"cleaned/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
+        parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
+        data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())#.decode() # info del objeto
+        df2 = pd.read_parquet(data_parquet_object)
+
+        print(df2.head())
+        #import test_cleaned as tc
+        exec(open('test_cleaned.py').read(),{},{'df':df2})
+        #print(open('test_cleaned.py').read())
+        cwd = os.getcwd()+"/"
+        print(cwd)
+        #from luigi.contrib.external_program import ExternalProgramTask
+        print('#################################################3333333333###########################3')
+        #luigi.contrib.external_program.ExternalProgramTask.run(test_cleaned.py)
+        #execv(open('test_cleaned.py').read(),cwd)
+        #execv('python3 -m unittest test_cleaned.py',cwd)
+        print('#################################################3333333333###########################3')
+
 
 class Task_60_metaClean(luigi.task.WrapperTask):
     '''
