@@ -3,7 +3,6 @@
 #=====================================
 
 import marbles.core
-import unittest
 import pandas as pd
 import datetime
 import sys
