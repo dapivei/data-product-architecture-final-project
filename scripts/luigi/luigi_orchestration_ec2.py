@@ -14,7 +14,6 @@ import pandas as pd
 import platform
 import psycopg2 as ps
 import pyarrow as pa
-import s3fs
 import socket
 import numpy as np
 import pickle
@@ -918,10 +917,10 @@ def celebrate_success(task):
 def mourn_failure(task, exception):
     print(u'\u274C'*1, "UnitTest con Marbles para schema Feature Engineering Task fallido. No se guardan los metadatos.")
 
-class Task_83_metaFeatureEngUT(luigi.task.WrapperTask):
+class Task_83_metaFeatureEngUTM(luigi.task.WrapperTask):
     '''
-    Guardar los metadatos de la descarga de datos del schema cleaned
-    Son guardados en la base de datos nyc311_metadata en la tabla clean.etl_execution
+    Guardar los metadatos de la descarga de datos del schema FE con marbles
+    Son guardados en la base de datos nyc311_metadata en la tabla mlpreproc.ut_execution
     '''
     # ==============================
     # parametros:
@@ -947,9 +946,9 @@ class Task_83_metaFeatureEngUT(luigi.task.WrapperTask):
         feUT.location = "ml/ml.parquet"
         feUT.param_bucket = str(self.bucket)
         # las pruebas unitarias que se superaron
-        feUT.action = "unit test for feature engineering: test_created_date_year_vs_onehot & test_created_date_month_vs_onehot"
+        feUT.action = "unit test for feature engineering (marbles): test_created_date_year_vs_onehot & test_created_date_month_vs_onehot"
 
-        ubicacion_completa = f"{feUT.location}.json"
+        ubicacion_completa = f"{feUT.location}.parquet"
         meta = feUT.info()  # extraer información de la clase
 
         # conectarse a la base de datos y guardar a esquema raw.etl_execution
@@ -966,12 +965,12 @@ class Task_83_metaFeatureEngUT(luigi.task.WrapperTask):
         conn.commit()
         cur.close()
         conn.close()
-@Task_83_metaFeatureEngUT.event_handler(luigi.Event.SUCCESS)
+@Task_83_metaFeatureEngUTM.event_handler(luigi.Event.SUCCESS)
 def celebrate_success(task):
-    print(u'\u2705'*2)
+    print(u'\u2705'*2, "Se guardaron los metadatos para UT con marbles.")
 
 
-class Task_93_feature_PandasTest(luigi.Task):
+class Task_84_feature_PandasTest(luigi.Task):
     bucket = luigi.Parameter(default="prueba-nyc311")
     year = luigi.Parameter()
     month = luigi.Parameter()
@@ -979,10 +978,10 @@ class Task_93_feature_PandasTest(luigi.Task):
     mock = luigi.Parameter(default=0)
 
     def requires(self):
-        return Task_91_ml(year=self.year, month=self.month, day=self.day, mock=self.mock)
+        return Task_81_ml(year=self.year, month=self.month, day=self.day, mock=self.mock)
 
     def output(self):
-        output_path = f"s3://{self.bucket}/ml/ml_testing_pandas_{self.day}.parquet"
+        output_path = f"s3://{self.bucket}/ml/ut_FE_pandas_ok"
         return luigi.contrib.s3.S3Target(path=output_path)
 
     def run(self):
@@ -1007,8 +1006,100 @@ class Task_93_feature_PandasTest(luigi.Task):
             out=open('feature_test_output.txt','r').read()
             with self.output().open('w') as output_file:
                 output_file.write(out)
+# En caso de éxito guarda metadatos, de otra forma no.
+@Task_84_feature_PandasTest.event_handler(luigi.Event.SUCCESS)
+def celebrate_success(task):
+    print(u'\u2705'*1, "UnitTest con Pandas para schema Feature Engineering Task completado. Se procede a guardar los metadatos.")
+@Task_84_feature_PandasTest.event_handler(luigi.Event.FAILURE)
+def mourn_failure(task, exception):
+    print(u'\u274C'*1, "UnitTest con Pandas para schema Feature Engineering Task fallido. No se guardan los metadatos.")
 
 
+class Task_85_metaFeatureEngUTP(luigi.task.WrapperTask):
+    '''
+    Guardar los metadatos de la descarga de datos del schema FE para unit testing con pandas
+    Son guardados en la base de datos nyc311_metadata en la tabla mlpreproc.ut_execution
+    '''
+    # ==============================
+    # parametros:
+    # ==============================
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+    # ==============================
+
+    def requires(self):
+        return Task_84_feature_PandasTest(year=self.year, month=self.month, day=self.day)
+
+    def run(self):
+        # se instancia la clase raw_metadata()
+        cwd = os.getcwd()  # directorio actual
+        feUT = FE_metadataUnitTest()
+        feUT.name = "ml"
+        feUT.user = str(getpass.getuser())
+        feUT.machine = str(platform.platform())
+        feUT.ip = execv("curl ipecho.net/plain ; echo", cwd)
+        feUT.creation_date = str(datetime.datetime.now())
+        feUT.location = "ml/ml.parquet"
+        feUT.param_bucket = str(self.bucket)
+        # las pruebas unitarias que se superaron
+        feUT.action = "unit test for feature engineering (pandas): prueba_casos_dia"
+
+        ubicacion_completa = f"{feUT.location}.parquet"
+        meta = feUT.info()  # extraer información de la clase
+
+        # conectarse a la base de datos y guardar a esquema raw.etl_execution
+        conn = ps.connect(host=settings.get('host'),
+                          port=settings.get('port'),
+                          database="nyc311_metadata",
+                          user=settings.get('usr'),
+                          password=settings.get('password'))
+        cur = conn.cursor()
+        columns = "(name, extention, schema, action, creator, machine, ip, creation_date, size, location,status, param_bucket)"
+        sql = "INSERT INTO mlpreproc.ut_execution" + columns + \
+            " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"
+        cur.execute(sql, meta)
+        conn.commit()
+        cur.close()
+        conn.close()
+@Task_85_metaFeatureEngUTP.event_handler(luigi.Event.SUCCESS)
+def celebrate_success(task):
+    print(u'\u2705'*2, "Se guardaron los metadatos para UT con pandas.")
+
+
+class Task_86_FE_allUT(luigi.Task):
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+    mock = luigi.Parameter(default=0)
+
+    def requires(self):
+        return [
+            Task_83_metaFeatureEngUTM(year=self.year, month=self.month, day=self.day),
+            Task_85_metaFeatureEngUTP(year=self.year, month=self.month, day=self.day)
+        ]
+
+
+    def output(self):
+        output_path = f"s3://{self.bucket}/ml/UT_all_ok"
+        return luigi.contrib.s3.S3Target(path=output_path)
+
+    def run(self):
+        # excribe archivo de exito en s3
+        if(self.mock==0):
+            out=open('feature_test_output.txt','r').read()
+            with self.output().open('w') as output_file:
+                output_file.write(out)
+
+# En caso de éxito guarda metadatos, de otra forma no.
+@Task_86_FE_allUT.event_handler(luigi.Event.SUCCESS)
+def celebrate_success(task):
+    print(u'\u2705'*4, "Todos los unit test tuvieron éxito en schema FE.")
+@Task_86_FE_allUT.event_handler(luigi.Event.FAILURE)
+def mourn_failure(task, exception):
+    print(u'\u274C'*4, "No tuvieron éxito todos los unit test en schema FE.")
 
 
 class Task_100_Train(luigi.Task):

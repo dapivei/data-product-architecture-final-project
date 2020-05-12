@@ -19,6 +19,7 @@ wget = "*"
 requests = "*"
 s3fs = "*"
 marbles = "*"
+pyscopg = "==2.7.5"
 
 [requires]
 python_version = "3.7"
