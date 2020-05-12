@@ -1024,7 +1024,7 @@ class Task_93_feature_PandasTest(luigi.Task):
         return Task_91_ml(year=self.year, month=self.month, day=self.day, mock=self.mock)
 
     def output(self):
-        output_path = f"s3://{self.bucket}/ml/ml_testing_pandas.parquet"
+        output_path = f"s3://{self.bucket}/ml/ml_testing_pandas_{self.day}.parquet"
         return luigi.contrib.s3.S3Target(path=output_path)
 
     def run(self):
@@ -1045,11 +1045,6 @@ class Task_93_feature_PandasTest(luigi.Task):
 
         NumberCases.prueba_casos_dia(NumberCases,df)
 
-        if not success:
-            import sys
-            sys.tracebacklimit=0
-            raise TypeError("\n Prueba Fallida \n")
-        print("mock ", mock)
         if(self.mock==0):
             out=open('feature_test_output.txt','r').read()
             with self.output().open('w') as output_file:

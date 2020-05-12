@@ -1,15 +1,17 @@
 import subprocess as sub
 import pandas as pd
 
-
+#Prueba unitaria
 class NumberCases():
     def prueba_casos_dia(self,df):
         from pandas.testing import assert_frame_equal
         # Para calcular segun el distrito (descomentar las siguientes lineas)
-        distrito = ['bronx', 'brooklyn', 'manhattan', 'queens', 'staten island','unspecified']
+        distrito = ['distrito_0','distrito_1','distrito_2','distrito_3','distrito_4','distrito_5']
         for j in distrito:
             self.df = df[df[j] == 1]
-            self.df = df  # comentar esta linea cuando se tengan los distritos
+            #descomentar para que truene
+            #self.df.iloc[2,2] = 5
+
             largo_base = len(self.df['counts'])-1
             history_days = 10
             for i in range(1, history_days):
@@ -17,16 +19,23 @@ class NumberCases():
                 a = self.df.loc[0:largo_base -i, ['counts']].reset_index(drop=True)
                 b = self.df.loc[i:largo_base, [var_name]].reset_index(drop=True)
                 b.columns = ['counts']
-            #try:
+            try:
                 assert_frame_equal(a, b, check_column_type=False,
-                                  check_dtype=False,
-                                  check_names=False)
-                #print("Sin error en la variable: " + var_name)
-            #except:
+                              check_dtype=False,
+                              check_names=False)
+                print("\n")
+                print("Pandas Unit Test SUCCESS")
+                print("Sin error en el distrito : " + j)
+                print("\n")
+            except:
                 # En que variable ocurrio el error
-                #print("El error ocurre en la variable:  " + var_name)
+                print("\n")
+                print("Pandas Unit Test FAIL")
+                print("Error en el distrito : " + j)
+                print("\n")
                 # Error de la prueba
-                #print(sys.exc_info()[1])
+
+                print(sys.exc_info()[1])
 
 
 def create_feature_table(df,h=10):
