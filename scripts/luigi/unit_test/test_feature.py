@@ -35,7 +35,8 @@ class OneHotTestCase(marbles.core.TestCase):
         parquet_object = s3_resource.Object(bucket_name=OneHotTestCase.BUCKET, key=key) # objeto
         data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())#.decode() # info del objeto
         df = pd.read_parquet(data_parquet_object)
-
+        # comentar para que falle
+        # df["created_date_year_0"].iloc[2] = 0
         self.df = df
 
     def tearDown(self):
@@ -50,7 +51,7 @@ class OneHotTestCase(marbles.core.TestCase):
             _year = self.df['created_date'].iloc[row].year-2010
             _valid = self.df[f'created_date_year_{_year}'].iloc[row]
             self.assertEqual(_valid, 1,
-            msg = f'La fila {row} para la columna y_{_year} tiene un 0 cuando debería de tener 1.',
+            msg = f'La fila {row} para la columna created_date_year_{_year} tiene un 0 cuando debería de tener 1.',
             note = 'Si sacamos el año de la fecha created date (year) debería de estar como True (1) la bandera en la columna de año correspondiente con formato onehot para garantizar consistencia.')
 
 

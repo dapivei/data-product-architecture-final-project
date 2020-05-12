@@ -20,6 +20,7 @@ requests = "*"
 s3fs = "*"
 marbles = "*"
 pyscopg = "==2.7.5"
+sklearn = "*"
 
 [requires]
 python_version = "3.7"

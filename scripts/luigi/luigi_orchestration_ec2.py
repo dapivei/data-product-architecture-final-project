@@ -17,6 +17,7 @@ import pyarrow as pa
 import socket
 import numpy as np
 import pickle
+import s3fs
 
 from functionsV2 import queryApi311
 from functionsV2 import execv
@@ -972,9 +973,9 @@ def celebrate_success(task):
 
 class Task_84_feature_PandasTest(luigi.Task):
     bucket = luigi.Parameter(default="prueba-nyc311")
-    year = luigi.Parameter()
-    month = luigi.Parameter()
-    day = luigi.Parameter()
+    year = luigi.Parameter(default=2019)
+    month = luigi.Parameter(default=7)
+    day = luigi.Parameter(default=27)
     mock = luigi.Parameter(default=0)
 
     def requires(self):
@@ -1011,6 +1012,58 @@ class Task_84_feature_PandasTest(luigi.Task):
 def celebrate_success(task):
     print(u'\u2705'*1,"UnitTest con Pandas para schema Feature Engineering Task completado. Se procede a guardar los metadatos.")
 @Task_84_feature_PandasTest.event_handler(luigi.Event.FAILURE)
+def mourn_failure(task, exception):
+    print(u'\u274C'*1, "UnitTest con Pandas para schema Feature Engineering Task fallido. No se guardan los metadatos.")
+
+class Task_84v2_feature_PandasTest(luigi.Task):
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+    mock = luigi.Parameter(default=0)
+    pruebaFalla = luigi.Parameter(default=1)
+
+    def requires(self):
+        return Task_81_ml(year=self.year, month=self.month, day=self.day, mock=self.mock)
+
+    def output(self):
+        output_path = f"s3://{self.bucket}/ml/ut_FE_pandasV2_ok"
+        return luigi.contrib.s3.S3Target(path=output_path)
+
+    def run(self):
+        import sys
+        from functionsV1 import NumberCasesV2
+        import io
+        # Autenticación en S3
+        ses = boto3.session.Session(profile_name='luigi_dpa', region_name='us-west-2')
+        buffer=io.BytesIO()
+        s3_resource = ses.resource('s3')
+        obj = s3_resource.Bucket(name=self.bucket)
+
+        #lectura de datos
+        key = f"ml/ml.parquet"
+        parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
+        data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
+        df = pd.read_parquet(data_parquet_object)
+        # intencional para que pueda fallar
+        if self.pruebaFalla==1:
+            unitTest = NumberCasesV2(test_error=1)
+            unitTest.prueba_casos_diaV2(df)
+        else:
+            unitTest = NumberCasesV2(test_error=0)
+            unitTest.prueba_casos_diaV2(df)
+
+
+
+        if(self.mock==0):
+            out=open('feature_test_output.txt','r').read()
+            with self.output().open('w') as output_file:
+                output_file.write(out)
+# En caso de éxito guarda metadatos, de otra forma no.
+@Task_84v2_feature_PandasTest.event_handler(luigi.Event.SUCCESS)
+def celebrate_success(task):
+    print(u'\u2705'*1,"UnitTest con Pandas para schema Feature Engineering Task completado. Se procede a guardar los metadatos.")
+@Task_84v2_feature_PandasTest.event_handler(luigi.Event.FAILURE)
 def mourn_failure(task, exception):
     print(u'\u274C'*1, "UnitTest con Pandas para schema Feature Engineering Task fallido. No se guardan los metadatos.")
 
@@ -1070,9 +1123,9 @@ def celebrate_success(task):
 
 class Task_86_FE_allUT(luigi.Task):
     bucket = luigi.Parameter(default="prueba-nyc311")
-    year = luigi.Parameter()
-    month = luigi.Parameter()
-    day = luigi.Parameter()
+    year = luigi.Parameter(default=2019)
+    month = luigi.Parameter(default=7)
+    day = luigi.Parameter(default=27)
     mock = luigi.Parameter(default=0)
 
     def requires(self):
@@ -1120,7 +1173,8 @@ class Task_100_Train(luigi.Task):
 
     # ==============================
     def requires(self):
-        return Task_91_ml(year=self.year, month=self.month, day=self.day)
+        return [Task_81_ml(year=self.year, month=self.month, day=self.day), Task_86_FE_allUT()]
+        #return Task_91_ml(year=self.year, month=self.month, day=self.day)
         #return Task_71_mlPreproc_firstTime('2020', '1', '1')
 
     def output(self):
@@ -1166,6 +1220,10 @@ class Task_100_Train(luigi.Task):
         model=RandomForestClassifier(max_depth=int(self.maxdepth),criterion=self.criterion,n_estimators=int(self.nestimators),n_jobs=-1)
         model.fit(X_tr,y_tr)
 
+        from sklearn.metrics import accuracy_score
+        print(u'\u2B50'*1)
+        y_new= model.predict(X_val)
+        print("precisión del modelo", accuracy_score(y_val, y_new))
 
         #genera el pickle
         pick=open('nombre.pickle','wb')

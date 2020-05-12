@@ -10,7 +10,7 @@ class NumberCases():
         for j in distrito:
             self.df = df[df[j] == 1]
             #descomentar para que truene
-            #self.df.iloc[2,2] = 5
+            # self.df.loc[7,["number_cases_1_days_ago"]] = 5
 
             largo_base = len(self.df['counts'])-1
             history_days = 10
@@ -21,20 +21,19 @@ class NumberCases():
                 b.columns = ['counts']
             try:
                 assert_frame_equal(a, b, check_column_type=False,
-                              check_dtype=False,
-                              check_names=False)
+                            check_dtype=False,
+                            check_names=False)
                 print("\n")
                 print("Pandas Unit Test SUCCESS")
                 print("Sin error en el distrito : " + j)
                 print("\n")
             except:
-                # En que variable ocurrio el error
+                #En que variable ocurrio el error
                 print("\n")
                 print("Pandas Unit Test FAIL")
                 print("Error en el distrito : " + j)
                 print("\n")
-                # Error de la prueba
-
+                #Error de la prueba
                 print(sys.exc_info()[1])
 
 
@@ -140,6 +139,9 @@ def encoders(df):
     df = pd.concat([df, dfOneHot], axis=1)
     dfOneHot = pd.DataFrame(Xb, columns = ["distrito_"+str(int(i)) for i in range(Xb.shape[1])])
     df = pd.concat([df, dfOneHot], axis=1)
+
+    # borrar columnas a las que se les hizo OHE
+    df=df.drop(columns=['borough','created_date_year','created_date_month','created_date_day','created_date_dow','created_date_woy'])
 
     return df
 
