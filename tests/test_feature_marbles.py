@@ -5,6 +5,7 @@
 import marbles.core
 import pandas as pd
 import datetime
+import sys
 
 # load data from path_ml = s3://prueba-nyc311/ml'
 file = '/Users/diegovillalizarraga/Maestria Ciencia de Datos ITAM/2do Semestre/Metodos de gran escala/Repositorio/data-product-architecture-final-project/tests/ml.parquet'
