@@ -1,25 +1,77 @@
-/usr/lib/python3.7/unittest/case.py:624: ResourceWarning: unclosed <ssl.SSLSocket fd=5, family=AddressFamily.AF_INET, type=SocketKind.SOCK_STREAM, proto=6, laddr=('10.0.0.71', 47098), raddr=('52.218.234.9', 443)>
+/usr/lib/python3.7/unittest/case.py:624: ResourceWarning: unclosed <ssl.SSLSocket fd=5, family=AddressFamily.AF_INET, type=SocketKind.SOCK_STREAM, proto=6, laddr=('10.0.0.71', 50564), raddr=('52.218.236.209', 443)>
   self.setUp()
 ResourceWarning: Enable tracemalloc to get the object allocation traceback
-F/usr/lib/python3.7/unittest/case.py:624: ResourceWarning: unclosed <ssl.SSLSocket fd=5, family=AddressFamily.AF_INET, type=SocketKind.SOCK_STREAM, proto=6, laddr=('10.0.0.71', 47100), raddr=('52.218.234.9', 443)>
+E/usr/lib/python3.7/unittest/case.py:624: ResourceWarning: unclosed <ssl.SSLSocket fd=5, family=AddressFamily.AF_INET, type=SocketKind.SOCK_STREAM, proto=6, laddr=('10.0.0.71', 56142), raddr=('52.218.224.161', 443)>
   self.setUp()
 ResourceWarning: Enable tracemalloc to get the object allocation traceback
-.
+E
 ======================================================================
-FAIL: test_for_closed_date_greater_than_created_date (unit_test.test_cleaned.DateTestCase)
+ERROR: test_for_closed_date_greater_than_created_date (unit_test.test_cleaned.DateTestCase)
 ----------------------------------------------------------------------
-marbles.core.marbles.ContextualAssertionError: Se detectaron 3831 casos en los que la closed_date sucede antes que la created_date.
+Traceback (most recent call last):
+  File "/home/sebastian/.local/share/virtualenvs/checkp2-iS1FsUMA/lib/python3.7/site-packages/pandas/core/indexes/base.py", line 3078, in get_loc
+    return self._engine.get_loc(key)
+  File "pandas/_libs/index.pyx", line 140, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 162, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 1492, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 1500, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'closed_date'
 
-Source (/home/jp/data-product-architecture-final-project/scripts/luigi/unit_test/test_cleaned.py):
-     52 _valid = self.df['closed_date'] >= self.df['created_date']
- >   53 self.assertTrue(all(_valid), msg=msg, note=note)
-     54 
-Note:
-	Es imposible que un issue se cierre antes de ser abierto, actualmente
-	existen casos en los que esta sucediendo esto.
+During handling of the above exception, another exception occurred:
 
+Traceback (most recent call last):
+  File "/home/sebastian/checkp2/scripts/luigi/unit_test/test_cleaned.py", line 48, in test_for_closed_date_greater_than_created_date
+    _filtro = self.df['closed_date'] > self.df['created_date']
+  File "/home/sebastian/.local/share/virtualenvs/checkp2-iS1FsUMA/lib/python3.7/site-packages/pandas/core/frame.py", line 2688, in __getitem__
+    return self._getitem_column(key)
+  File "/home/sebastian/.local/share/virtualenvs/checkp2-iS1FsUMA/lib/python3.7/site-packages/pandas/core/frame.py", line 2695, in _getitem_column
+    return self._get_item_cache(key)
+  File "/home/sebastian/.local/share/virtualenvs/checkp2-iS1FsUMA/lib/python3.7/site-packages/pandas/core/generic.py", line 2489, in _get_item_cache
+    values = self._data.get(item)
+  File "/home/sebastian/.local/share/virtualenvs/checkp2-iS1FsUMA/lib/python3.7/site-packages/pandas/core/internals.py", line 4115, in get
+    loc = self.items.get_loc(item)
+  File "/home/sebastian/.local/share/virtualenvs/checkp2-iS1FsUMA/lib/python3.7/site-packages/pandas/core/indexes/base.py", line 3080, in get_loc
+    return self._engine.get_loc(self._maybe_cast_indexer(key))
+  File "pandas/_libs/index.pyx", line 140, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 162, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 1492, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 1500, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'closed_date'
+
+======================================================================
+ERROR: test_for_years_out_of_range (unit_test.test_cleaned.DateTestCase)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/sebastian/.local/share/virtualenvs/checkp2-iS1FsUMA/lib/python3.7/site-packages/pandas/core/indexes/base.py", line 3078, in get_loc
+    return self._engine.get_loc(key)
+  File "pandas/_libs/index.pyx", line 140, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 162, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 1492, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 1500, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'closed_date'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/sebastian/checkp2/scripts/luigi/unit_test/test_cleaned.py", line 64, in test_for_years_out_of_range
+    if self.df['closed_date'] is not None:
+  File "/home/sebastian/.local/share/virtualenvs/checkp2-iS1FsUMA/lib/python3.7/site-packages/pandas/core/frame.py", line 2688, in __getitem__
+    return self._getitem_column(key)
+  File "/home/sebastian/.local/share/virtualenvs/checkp2-iS1FsUMA/lib/python3.7/site-packages/pandas/core/frame.py", line 2695, in _getitem_column
+    return self._get_item_cache(key)
+  File "/home/sebastian/.local/share/virtualenvs/checkp2-iS1FsUMA/lib/python3.7/site-packages/pandas/core/generic.py", line 2489, in _get_item_cache
+    values = self._data.get(item)
+  File "/home/sebastian/.local/share/virtualenvs/checkp2-iS1FsUMA/lib/python3.7/site-packages/pandas/core/internals.py", line 4115, in get
+    loc = self.items.get_loc(item)
+  File "/home/sebastian/.local/share/virtualenvs/checkp2-iS1FsUMA/lib/python3.7/site-packages/pandas/core/indexes/base.py", line 3080, in get_loc
+    return self._engine.get_loc(self._maybe_cast_indexer(key))
+  File "pandas/_libs/index.pyx", line 140, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 162, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 1492, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 1500, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'closed_date'
 
 ----------------------------------------------------------------------
-Ran 2 tests in 0.348s
+Ran 2 tests in 1.013s
 
-FAILED (failures=1)
+FAILED (errors=2)
