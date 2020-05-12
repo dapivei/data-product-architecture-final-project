@@ -438,6 +438,31 @@ class Task_50_cleaned(luigi.Task):
         #pasa a formato parquet
         df.to_parquet(self.output().path, engine='auto', compression='snappy')
 
+
+class Task_51_cleaned_test(luigi.Task):
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+
+    def requires(self):
+        return Task_50_cleaned(year=self.year, month=self.month, day=self.day)
+
+    def run(self):
+        import subprocess
+        args = list(map(str, ["./unit_test/run_clean_test.sh",self.day,self.month,self.year,self.bucket]))
+        proc = subprocess.Popen(args)
+        proc.wait()
+
+        success = proc.returncode == 0
+        a=proc.communicate()
+        print(success)
+        if not success:
+            raise ExternalProgramRunError(
+                'Program failed with return code={}:'.format(proc.returncode),
+                args, env=env, stdout=stdout, stderr=stderr)
+
+
 from luigi.contrib.external_program import ExternalProgramTask
 
 
