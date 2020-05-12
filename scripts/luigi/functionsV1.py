@@ -6,19 +6,19 @@ class NumberCases():
     def prueba_casos_dia(self,df):
         from pandas.testing import assert_frame_equal
         # Para calcular segun el distrito (descomentar las siguientes lineas)
-        # distrito = ['dist1','dist2','dist3','dist4','dist5','dist6']
-        # for j in distrito:
-        #   self.df = df_o[df_o[j] == 1]
-        self.df = df  # comentar esta linea cuando se tengan los distritos
-        largo_base = len(self.df['counts'])-1
-        history_days = 10
-        for i in range(1, history_days):
-            var_name = "number_cases_" + str(i) + "_days_ago"
-            a = self.df.loc[0:largo_base -i, ['counts']].reset_index(drop=True)
-            b = self.df.loc[i:largo_base, [var_name]].reset_index(drop=True)
-            b.columns = ['counts']
+        distrito = ['bronx', 'brooklyn', 'manhattan', 'queens', 'staten island','unspecified']
+        for j in distrito:
+            self.df = df[df[j] == 1]
+            self.df = df  # comentar esta linea cuando se tengan los distritos
+            largo_base = len(self.df['counts'])-1
+            history_days = 10
+            for i in range(1, history_days):
+                var_name = "number_cases_" + str(i) + "_days_ago"
+                a = self.df.loc[0:largo_base -i, ['counts']].reset_index(drop=True)
+                b = self.df.loc[i:largo_base, [var_name]].reset_index(drop=True)
+                b.columns = ['counts']
             #try:
-            assert_frame_equal(a, b, check_column_type=False,
+                assert_frame_equal(a, b, check_column_type=False,
                                   check_dtype=False,
                                   check_names=False)
                 #print("Sin error en la variable: " + var_name)
@@ -110,11 +110,14 @@ def encoders(df):
     created_date_day_ohe = OneHotEncoder()
     created_date_dow_ohe = OneHotEncoder()
     created_date_woy_ohe = OneHotEncoder()
+    borough_ohe = OneHotEncoder()
     X = created_date_year_ohe.fit_transform(df.created_date_year_encoded.values.reshape(-1,1)).toarray()
     Xm = created_date_month_ohe.fit_transform(df.created_date_month_encoded.values.reshape(-1,1)).toarray()
     Xo = created_date_day_ohe.fit_transform(df.created_date_day_encoded.values.reshape(-1,1)).toarray()
     Xt = created_date_dow_ohe.fit_transform(df.created_date_dow_encoded.values.reshape(-1,1)).toarray()
     Xz = created_date_woy_ohe.fit_transform(df.created_date_woy_encoded.values.reshape(-1,1)).toarray()
+    Xb = borough_ohe.fit_transform(df.borough.values.reshape(-1,1)).toarray()
+
 
     dfOneHot = pd.DataFrame(X, columns = ["created_date_year_"+str(int(i)) for i in range(X.shape[1])])
     df = pd.concat([df, dfOneHot], axis=1)
@@ -125,6 +128,8 @@ def encoders(df):
     dfOneHot = pd.DataFrame(Xt, columns = ["created_date_dow_"+str(int(i)) for i in range(Xt.shape[1])])
     df = pd.concat([df, dfOneHot], axis=1)
     dfOneHot = pd.DataFrame(Xz, columns = ["created_date_woy_"+str(int(i)) for i in range(Xz.shape[1])])
+    df = pd.concat([df, dfOneHot], axis=1)
+    dfOneHot = pd.DataFrame(Xb, columns = ["distrito_"+str(int(i)) for i in range(Xb.shape[1])])
     df = pd.concat([df, dfOneHot], axis=1)
 
     return df
