@@ -836,12 +836,13 @@ class Task_91_ml_firstTime(luigi.Task):
         data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
         df = pd.read_parquet(data_parquet_object)
 
+        #print(df)
         # funcion de procesamiento de datos
         df_features=f1.create_feature_table(df)
         del(df)
-        print(df_features)
-        #falta pasar a un solo parquet que vaya haciendo append de las fechas
-        #pasa a formato parquet
+        df_features=f1.encoders(df_features)
+        #print(df_features)
+
         df_features.to_parquet(self.output().path, engine='auto', compression='snappy')
 
 class Task_100_Train(luigi.Task):

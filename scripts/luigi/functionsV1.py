@@ -1,7 +1,8 @@
 import subprocess as sub
 import pandas as pd
 
-def create_feature_table(df):
+def create_feature_table(df,h=10):
+    import numpy as np
     '''
     Esta fucnion crea la tabla que contiene los resumenes de llamadas diarias.
     Sigue el proceso:
@@ -25,52 +26,78 @@ def create_feature_table(df):
     # Creamos variable holiday
     df["date_holiday"]=df["created_date"].apply(festivo)
 
-    history_days=10
-    #fecha de inicio
-    for i in range(1,history_days):
-        for j in range(len(df["counts"])):
-            if(j==0):
-                var_name =  f"number_cases_{i}_days_ago"
-                df[var_name]=0
-            if(j<i):
-                df[var_name][j]=0
-            else:
-                df[var_name][j]=df["counts"][(j-i)]
+    #dias de historia
+    distrito=df['borough'].unique()
+    flag=0
+    for dist in distrito:
+        df2 = df[df['borough']==dist].reset_index(drop=True)
+        for h in range(1,10):
+            var_name = "number_cases_" + str(h) + "_days_ago"
+            a=df2['counts']
+            aa = pd.DataFrame(np.zeros(h))
+            b=pd.concat([aa,a[:-h]]).reset_index(drop=True)
+            b.columns=[var_name]
+            df2=pd.concat([df2,b],axis=1).reset_index(drop=True)
 
+        if flag==0:
+            df3=df2
+            flag=1
+        else:
+            df3=pd.concat([df3,df2]).reset_index(drop=True)
+        del(df2)
     #variable respuesta
-    means=df.loc[:,['created_date_month','counts']]
-    means=means.groupby(['created_date_month'],as_index=False).mean()
-    means.columns=['created_date_month','month_mean']
-    df=pd.merge(df,means,how='left',on=["created_date_month"])
-
+    df=df3
+    del(df3)
+    means=df.loc[:,['created_date_month','counts','borough']]
+    means=means.groupby(['created_date_month','borough'],as_index=False).mean()
+    print(means)
+    means.columns=['created_date_month','borough','month_mean']
+    df=pd.merge(df,means,how='left',on=['created_date_month','borough'])
+    print(df)
     #flag de arriba o abajo del promedio
     df["mean_flag"]= df["counts"] - df["month_mean"]
     df["mean_flag"]=df["mean_flag"].apply(flags)
-
-    #one hot encodings
-    #year
-    dummies=pd.get_dummies(df["created_date_year"],prefix='y')
-    df=pd.concat([df,dummies],axis=1)
-
-    #month
-    dummies=pd.get_dummies(df["created_date_month"],prefix='m')
-    df=pd.concat([df,dummies],axis=1)
-
-    #day
-    dummies=pd.get_dummies(df["created_date_day"],prefix='d')
-    df=pd.concat([df,dummies],axis=1)
-
-    #day of week
-    dummies=pd.get_dummies(df["created_date_dow"],prefix='dow')
-    df=pd.concat([df,dummies],axis=1)
-
-    #week of year
-    dummies=pd.get_dummies(df["created_date_woy"],prefix='woy')
-    df=pd.concat([df,dummies],axis=1)
-
-    #drop original cols
-    df=df.drop(["created_date_year","created_date_month","created_date_day","created_date_dow","created_date_woy"],axis=1)
     return df
+
+def encoders(df):
+    import pandas as pd
+    from sklearn.preprocessing import LabelEncoder
+    le_created_date_year = LabelEncoder()
+    le_created_date_month = LabelEncoder()
+    le_created_date_day = LabelEncoder()
+    le_created_date_dow = LabelEncoder()
+    le_created_date_woy = LabelEncoder()
+    df['created_date_year_encoded'] = le_created_date_year.fit_transform(df.created_date_year)
+    df['created_date_month_encoded'] = le_created_date_month.fit_transform(df.created_date_month)
+    df['created_date_day_encoded'] = le_created_date_day.fit_transform(df.created_date_day)
+    df['created_date_dow_encoded'] = le_created_date_dow.fit_transform(df.created_date_dow)
+    df['created_date_woy_encoded'] = le_created_date_woy.fit_transform(df.created_date_woy)
+
+    from sklearn.preprocessing import OneHotEncoder
+    created_date_year_ohe = OneHotEncoder()
+    created_date_month_ohe = OneHotEncoder()
+    created_date_day_ohe = OneHotEncoder()
+    created_date_dow_ohe = OneHotEncoder()
+    created_date_woy_ohe = OneHotEncoder()
+    X = created_date_year_ohe.fit_transform(df.created_date_year_encoded.values.reshape(-1,1)).toarray()
+    Xm = created_date_month_ohe.fit_transform(df.created_date_month_encoded.values.reshape(-1,1)).toarray()
+    Xo = created_date_day_ohe.fit_transform(df.created_date_day_encoded.values.reshape(-1,1)).toarray()
+    Xt = created_date_dow_ohe.fit_transform(df.created_date_dow_encoded.values.reshape(-1,1)).toarray()
+    Xz = created_date_woy_ohe.fit_transform(df.created_date_woy_encoded.values.reshape(-1,1)).toarray()
+
+    dfOneHot = pd.DataFrame(X, columns = ["created_date_year_"+str(int(i)) for i in range(X.shape[1])])
+    df = pd.concat([df, dfOneHot], axis=1)
+    dfOneHot = pd.DataFrame(Xm, columns = ["created_date_month_"+str(int(i)) for i in range(Xm.shape[1])])
+    df = pd.concat([df, dfOneHot], axis=1)
+    dfOneHot = pd.DataFrame(Xo, columns = ["created_date_day_"+str(int(i)) for i in range(Xo.shape[1])])
+    df = pd.concat([df, dfOneHot], axis=1)
+    dfOneHot = pd.DataFrame(Xt, columns = ["created_date_dow_"+str(int(i)) for i in range(Xt.shape[1])])
+    df = pd.concat([df, dfOneHot], axis=1)
+    dfOneHot = pd.DataFrame(Xz, columns = ["created_date_woy_"+str(int(i)) for i in range(Xz.shape[1])])
+    df = pd.concat([df, dfOneHot], axis=1)
+
+    return df
+
 
 def flags(x):
     if(x<0):
