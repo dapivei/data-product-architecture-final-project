@@ -448,6 +448,10 @@ class Task_51_cleaned_test(luigi.Task):
     def requires(self):
         return Task_50_cleaned(year=self.year, month=self.month, day=self.day)
 
+    def output(self):
+        output_path = f"s3://{self.bucket}/cleaned/{self.year}/{self.month}/{self.day}/unit_test_ok.txt"
+        return luigi.contrib.s3.S3Target(path=output_path)
+
     def run(self):
         import subprocess
         args = list(map(str, ["./unit_test/run_clean_test.sh",self.day,self.month,self.year,self.bucket]))
@@ -455,25 +459,15 @@ class Task_51_cleaned_test(luigi.Task):
         proc.wait()
 
         success = proc.returncode == 0
-        a=proc.communicate()
-        print(success)
         if not success:
-            raise ExternalProgramRunError(
-                'Program failed with return code={}:'.format(proc.returncode),
-                args, env=env, stdout=stdout, stderr=stderr)
+            import sys
+            sys.tracebacklimit=0
+            raise TypeError("\n Preuba Fallida \n")
 
 
-from luigi.contrib.external_program import ExternalProgramTask
-
-
-class Task_52_cleaned_test(ExternalProgramTask):
-    bucket = luigi.Parameter(default="prueba-nyc311")
-    year = luigi.Parameter()
-    month = luigi.Parameter()
-    day = luigi.Parameter()
-
-    def program_args(self):
-        return ["./unit_test/run_clean_test.sh",self.day,self.month,self.year,self.bucket]
+        out=open('clean_test_output.txt','r').read()
+        with self.output().open('w') as output_file:
+            output_file.write(out)
 
 
 class Task_60_metaClean(luigi.task.WrapperTask):
