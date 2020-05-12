@@ -844,7 +844,7 @@ class FE_metadataUnitTest():
                  name="",
                  extention="parquet",
                  schema="cleaned",
-                 action="unit test for feature engineering: test_created_date_year_vs_onehot & test_created_date_month_vs_onehot",
+                 action="",
                  creator="-",
                  machine="",
                  localhost="",
@@ -938,17 +938,19 @@ class Task_83_metaFeatureEngUT(luigi.task.WrapperTask):
     def run(self):
         # se instancia la clase raw_metadata()
         cwd = os.getcwd()  # directorio actual
-        cleanUT = FE_metadataUnitTest()
-        cleanUT.name = f"data_{self.year}_{self.month}_{self.day}"
-        cleanUT.user = str(getpass.getuser())
-        cleanUT.machine = str(platform.platform())
-        cleanUT.ip = execv("curl ipecho.net/plain ; echo", cwd)
-        cleanUT.creation_date = str(datetime.datetime.now())
-        cleanUT.location = f"{path_raw}/{cleanUT.name}"
-        cleanUT.param_bucket = str(self.bucket)
+        feUT = FE_metadataUnitTest()
+        feUT.name = "ml"
+        feUT.user = str(getpass.getuser())
+        feUT.machine = str(platform.platform())
+        feUT.ip = execv("curl ipecho.net/plain ; echo", cwd)
+        feUT.creation_date = str(datetime.datetime.now())
+        feUT.location = "ml/ml.parquet"
+        feUT.param_bucket = str(self.bucket)
+        # las pruebas unitarias que se superaron
+        feUT.action = "unit test for feature engineering: test_created_date_year_vs_onehot & test_created_date_month_vs_onehot"
 
-        ubicacion_completa = f"{cleanUT.location}.json"
-        meta = cleanUT.info()  # extraer información de la clase
+        ubicacion_completa = f"{feUT.location}.json"
+        meta = feUT.info()  # extraer información de la clase
 
         # conectarse a la base de datos y guardar a esquema raw.etl_execution
         conn = ps.connect(host=settings.get('host'),
