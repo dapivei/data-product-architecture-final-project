@@ -877,7 +877,7 @@ class Task_82_feature_UnitTest(luigi.Task):
     '''
     Realiza 2 test unitarios con marbles a ml.parquet:
     test_created_date_year_vs_onehot & test_created_date_month_vs_onehot.
-    En caso de exito guarda el archivo s3: prueba-nyc311/ml/unit_test_ok
+    En caso de exito guarda el archivo s3: prueba-nyc311/ml/ut_FE_marbles_ok
     '''
     bucket = luigi.Parameter(default="prueba-nyc311")
     year = luigi.Parameter()
@@ -889,7 +889,7 @@ class Task_82_feature_UnitTest(luigi.Task):
         return Task_81_ml(year=self.year, month=self.month, day=self.day, mock=self.mock)
 
     def output(self):
-        output_path = f"s3://{self.bucket}/ml/unit_test_ok"
+        output_path = f"s3://{self.bucket}/ml/ut_FE_marbles_ok"
         return luigi.contrib.s3.S3Target(path=output_path)
 
     def run(self):
@@ -1009,7 +1009,7 @@ class Task_84_feature_PandasTest(luigi.Task):
 # En caso de éxito guarda metadatos, de otra forma no.
 @Task_84_feature_PandasTest.event_handler(luigi.Event.SUCCESS)
 def celebrate_success(task):
-    print(u'\u2705'*1, "UnitTest con Pandas para schema Feature Engineering Task completado. Se procede a guardar los metadatos.")
+    print(u'\u2705'*1,"UnitTest con Pandas para schema Feature Engineering Task completado. Se procede a guardar los metadatos.")
 @Task_84_feature_PandasTest.event_handler(luigi.Event.FAILURE)
 def mourn_failure(task, exception):
     print(u'\u274C'*1, "UnitTest con Pandas para schema Feature Engineering Task fallido. No se guardan los metadatos.")
@@ -1083,7 +1083,7 @@ class Task_86_FE_allUT(luigi.Task):
 
 
     def output(self):
-        output_path = f"s3://{self.bucket}/ml/UT_all_ok"
+        output_path = f"s3://{self.bucket}/ml/ut_FE_all_ok"
         return luigi.contrib.s3.S3Target(path=output_path)
 
     def run(self):
@@ -1096,10 +1096,10 @@ class Task_86_FE_allUT(luigi.Task):
 # En caso de éxito guarda metadatos, de otra forma no.
 @Task_86_FE_allUT.event_handler(luigi.Event.SUCCESS)
 def celebrate_success(task):
-    print(u'\u2705'*4, "Todos los unit test tuvieron éxito en schema FE.")
+    print(u'\u2B50'*1, "Todos los unit test tuvieron éxito en schema FE.")
 @Task_86_FE_allUT.event_handler(luigi.Event.FAILURE)
 def mourn_failure(task, exception):
-    print(u'\u274C'*4, "No tuvieron éxito todos los unit test en schema FE.")
+    print(u'\u274C'*1, "No tuvieron éxito todos los unit test en schema FE.")
 
 
 class Task_100_Train(luigi.Task):
