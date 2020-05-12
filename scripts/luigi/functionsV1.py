@@ -1,6 +1,43 @@
 import subprocess as sub
 import pandas as pd
 
+#Prueba unitaria
+class NumberCases():
+    def prueba_casos_dia(self,df):
+        from pandas.testing import assert_frame_equal
+        # Para calcular segun el distrito (descomentar las siguientes lineas)
+        distrito = ['distrito_0','distrito_1','distrito_2','distrito_3','distrito_4','distrito_5']
+        for j in distrito:
+            self.df = df[df[j] == 1]
+            #descomentar para que truene
+            #self.df.iloc[2,2] = 5
+
+            largo_base = len(self.df['counts'])-1
+            history_days = 10
+            for i in range(1, history_days):
+                var_name = "number_cases_" + str(i) + "_days_ago"
+                a = self.df.loc[0:largo_base -i, ['counts']].reset_index(drop=True)
+                b = self.df.loc[i:largo_base, [var_name]].reset_index(drop=True)
+                b.columns = ['counts']
+            try:
+                assert_frame_equal(a, b, check_column_type=False,
+                              check_dtype=False,
+                              check_names=False)
+                print("\n")
+                print("Pandas Unit Test SUCCESS")
+                print("Sin error en el distrito : " + j)
+                print("\n")
+            except:
+                # En que variable ocurrio el error
+                print("\n")
+                print("Pandas Unit Test FAIL")
+                print("Error en el distrito : " + j)
+                print("\n")
+                # Error de la prueba
+
+                print(sys.exc_info()[1])
+
+
 def create_feature_table(df,h=10):
     import numpy as np
     '''
@@ -67,11 +104,14 @@ def encoders(df):
     le_created_date_day = LabelEncoder()
     le_created_date_dow = LabelEncoder()
     le_created_date_woy = LabelEncoder()
+    #le_created_date_destrito = LabelEncoder()
+
     df['created_date_year_encoded'] = le_created_date_year.fit_transform(df.created_date_year)
     df['created_date_month_encoded'] = le_created_date_month.fit_transform(df.created_date_month)
     df['created_date_day_encoded'] = le_created_date_day.fit_transform(df.created_date_day)
     df['created_date_dow_encoded'] = le_created_date_dow.fit_transform(df.created_date_dow)
     df['created_date_woy_encoded'] = le_created_date_woy.fit_transform(df.created_date_woy)
+    #df['created_date_distrito_encoded'] = le_created_date_woy.fit_transform(df.borough)
 
     from sklearn.preprocessing import OneHotEncoder
     created_date_year_ohe = OneHotEncoder()
@@ -79,11 +119,14 @@ def encoders(df):
     created_date_day_ohe = OneHotEncoder()
     created_date_dow_ohe = OneHotEncoder()
     created_date_woy_ohe = OneHotEncoder()
+    borough_ohe = OneHotEncoder()
     X = created_date_year_ohe.fit_transform(df.created_date_year_encoded.values.reshape(-1,1)).toarray()
     Xm = created_date_month_ohe.fit_transform(df.created_date_month_encoded.values.reshape(-1,1)).toarray()
     Xo = created_date_day_ohe.fit_transform(df.created_date_day_encoded.values.reshape(-1,1)).toarray()
     Xt = created_date_dow_ohe.fit_transform(df.created_date_dow_encoded.values.reshape(-1,1)).toarray()
     Xz = created_date_woy_ohe.fit_transform(df.created_date_woy_encoded.values.reshape(-1,1)).toarray()
+    Xb = borough_ohe.fit_transform(df.borough.values.reshape(-1,1)).toarray()
+
 
     dfOneHot = pd.DataFrame(X, columns = ["created_date_year_"+str(int(i)) for i in range(X.shape[1])])
     df = pd.concat([df, dfOneHot], axis=1)
@@ -94,6 +137,8 @@ def encoders(df):
     dfOneHot = pd.DataFrame(Xt, columns = ["created_date_dow_"+str(int(i)) for i in range(Xt.shape[1])])
     df = pd.concat([df, dfOneHot], axis=1)
     dfOneHot = pd.DataFrame(Xz, columns = ["created_date_woy_"+str(int(i)) for i in range(Xz.shape[1])])
+    df = pd.concat([df, dfOneHot], axis=1)
+    dfOneHot = pd.DataFrame(Xb, columns = ["distrito_"+str(int(i)) for i in range(Xb.shape[1])])
     df = pd.concat([df, dfOneHot], axis=1)
 
     return df
