@@ -920,7 +920,7 @@ class Task_80_metaMlPreproc(luigi.task.WrapperTask):
         cur.close()
         conn.close()
 
-class Task_91_ml_firstTime(luigi.Task):
+class Task_91_ml(luigi.Task):
     '''
     Contar los registros por fecha y colapsar en una sola tabla que contendra las columnas de created_date y numero de registros
     '''
@@ -931,6 +931,7 @@ class Task_91_ml_firstTime(luigi.Task):
     year = luigi.Parameter()
     month = luigi.Parameter()
     day = luigi.Parameter()
+    mock=luigi.Parameter(default=1)
     # ==============================
     def requires(self):
         return Task_71_mlPreproc_firstTime(year=self.year, month=self.month, day=self.day)
@@ -967,6 +968,51 @@ class Task_91_ml_firstTime(luigi.Task):
 
         df_features.to_parquet(self.output().path, engine='auto', compression='snappy')
 
+
+class Task_92_feature_UnitTest(luigi.Task):
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+    mock = luigi.Parameter(default=0)
+
+    def requires(self):
+        return Task_91_ml(year=self.year, month=self.month, day=self.day, mock=self.mock)
+
+    def output(self):
+        output_path = f"s3://{self.bucket}/ml/ml_testing.parquet"
+        return luigi.contrib.s3.S3Target(path=output_path)
+
+    def run(self):
+        import subprocess
+        args = list(map(str, ["./unit_test/run_feature_test.sh",self.bucket]))
+        proc = subprocess.Popen(args)
+        proc.wait()
+
+        success = proc.returncode == 0
+        if not success:
+            import sys
+            sys.tracebacklimit=0
+            raise TypeError("\n Prueba Fallida \n")
+
+        if(self.mock==0):
+            out=open('feature_test_output.txt','r').read()
+            with self.output().open('w') as output_file:
+                output_file.write(out)
+
+# En caso de éxito guarda metadatos, de otra forma no.
+@Task_52_cleaned_UnitTest.event_handler(luigi.Event.SUCCESS)
+def celebrate_success(task):
+    print("-*"*50)
+    print("-*"*50)
+    print(u'\u2705'*1, "UnitTest con Marbles para schema Feature Engineering Task completado. Se procede a guardar los metadatos.")
+@Task_52_cleaned_UnitTest.event_handler(luigi.Event.FAILURE)
+def mourn_failure(task, exception):
+    print("-*"*50)
+    print(u'\u274C'*1, "UnitTest con Marbles para schema Feature Engineering Task fallido. No se guardan los metadatos.")
+    print("-*"*50)
+
+
 class Task_100_Train(luigi.Task):
     '''
     Entrena un modelo
@@ -981,11 +1027,11 @@ class Task_100_Train(luigi.Task):
     year = luigi.Parameter(default='2020')
     month = luigi.Parameter(default='2')
     day = luigi.Parameter(default='2')
-
+    mock= luigi.Parameter(default=1)
 
     # ==============================
     def requires(self):
-        return Task_91_ml_firstTime(year=self.year, month=self.month, day=self.day)
+        return Task_91_ml(year=self.year, month=self.month, day=self.day)
         #return Task_71_mlPreproc_firstTime('2020', '1', '1')
 
     def output(self):
@@ -1016,10 +1062,10 @@ class Task_100_Train(luigi.Task):
         df2=df.drop(columns=["mean_flag","created_date"])
 
         #separamos los primeros 70% de los datos para entrenar
-        X_train = df2[:int(df2.shape[0]*0.7)].to_numpy()
-        X_test = df2[int(df2.shape[0]*0.7):].to_numpy()
-        y_train = y[:int(df2.shape[0]*0.7)].to_numpy()
-        y_test = y[int(df2.shape[0]*0.7):].to_numpy()
+        X_train = df2[:int(df2.shape[0]*0.7)].values
+        X_test = df2[int(df2.shape[0]*0.7):].values
+        y_train = y[:int(df2.shape[0]*0.7)].values
+        y_test = y[int(df2.shape[0]*0.7):].values
 
         #partimos los datos con temporal cv
         tscv=TimeSeriesSplit(n_splits=5)
@@ -1096,6 +1142,7 @@ class Task_110_metaModel(luigi.task.WrapperTask):
     nestimators =luigi.Parameter()
     maxdepth= luigi.Parameter()
     criterion=luigi.Parameter()
+    mock= luigi.Parameter(default=1)
     #year = luigi.Parameter()
     #month = luigi.Parameter()
     #day = luigi.Parameter()
