@@ -651,7 +651,7 @@ class Task_71_mlPreproc_firstTime(luigi.Task):
 
     # ==============================
     def requires(self):
-        return Task_60_metaClean(year=self.year, month=self.month, day=self.day)
+        return Task_51_metaClean(year=self.year, month=self.month, day=self.day)
 
     def output(self):
         # guarda los datos en s3://prueba-nyc311/raw/.3..
