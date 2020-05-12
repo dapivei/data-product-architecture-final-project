@@ -1013,6 +1013,51 @@ def mourn_failure(task, exception):
     print("-*"*50)
 
 
+class Task_93_feature_PandasTest(luigi.Task):
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+    mock = luigi.Parameter(default=0)
+
+    def requires(self):
+        return Task_91_ml(year=self.year, month=self.month, day=self.day, mock=self.mock)
+
+    def output(self):
+        output_path = f"s3://{self.bucket}/ml/ml_testing_pandas.parquet"
+        return luigi.contrib.s3.S3Target(path=output_path)
+
+    def run(self):
+        import sys
+        from functionsV1 import NumberCases
+        import io
+        # Autenticación en S3
+        ses = boto3.session.Session(profile_name='luigi_dpa', region_name='us-west-2')
+        buffer=io.BytesIO()
+        s3_resource = ses.resource('s3')
+        obj = s3_resource.Bucket(name=self.bucket)
+
+        #lectura de datos
+        key = f"ml/ml.parquet"
+        parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
+        data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
+        df = pd.read_parquet(data_parquet_object)
+
+        NumberCases.prueba_casos_dia(NumberCases,df)
+
+        if not success:
+            import sys
+            sys.tracebacklimit=0
+            raise TypeError("\n Prueba Fallida \n")
+        print("mock ", mock)
+        if(self.mock==0):
+            out=open('feature_test_output.txt','r').read()
+            with self.output().open('w') as output_file:
+                output_file.write(out)
+
+
+
+
 class Task_100_Train(luigi.Task):
     '''
     Entrena un modelo

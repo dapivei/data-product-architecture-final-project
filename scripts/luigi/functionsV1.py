@@ -1,6 +1,34 @@
 import subprocess as sub
 import pandas as pd
 
+
+class NumberCases():
+    def prueba_casos_dia(self,df):
+        from pandas.testing import assert_frame_equal
+        # Para calcular segun el distrito (descomentar las siguientes lineas)
+        # distrito = ['dist1','dist2','dist3','dist4','dist5','dist6']
+        # for j in distrito:
+        #   self.df = df_o[df_o[j] == 1]
+        self.df = df  # comentar esta linea cuando se tengan los distritos
+        largo_base = len(self.df['counts'])-1
+        history_days = 10
+        for i in range(1, history_days):
+            var_name = "number_cases_" + str(i) + "_days_ago"
+            a = self.df.loc[0:largo_base -i, ['counts']].reset_index(drop=True)
+            b = self.df.loc[i:largo_base, [var_name]].reset_index(drop=True)
+            b.columns = ['counts']
+            #try:
+            assert_frame_equal(a, b, check_column_type=False,
+                                  check_dtype=False,
+                                  check_names=False)
+                #print("Sin error en la variable: " + var_name)
+            #except:
+                # En que variable ocurrio el error
+                #print("El error ocurre en la variable:  " + var_name)
+                # Error de la prueba
+                #print(sys.exc_info()[1])
+
+
 def create_feature_table(df,h=10):
     import numpy as np
     '''
@@ -67,11 +95,14 @@ def encoders(df):
     le_created_date_day = LabelEncoder()
     le_created_date_dow = LabelEncoder()
     le_created_date_woy = LabelEncoder()
+    #le_created_date_destrito = LabelEncoder()
+
     df['created_date_year_encoded'] = le_created_date_year.fit_transform(df.created_date_year)
     df['created_date_month_encoded'] = le_created_date_month.fit_transform(df.created_date_month)
     df['created_date_day_encoded'] = le_created_date_day.fit_transform(df.created_date_day)
     df['created_date_dow_encoded'] = le_created_date_dow.fit_transform(df.created_date_dow)
     df['created_date_woy_encoded'] = le_created_date_woy.fit_transform(df.created_date_woy)
+    #df['created_date_distrito_encoded'] = le_created_date_woy.fit_transform(df.borough)
 
     from sklearn.preprocessing import OneHotEncoder
     created_date_year_ohe = OneHotEncoder()
