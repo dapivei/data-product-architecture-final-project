@@ -920,7 +920,7 @@ class Task_80_metaMlPreproc(luigi.task.WrapperTask):
         cur.close()
         conn.close()
 
-class Task_91_ml_firstTime(luigi.Task):
+class Task_91_ml(luigi.Task):
     '''
     Contar los registros por fecha y colapsar en una sola tabla que contendra las columnas de created_date y numero de registros
     '''
@@ -967,6 +967,48 @@ class Task_91_ml_firstTime(luigi.Task):
 
         df_features.to_parquet(self.output().path, engine='auto', compression='snappy')
 
+class Task_92_fEng_UnitTest(luigi.Task):
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+
+    def requires(self):
+        return Task_51_metaClean(year=self.year, month=self.month, day=self.day)
+
+    def output(self):
+        output_path = f"s3://{self.bucket}/cleaned/{self.year}/{self.month}/{self.day}/unit_test_ok"
+        return luigi.contrib.s3.S3Target(path=output_path)
+
+    def run(self):
+        import subprocess
+        args = list(map(str, ["./unit_test/run_clean_test.sh",self.day,self.month,self.year,self.bucket]))
+        proc = subprocess.Popen(args)
+        proc.wait()
+
+        success = proc.returncode == 0
+        if not success:
+            import sys
+            sys.tracebacklimit=0
+            raise TypeError("\n Prueba Fallida \n")
+
+
+        out=open('clean_test_output.txt','r').read()
+        with self.output().open('w') as output_file:
+            output_file.write(out)
+# En caso de éxito guarda metadatos, de otra forma no.
+@Task_52_cleaned_UnitTest.event_handler(luigi.Event.SUCCESS)
+def celebrate_success(task):
+    print("-*"*50)
+    print(u'\u2705'*1, "UnitTest con Marbles para schema Cleaned Task completado. Se procede a guardar los metadatos.")
+    print("-*"*50)
+@Task_52_cleaned_UnitTest.event_handler(luigi.Event.FAILURE)
+def mourn_failure(task, exception):
+    print("-*"*50)
+    print(u'\u274C'*1, "UnitTest con Marbles para schema Cleaned Task fallido. No se guardan los metadatos.")
+    print("-*"*50)
+
+
 class Task_100_Train(luigi.Task):
     '''
     Entrena un modelo
@@ -985,7 +1027,7 @@ class Task_100_Train(luigi.Task):
 
     # ==============================
     def requires(self):
-        return Task_91_ml_firstTime(year=self.year, month=self.month, day=self.day)
+        return Task_91_ml(year=self.year, month=self.month, day=self.day)
         #return Task_71_mlPreproc_firstTime('2020', '1', '1')
 
     def output(self):
