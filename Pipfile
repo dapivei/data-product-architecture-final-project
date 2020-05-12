@@ -18,6 +18,7 @@ pyarrow = "*"
 wget = "*"
 requests = "*"
 s3fs = "*"
+marbles = "*"
 
 [requires]
 python_version = "3.7"

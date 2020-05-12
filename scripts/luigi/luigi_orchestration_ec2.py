@@ -25,10 +25,7 @@ from functionsV2 import execv
 from datetime import date
 from dynaconf import settings
 from luigi.contrib.s3 import S3Client, S3Target
-from pyspark import SparkContext
-from pyspark.sql import SQLContext
 from sodapy import Socrata
-
 
 # ===================== Clases para guardar metadatos  =========================
 # Se definen dos clases que guarden las características de los metadatos
@@ -438,39 +435,7 @@ class Task_50_cleaned(luigi.Task):
         #pasa a formato parquet
         df.to_parquet(self.output().path, engine='auto', compression='snappy')
 
-
-class Task_51_cleaned_test(luigi.Task):
-    bucket = luigi.Parameter(default="prueba-nyc311")
-    year = luigi.Parameter()
-    month = luigi.Parameter()
-    day = luigi.Parameter()
-
-    def requires(self):
-        return Task_50_cleaned(year=self.year, month=self.month, day=self.day)
-
-    def output(self):
-        output_path = f"s3://{self.bucket}/cleaned/{self.year}/{self.month}/{self.day}/unit_test_ok.txt"
-        return luigi.contrib.s3.S3Target(path=output_path)
-
-    def run(self):
-        import subprocess
-        args = list(map(str, ["./unit_test/run_clean_test.sh",self.day,self.month,self.year,self.bucket]))
-        proc = subprocess.Popen(args)
-        proc.wait()
-
-        success = proc.returncode == 0
-        if not success:
-            import sys
-            sys.tracebacklimit=0
-            raise TypeError("\n Preuba Fallida \n")
-
-
-        out=open('clean_test_output.txt','r').read()
-        with self.output().open('w') as output_file:
-            output_file.write(out)
-
-
-class Task_60_metaClean(luigi.task.WrapperTask):
+class Task_51_metaClean(luigi.task.WrapperTask):
     '''
     Guardar los metadatos de la descarga de datos del schema cleaned
     Son guardados en la base de datos nyc311_metadata en la tabla clean.etl_execution
@@ -539,6 +504,163 @@ class Task_60_metaClean(luigi.task.WrapperTask):
         cur.close()
         conn.close()
 
+# ========= metadatos unit test de cleaned =========#
+class cleaned_metadataUnitTest():
+    def __init__(self,
+                 name="",
+                 extention="parquet",
+                 schema="cleaned",
+                 action="unit test for clenead: test_for_closed_date_greater_than_created_date & test_for_years_out_of_range",
+                 creator="-",
+                 machine="",
+                 localhost="",
+                 ip="",
+                 creation_date="",
+                 size="-",
+                 location="",
+                 status="OK",
+                 param_year="",
+                 param_month="",
+                 param_day="",
+                 param_bucket=""):
+
+        # asignamos las características de los metadatos
+        self.name = name
+        self.extention = extention
+        self.schema = schema
+        self.action = action
+        self.creator = creator
+        self.machine = machine
+        self.ip = ip
+        self.creation_date = creation_date
+        self.size = size
+        self.location = location
+        self.status = status
+        self.param_year = param_year
+        self.param_month = param_month
+        self.param_day = param_day
+        self.param_bucket = param_bucket
+
+    def info(self):
+        return (self.name, self.extention, self.schema, self.action,
+                self.creator, self.machine, self.ip, self.creation_date,
+                self.size, self.location, self.status, self.param_year,
+                self.param_month, self.param_day, self.param_bucket)
+
+class Task_52_cleaned_UnitTest(luigi.Task):
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+
+    def requires(self):
+        return Task_51_metaClean(year=self.year, month=self.month, day=self.day)
+
+    def output(self):
+        output_path = f"s3://{self.bucket}/cleaned/{self.year}/{self.month}/{self.day}/unit_test_ok"
+        return luigi.contrib.s3.S3Target(path=output_path)
+
+    def run(self):
+        import subprocess
+        args = list(map(str, ["./unit_test/run_clean_test.sh",self.day,self.month,self.year,self.bucket]))
+        proc = subprocess.Popen(args)
+        proc.wait()
+
+        success = proc.returncode == 0
+        if not success:
+            import sys
+            sys.tracebacklimit=0
+            raise TypeError("\n Prueba Fallida \n")
+
+
+        out=open('clean_test_output.txt','r').read()
+        with self.output().open('w') as output_file:
+            output_file.write(out)
+# En caso de éxito guarda metadatos, de otra forma no.
+@Task_52_cleaned_UnitTest.event_handler(luigi.Event.SUCCESS)
+def celebrate_success(task):
+    print("-*"*50)
+    print(u'\u2705'*1, "UnitTest con Marbles para schema Cleaned Task completado. Se procede a guardar los metadatos.")
+    print("-*"*50)
+@Task_52_cleaned_UnitTest.event_handler(luigi.Event.FAILURE)
+def mourn_failure(task, exception):
+    print("-*"*50)
+    print(u'\u274C'*1, "UnitTest con Marbles para schema Cleaned Task fallido. No se guardan los metadatos.")
+    print("-*"*50)
+
+class Task_53_metaCleanUT(luigi.task.WrapperTask):
+    '''
+    Guardar los metadatos de la descarga de datos del schema cleaned
+    Son guardados en la base de datos nyc311_metadata en la tabla clean.etl_execution
+    '''
+    # ==============================
+    # parametros:
+    # ==============================
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+    # ==============================
+
+    def requires(self):
+        #Task_60_metaClean
+        #Task_71_cleaned_test
+        return Task_52_cleaned_UnitTest(year=self.year, month=self.month, day=self.day)
+
+    def run(self):
+        print("="*100)
+        print("iniciando task")
+        print("="*100)
+
+        # se instancia la clase raw_metadata()
+        cwd = os.getcwd()  # directorio actual
+        cleanUT = cleaned_metadataUnitTest()
+        cleanUT.name = f"data_{self.year}_{self.month}_{self.day}"
+        cleanUT.user = str(getpass.getuser())
+        cleanUT.machine = str(platform.platform())
+        cleanUT.ip = execv("curl ipecho.net/plain ; echo", cwd)
+        cleanUT.creation_date = str(datetime.datetime.now())
+        cleanUT.location = f"{path_raw}/{cleanUT.name}"
+        cleanUT.param_year = str(self.year)
+        cleanUT.param_month = str(self.month)
+        cleanUT.param_day = str(self.day)
+        cleanUT.param_bucket = str(self.bucket)
+
+        ubicacion_completa = f"{cleanUT.location}.json"
+        meta = cleanUT.info()  # extraer información de la clase
+
+        print("=" * 100)
+        print(meta)
+        print("complete name: ", ubicacion_completa)
+        print("name: ", cleanUT.name)
+        print("extensión: ", cleanUT.extention)
+        print("tamaño: ", cleanUT.size)
+        print("action: ", cleanUT.action)
+        print("usuario: ", cleanUT.user)
+        print("maquina: ", cleanUT.machine)
+        print("ip: ", cleanUT.ip)
+        print("fecha de creación: ", cleanUT.creation_date)
+        print("ubicación: ", cleanUT.location)
+        print("param [year]: ", cleanUT.param_year)
+        print("param [month]: ", cleanUT.param_month)
+        print("param [day]: ", cleanUT.param_day)
+        print("param [bucket]: ", cleanUT.param_bucket)
+        print("=" * 100)
+
+        # conectarse a la base de datos y guardar a esquema raw.etl_execution
+        conn = ps.connect(host=settings.get('host'),
+                          port=settings.get('port'),
+                          database="nyc311_metadata",
+                          user=settings.get('usr'),
+                          password=settings.get('password'))
+        cur = conn.cursor()
+        columns = "(name, extention, schema, action, creator, machine, ip, creation_date, size, location,status, param_year, param_month, param_day, param_bucket)"
+        sql = "INSERT INTO cleaned.ut_execution" + columns + \
+            " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"
+        cur.execute(sql, meta)
+        conn.commit()
+        cur.close()
+        conn.close()
 
 class Task_70_mlPreproc(luigi.Task):
     '''

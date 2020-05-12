@@ -5,8 +5,6 @@ from dynaconf import settings # queryApi311
 
 from datetime import date
 from dynaconf import settings
-from pyspark.sql import SQLContext
-from pyspark import SparkContext
 from sodapy import Socrata
 
 ##########################
