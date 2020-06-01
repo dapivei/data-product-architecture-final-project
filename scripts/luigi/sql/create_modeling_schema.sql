@@ -16,7 +16,11 @@ create table modeling.ejecucion (
   "max_depth" TEXT,
   "criterion" TEXT,
   "n_estimators" TEXT,
-  "score_train" TEXT);
+  "score_train" TEXT,
+  "param_year" TEXT,
+  "param_month" TEXT,
+  "param_day" TEXT,
+  "param_bucket" TEXT);
 
 comment on table modeling.ejecucion is 'Metadatos de ejecucion del
 etl MODELING';

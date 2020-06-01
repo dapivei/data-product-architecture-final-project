@@ -712,3 +712,48 @@ def celebrate_success(task):
 @Task_86_FE_allUT.event_handler(luigi.Event.FAILURE)
 def mourn_failure(task, exception):
     print(u'\u274C'*1, "No tuvieron éxito todos los unit test en schema FE.")
+
+class Task_84v2_feature_PandasTest(luigi.Task):
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+    pruebaFalla = luigi.Parameter(default=1)
+
+    def requires(self):
+        return Task_81_ml(year=self.year, month=self.month, day=self.day)
+
+    def output(self):
+        output_path = f"s3://{self.bucket}/ml/ut_FE_pandasV2_ok"
+        return luigi.contrib.s3.S3Target(path=output_path)
+
+    def run(self):
+        import sys
+        from functionsV1 import NumberCasesV2
+        import io
+        # Autenticación en S3
+        ses = boto3.session.Session(profile_name='luigi_dpa', region_name='us-west-2')
+        buffer=io.BytesIO()
+        s3_resource = ses.resource('s3')
+        obj = s3_resource.Bucket(name=self.bucket)
+
+        #lectura de datos
+        key = f"ml/ml.parquet"
+        parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
+        data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
+        df = pd.read_parquet(data_parquet_object)
+        # intencional para que pueda fallar
+        if self.pruebaFalla==1:
+            unitTest = NumberCasesV2(test_error=1)
+            unitTest.prueba_casos_diaV2(df)
+        else:
+            unitTest = NumberCasesV2(test_error=0)
+            unitTest.prueba_casos_diaV2(df)
+
+# En caso de éxito guarda metadatos, de otra forma no.
+@Task_84v2_feature_PandasTest.event_handler(luigi.Event.SUCCESS)
+def celebrate_success(task):
+    print(u'\u2705'*1,"UnitTest con Pandas para schema Feature Engineering Task completado. Se procede a guardar los metadatos.")
+@Task_84v2_feature_PandasTest.event_handler(luigi.Event.FAILURE)
+def mourn_failure(task, exception):
+    print(u'\u274C'*1, "UnitTest con Pandas para schema Feature Engineering Task fallido. No se guardan los metadatos.")
