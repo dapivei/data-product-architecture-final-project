@@ -625,7 +625,7 @@ class Task_53_feature_PandasTest(luigi.task.WrapperTask):
         obj = s3_resource.Bucket(name=self.bucket)
 
         #lectura de datos
-        key = f"ml/ml.parquet"
+        key = f"ml/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
         parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
         data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
         df = pd.read_parquet(data_parquet_object)
@@ -714,7 +714,7 @@ class Task_60_Train(luigi.Task):
 
     def output(self):
         output_path = f"s3://{self.bucket}/ml/modelos/{self.criterion}_depth_{self.maxdepth}_estimatros{self.nestimators}_{self.year}_{self.month}_{self.day}.pickle"
-        return luigi.contrib.s3.S3Target(path=output_path)
+        return luigi.contrib.s3.S3Target(path=output_path,format=luigi.format.Nop)
 
     def run(self):
         import functionsV1 as f1
@@ -730,7 +730,7 @@ class Task_60_Train(luigi.Task):
         obj = s3_resource.Bucket(name=self.bucket)
 
         #lectura de datos
-        key = f"ml/ml.parquet"
+        key = f"ml/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
         parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
         data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
         df = pd.read_parquet(data_parquet_object)
@@ -760,15 +760,10 @@ class Task_60_Train(luigi.Task):
         y_new= model.predict(X_val)
         print("precisión del modelo validacion", accuracy_score(y_val, y_new))
         print("\n")
-        #genera el pickle
-        pick=open('nombre.pickle','wb')
-        pickle.dump(model,pick)
-        pick.close()
 
         #llama a output
         with self.output().open('w') as output_file:
-           output_file.write("nombre.pickle")
-
+            pickle.dump(model,output_file)
 
 class Task_61_metaModel(CopyToTable):
     '''
@@ -829,3 +824,83 @@ class Task_61_metaModel(CopyToTable):
         meta = model_meta.info()  # extrae info de la clas
 
         yield (meta)
+
+class Task_70_Predict(luigi.Task):
+    '''
+    Hace predicciones para la fecha introducida
+    '''
+    # ==============================
+    # parametros:
+    # ==============================
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    nestimators =luigi.Parameter()
+    maxdepth= luigi.Parameter()
+    criterion=luigi.Parameter()
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+
+
+    # ==============================
+    def requires(self):
+        return [
+            Task_52_metaFeatureEngUTM(year=self.year, month=self.month, day=self.day),
+            Task_54_metaFeatureEngUTP(year=self.year, month=self.month, day=self.day)
+        ]
+
+    def output(self):
+        output_path = f"s3://{self.bucket}/ml/modelos/{self.criterion}_depth_{self.maxdepth}_estimatros{self.nestimators}_{self.year}_{self.month}_{self.day}.pickle"
+        return luigi.contrib.s3.S3Target(path=output_path)
+
+    def run(self):
+        import functionsV1 as f1
+        import io
+        import numpy as np
+        from sklearn.model_selection import TimeSeriesSplit
+        from sklearn.ensemble import RandomForestClassifier
+
+        # Autenticación en S3
+        ses = boto3.session.Session(profile_name='luigi_dpa', region_name='us-west-2')
+        buffer=io.BytesIO()
+        s3_resource = ses.resource('s3')
+        obj = s3_resource.Bucket(name=self.bucket)
+
+        #lectura de datos
+        key = f"ml/ml.parquet"
+        parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
+        data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
+        df = pd.read_parquet(data_parquet_object)
+
+        # output variable
+        y=df["mean_flag"]
+        df2=df.drop(columns=["mean_flag","created_date","counts"])
+
+        #separamos los primeros 70% de los datos para entrenar
+        X_train = df2[:int(df2.shape[0]*0.7)].values
+        X_test = df2[int(df2.shape[0]*0.7):].values
+        y_train = y[:int(df2.shape[0]*0.7)].values
+        y_test = y[int(df2.shape[0]*0.7):].values
+
+        #partimos los datos con temporal cv
+        tscv=TimeSeriesSplit(n_splits=5)
+        for tr_index, val_index in tscv.split(X_train):
+            X_tr, X_val=X_train[tr_index], X_train[val_index]
+            y_tr, y_val = y_train[tr_index], y_train[val_index]
+
+        #Define y entrena el modelo
+        model=RandomForestClassifier(max_depth=int(self.maxdepth),criterion=self.criterion,n_estimators=int(self.nestimators),n_jobs=-1)
+        model.fit(X_tr,y_tr)
+
+        from sklearn.metrics import accuracy_score
+        print(u'\u2B50'*1)
+        y_new= model.predict(X_val)
+        print("precisión del modelo validacion", accuracy_score(y_val, y_new))
+        print("\n")
+        #genera el pickle
+        pick=open('nombre.pickle','wb')
+        pickle.dump(model,pick)
+        pick.close()
+
+        #llama a output
+        with self.output().open('w') as output_file:
+           output_file.write("nombre.pickle")
