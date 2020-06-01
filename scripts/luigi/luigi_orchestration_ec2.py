@@ -654,23 +654,20 @@ class Task_81_ml(luigi.Task):
     year = luigi.Parameter()
     month = luigi.Parameter()
     day = luigi.Parameter()
-    mock=luigi.Parameter(default=1)
     # ==============================
-    #def requires(self):
-    #    return Task_71_mlPreproc_firstTime(year=self.year, month=self.month, day=self.day)
+
     def requires(self):
-        return Task_51_metaClean(year=self.year, month=self.month, day=self.day)
+        return Task_72_mlPreproc(year=self.year, month=self.month, day=self.day)
 
     def output(self):
-        # guarda los datos en s3://prueba-nyc311/raw/.3..
-        output_path = f"s3://{self.bucket}/ml/ml.parquet"
+        output_path = f"s3://{self.bucket}/ml/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
         return luigi.contrib.s3.S3Target(path=output_path)
 
     def run(self):
         import functionsV1 as f1
         import io
         import numpy as np
-
+        from datetime import datetime, timedelta
 
         # Autenticación en S3
         ses = boto3.session.Session(profile_name='luigi_dpa', region_name='us-west-2')
@@ -678,14 +675,34 @@ class Task_81_ml(luigi.Task):
         s3_resource = ses.resource('s3')
         obj = s3_resource.Bucket(name=self.bucket)
 
-        #lectura de datos
-        key = f"mlpreproc/mlPreproc.parquet"
-        parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
-        data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
-        df = pd.read_parquet(data_parquet_object)
+        #inicio fechas
+        end_date=datetime(int(self.year),int(self.month),int(self.day))
+        start_date= datetime(2009,12,31)
+        date=start_date
 
+        flag=0
+        count=0
+        while(date<end_date):
+            date=date+timedelta(days=1)
+
+            try:
+                #lectura de datos
+                key = f"mlPreproc/{date.year}/{date.month}/{date.day}/data_{date.year}_{date.month}_{date.day}.parquet"
+                parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
+                data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
+                df = pd.read_parquet(data_parquet_object)
+            except:
+                #para generar metadata
+                print(date)
+                continue
+
+            if(flag==0):
+                df2=df
+                flag=1
+
+            else: df2=df2.append(df)
         # funcion de procesamiento de datos
-        df_features=f1.create_feature_table(df)
+        df_features=f1.create_feature_table(df2)
         del(df)
         df_features=f1.encoders(df_features)
         #print(df_features)
@@ -728,7 +745,7 @@ class FE_metadataUnitTest():
                 self.creator, self.machine, self.ip, self.creation_date,
                 self.size, self.location, self.status, self.param_bucket)
 
-class Task_82_feature_UnitTest(luigi.Task):
+class Task_82_feature_UnitTest(luigi.task.WrapperTask):
     '''
     Realiza 2 test unitarios con marbles a ml.parquet:
     test_created_date_year_vs_onehot & test_created_date_month_vs_onehot.
@@ -738,14 +755,9 @@ class Task_82_feature_UnitTest(luigi.Task):
     year = luigi.Parameter()
     month = luigi.Parameter()
     day = luigi.Parameter()
-    mock = luigi.Parameter(default=0)
 
     def requires(self):
-        return Task_81_ml(year=self.year, month=self.month, day=self.day, mock=self.mock)
-
-    def output(self):
-        output_path = f"s3://{self.bucket}/ml/ut_FE_marbles_ok"
-        return luigi.contrib.s3.S3Target(path=output_path)
+        return Task_81_ml(year=self.year, month=self.month, day=self.day)
 
     def run(self):
         import subprocess
@@ -758,11 +770,6 @@ class Task_82_feature_UnitTest(luigi.Task):
             import sys
             sys.tracebacklimit=0
             raise TypeError("\n Prueba Fallida \n")
-
-        if(self.mock==0):
-            out=open('feature_test_output.txt','r').read()
-            with self.output().open('w') as output_file:
-                output_file.write(out)
 
 # En caso de éxito guarda metadatos, de otra forma no.
 @Task_82_feature_UnitTest.event_handler(luigi.Event.SUCCESS)
@@ -795,8 +802,7 @@ class Task_83_metaFeatureEngUTM(CopyToTable):
     columns = [("name","TEXT"), ("extention","TEXT") , ("schema","TEXT"),
             ("action","TEXT") , ("creator","TEXT"), ("machine","TEXT"),
             ("ip","TEXT"), ("creation_date","TEXT"), ("size","TEXT"),
-            ("location","TEXT"),("status","TEXT"), ("param_year","TEXT"),
-            ("param_month","TEXT"), ("param_day","TEXT"), ("param_bucket","TEXT")]
+            ("location","TEXT"),("status","TEXT"), ("param_bucket","TEXT")]
 
     def requires(self):
         return Task_82_feature_UnitTest(year=self.year, month=self.month, day=self.day)
@@ -824,19 +830,14 @@ def celebrate_success(task):
     print(u'\u2705'*2, "Se guardaron los metadatos para UT con marbles.")
 
 
-class Task_84_feature_PandasTest(luigi.Task):
+class Task_84_feature_PandasTest(luigi.task.WrapperTask):
     bucket = luigi.Parameter(default="prueba-nyc311")
-    year = luigi.Parameter(default=2019)
-    month = luigi.Parameter(default=7)
-    day = luigi.Parameter(default=27)
-    mock = luigi.Parameter(default=0)
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
 
     def requires(self):
-        return Task_81_ml(year=self.year, month=self.month, day=self.day, mock=self.mock)
-
-    def output(self):
-        output_path = f"s3://{self.bucket}/ml/ut_FE_pandas_ok"
-        return luigi.contrib.s3.S3Target(path=output_path)
+        return Task_81_ml(year=self.year, month=self.month, day=self.day)
 
     def run(self):
         import sys
@@ -856,10 +857,6 @@ class Task_84_feature_PandasTest(luigi.Task):
 
         NumberCases.prueba_casos_dia(NumberCases,df)
 
-        if(self.mock==0):
-            out=open('feature_test_output.txt','r').read()
-            with self.output().open('w') as output_file:
-                output_file.write(out)
 # En caso de éxito guarda metadatos, de otra forma no.
 @Task_84_feature_PandasTest.event_handler(luigi.Event.SUCCESS)
 def celebrate_success(task):
@@ -873,11 +870,10 @@ class Task_84v2_feature_PandasTest(luigi.Task):
     year = luigi.Parameter()
     month = luigi.Parameter()
     day = luigi.Parameter()
-    mock = luigi.Parameter(default=0)
     pruebaFalla = luigi.Parameter(default=1)
 
     def requires(self):
-        return Task_81_ml(year=self.year, month=self.month, day=self.day, mock=self.mock)
+        return Task_81_ml(year=self.year, month=self.month, day=self.day)
 
     def output(self):
         output_path = f"s3://{self.bucket}/ml/ut_FE_pandasV2_ok"
@@ -906,12 +902,6 @@ class Task_84v2_feature_PandasTest(luigi.Task):
             unitTest = NumberCasesV2(test_error=0)
             unitTest.prueba_casos_diaV2(df)
 
-
-
-        if(self.mock==0):
-            out=open('feature_test_output.txt','r').read()
-            with self.output().open('w') as output_file:
-                output_file.write(out)
 # En caso de éxito guarda metadatos, de otra forma no.
 @Task_84v2_feature_PandasTest.event_handler(luigi.Event.SUCCESS)
 def celebrate_success(task):
@@ -941,8 +931,7 @@ class Task_85_metaFeatureEngUTP(CopyToTable):
     columns = [("name","TEXT"), ("extention","TEXT") , ("schema","TEXT"),
             ("action","TEXT") , ("creator","TEXT"), ("machine","TEXT"),
             ("ip","TEXT"), ("creation_date","TEXT"), ("size","TEXT"),
-            ("location","TEXT"),("status","TEXT"), ("param_year","TEXT"),
-            ("param_month","TEXT"), ("param_day","TEXT"), ("param_bucket","TEXT")]
+            ("location","TEXT"),("status","TEXT"), ("param_bucket","TEXT")]
 
     def requires(self):
         return Task_84_feature_PandasTest(year=self.year, month=self.month, day=self.day)
@@ -969,39 +958,6 @@ class Task_85_metaFeatureEngUTP(CopyToTable):
 def celebrate_success(task):
     print(u'\u2705'*2, "Se guardaron los metadatos para UT con pandas.")
 
-class Task_86_FE_allUT(luigi.Task):
-    bucket = luigi.Parameter(default="prueba-nyc311")
-    year = luigi.Parameter(default=2019)
-    month = luigi.Parameter(default=7)
-    day = luigi.Parameter(default=27)
-    mock = luigi.Parameter(default=0)
-
-    def requires(self):
-        return [
-            Task_83_metaFeatureEngUTM(year=self.year, month=self.month, day=self.day),
-            Task_85_metaFeatureEngUTP(year=self.year, month=self.month, day=self.day)
-        ]
-
-
-    def output(self):
-        output_path = f"s3://{self.bucket}/ml/ut_FE_all_ok"
-        return luigi.contrib.s3.S3Target(path=output_path)
-
-    def run(self):
-        # excribe archivo de exito en s3
-        if(self.mock==0):
-            out=open('feature_test_output.txt','r').read()
-            with self.output().open('w') as output_file:
-                output_file.write(out)
-
-# En caso de éxito guarda metadatos, de otra forma no.
-@Task_86_FE_allUT.event_handler(luigi.Event.SUCCESS)
-def celebrate_success(task):
-    print(u'\u2B50'*1, "Todos los unit test tuvieron éxito en schema FE.")
-@Task_86_FE_allUT.event_handler(luigi.Event.FAILURE)
-def mourn_failure(task, exception):
-    print(u'\u274C'*1, "No tuvieron éxito todos los unit test en schema FE.")
-
 
 class Task_100_Train(luigi.Task):
     '''
@@ -1014,16 +970,17 @@ class Task_100_Train(luigi.Task):
     nestimators =luigi.Parameter()
     maxdepth= luigi.Parameter()
     criterion=luigi.Parameter()
-    year = luigi.Parameter(default='2020')
-    month = luigi.Parameter(default='2')
-    day = luigi.Parameter(default='2')
-    mock= luigi.Parameter(default=1)
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+
 
     # ==============================
     def requires(self):
-        return [Task_81_ml(year=self.year, month=self.month, day=self.day), Task_86_FE_allUT()]
-        #return Task_91_ml(year=self.year, month=self.month, day=self.day)
-        #return Task_71_mlPreproc_firstTime('2020', '1', '1')
+        return [
+            Task_83_metaFeatureEngUTM(year=self.year, month=self.month, day=self.day),
+            Task_85_metaFeatureEngUTP(year=self.year, month=self.month, day=self.day)
+        ]
 
     def output(self):
         output_path = f"s3://{self.bucket}/ml/modelos/depth{self.maxdepth}_{self.criterion}_estimatros{self.nestimators}.pickle"
@@ -1131,20 +1088,24 @@ class Task_110_metaModel(CopyToTable):
     # parametros:
     # ==============================
     bucket = luigi.Parameter(default="prueba-nyc311")
+    nestimators =luigi.Parameter()
+    maxdepth= luigi.Parameter()
+    criterion=luigi.Parameter()
     year = luigi.Parameter()
     month = luigi.Parameter()
     day = luigi.Parameter()
+    
     # ==============================
     database = 'nyc311_metadata'
     host = settings.get('host')
     user = settings.get('usr')
     password = settings.get('password')
     table = 'modeling.ejecucion'
-    columns = [("name","TEXT"), ("extention","TEXT") , ("schema","TEXT"),
+    columns = [("model_name","TEXT"), ("model_type","TEXT") , ("schema","TEXT"),
             ("action","TEXT") , ("creator","TEXT"), ("machine","TEXT"),
-            ("ip","TEXT"), ("creation_date","TEXT"), ("size","TEXT"),
-            ("location","TEXT"),("status","TEXT"), ("param_year","TEXT"),
-            ("param_month","TEXT"), ("param_day","TEXT"), ("param_bucket","TEXT")]
+            ("ip","TEXT"), ("date","TEXT"), ("location","TEXT"),
+            ("status","TEXT"), ("max_depth","TEXT"),
+            ("criterion","TEXT"), ("n_estimatiors","TEXT"), ("score_train","TEXT")]
 
 
     def requires(self):
@@ -1171,110 +1132,3 @@ class Task_110_metaModel(CopyToTable):
         meta = model_meta.info()  # extrae info de la clas
 
         yield (meta)
-
-
-
-
-# =================================== Pendientes o descartadas
-class Task_70_mlPreproc(luigi.Task):
-    '''
-    Contar los registros por fecha y colapsar en una sola tabla que contendra las columnas de created_date y numero de registros
-    '''
-    # ==============================
-    # parametros:
-    # ==============================
-    bucket = luigi.Parameter(default="prueba-nyc311")
-    year = luigi.Parameter()
-    month = luigi.Parameter()
-    day = luigi.Parameter()
-    parte = luigi.Parameter()
-    # ==============================
-    def requires(self):
-        return Task_60_metaClean(year=self.year, month=self.month, day=self.day)
-
-    def input(self):
-        '''
-        Acá se lee el dataframe input diario
-        '''
-        import io
-        # Autenticación en S3
-        ses = boto3.session.Session(
-            profile_name='luigi_dpa', region_name='us-west-2')
-        buffer=io.BytesIO()
-        s3_resource = ses.resource('s3')
-        obj = s3_resource.Bucket(name=self.bucket)
-        #lectura de datos
-        #key = f"mlpreproc/mlPreproc_until_part{part_num-1}.parquet"
-        key = f"cleaned/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
-        parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
-        data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
-        df = pd.read_parquet(data_parquet_object)
-        df=df.loc[(df["agency"]=='nypd') & (df["complaint_type"].str.contains("noise")),:]
-        df=df.reset_index(drop=True)
-        return df
-
-    def output(self):
-        # guarda los datos en s3://prueba-nyc311/mlpreproc/...
-        part_num = int(self.parte)
-        output_path = f"s3://{self.bucket}/mlpreproc/mlPreproc_until_part{part_num}.parquet"
-        # output_path = f"s3://{self.bucket}/mlpreproc/mlPreproc_until_part1.parquet"
-        return luigi.contrib.s3.S3Target(path=output_path)
-
-    def run(self):
-        import datetime
-        year_num = int(self.year)
-        month_num = int(self.month)
-        day_num = int(self.month)
-        date = datetime.datetime(year_num, month_num, day_num)
-        day_of_year = (date - datetime.datetime(year_num, 1, 1)).days + 1
-
-        print(day_of_year)
-        #cuenta los registros y colapsa el df
-        df = self.input()
-        df['counts']=1
-        df=df.loc[:,['created_date','counts']]
-        df=df.groupby(['created_date']).count()
-        print(df.head())
-
-        # Autenticación en S3
-        import io
-        ses = boto3.session.Session(
-            profile_name='luigi_dpa', region_name='us-west-2')
-        buffer=io.BytesIO()
-        s3_resource = ses.resource('s3')
-        obj = s3_resource.Bucket(name=self.bucket)
-        # acá leemos los
-        part_num = int(self.parte)
-        key = f"mlpreproc/mlPreproc_until_part{part_num-1}.parquet"
-        parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key)
-        data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
-        df2 = pd.read_parquet(data_parquet_object)
-
-        print("="*50)
-        print("segundo dataframe ingresado")
-        print(day_of_year)
-        print(df.head())
-        print(df.shape)
-        print(df2.head())
-        print(df2.shape)
-        print("="*50)
-
-        # append los dataframes
-        joined_df=df2.append(df)
-        joined_df.drop_duplicates(inplace=True)
-
-        print("*"*50)
-        print("*"*50)
-        print("*** Appended dataframe ***")
-        print(joined_df.head())
-        print("*"*50)
-        print("*"*50)
-        # #pasa a formato parquet
-        joined_df.to_parquet(self.output().path, engine='auto', compression='snappy')
-        #df.to_parquet(self.output().path, engine='auto', compression='snappy')
-
-        #table = pa.Table.from_pandas(df)
-        #s3 = fs.S3FileSystem(region='us-west-2')
-        # Write direct to your parquet file
-        #output_path = f"s3://{self.bucket}/mlpreproc/mlPreproc.parquet"
-        #pq.write_to_dataset(table , root_path=output_path,filesystem=s3)

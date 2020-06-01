@@ -578,3 +578,137 @@ class Task_110_metaModel(luigi.task.WrapperTask):
         conn.commit()
         cur.close()
         conn.close()
+
+
+# =================================== Pendientes o descartadas
+class Task_70_mlPreproc(luigi.Task):
+    '''
+    Contar los registros por fecha y colapsar en una sola tabla que contendra las columnas de created_date y numero de registros
+    '''
+    # ==============================
+    # parametros:
+    # ==============================
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+    parte = luigi.Parameter()
+    # ==============================
+    def requires(self):
+        return Task_60_metaClean(year=self.year, month=self.month, day=self.day)
+
+    def input(self):
+        '''
+        Acá se lee el dataframe input diario
+        '''
+        import io
+        # Autenticación en S3
+        ses = boto3.session.Session(
+            profile_name='luigi_dpa', region_name='us-west-2')
+        buffer=io.BytesIO()
+        s3_resource = ses.resource('s3')
+        obj = s3_resource.Bucket(name=self.bucket)
+        #lectura de datos
+        #key = f"mlpreproc/mlPreproc_until_part{part_num-1}.parquet"
+        key = f"cleaned/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
+        parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
+        data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
+        df = pd.read_parquet(data_parquet_object)
+        df=df.loc[(df["agency"]=='nypd') & (df["complaint_type"].str.contains("noise")),:]
+        df=df.reset_index(drop=True)
+        return df
+
+    def output(self):
+        # guarda los datos en s3://prueba-nyc311/mlpreproc/...
+        part_num = int(self.parte)
+        output_path = f"s3://{self.bucket}/mlpreproc/mlPreproc_until_part{part_num}.parquet"
+        # output_path = f"s3://{self.bucket}/mlpreproc/mlPreproc_until_part1.parquet"
+        return luigi.contrib.s3.S3Target(path=output_path)
+
+    def run(self):
+        import datetime
+        year_num = int(self.year)
+        month_num = int(self.month)
+        day_num = int(self.month)
+        date = datetime.datetime(year_num, month_num, day_num)
+        day_of_year = (date - datetime.datetime(year_num, 1, 1)).days + 1
+
+        print(day_of_year)
+        #cuenta los registros y colapsa el df
+        df = self.input()
+        df['counts']=1
+        df=df.loc[:,['created_date','counts']]
+        df=df.groupby(['created_date']).count()
+        print(df.head())
+
+        # Autenticación en S3
+        import io
+        ses = boto3.session.Session(
+            profile_name='luigi_dpa', region_name='us-west-2')
+        buffer=io.BytesIO()
+        s3_resource = ses.resource('s3')
+        obj = s3_resource.Bucket(name=self.bucket)
+        # acá leemos los
+        part_num = int(self.parte)
+        key = f"mlpreproc/mlPreproc_until_part{part_num-1}.parquet"
+        parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key)
+        data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
+        df2 = pd.read_parquet(data_parquet_object)
+
+        print("="*50)
+        print("segundo dataframe ingresado")
+        print(day_of_year)
+        print(df.head())
+        print(df.shape)
+        print(df2.head())
+        print(df2.shape)
+        print("="*50)
+
+        # append los dataframes
+        joined_df=df2.append(df)
+        joined_df.drop_duplicates(inplace=True)
+
+        print("*"*50)
+        print("*"*50)
+        print("*** Appended dataframe ***")
+        print(joined_df.head())
+        print("*"*50)
+        print("*"*50)
+        # #pasa a formato parquet
+        joined_df.to_parquet(self.output().path, engine='auto', compression='snappy')
+        #df.to_parquet(self.output().path, engine='auto', compression='snappy')
+
+        #table = pa.Table.from_pandas(df)
+        #s3 = fs.S3FileSystem(region='us-west-2')
+        # Write direct to your parquet file
+        #output_path = f"s3://{self.bucket}/mlpreproc/mlPreproc.parquet"
+        #pq.write_to_dataset(table , root_path=output_path,filesystem=s3)
+
+
+
+class Task_86_FE_allUT(luigi.Task):
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+
+    def requires(self):
+        return [
+            Task_83_metaFeatureEngUTM(year=self.year, month=self.month, day=self.day),
+            Task_85_metaFeatureEngUTP(year=self.year, month=self.month, day=self.day)
+        ]
+
+
+    def output(self):
+        output_path = f"s3://{self.bucket}/ml/ut_FE_all_ok1"
+        return luigi.contrib.s3.S3Target(path=output_path)
+
+    def run(self):
+        print("")
+# En caso de éxito guarda metadatos, de otra forma no.
+@Task_86_FE_allUT.event_handler(luigi.Event.SUCCESS)
+def celebrate_success(task):
+    print(u'\u2B50'*1, "Todos los unit test tuvieron éxito en schema FE.")
+@Task_86_FE_allUT.event_handler(luigi.Event.FAILURE)
+def mourn_failure(task, exception):
+    print(u'\u274C'*1, "No tuvieron éxito todos los unit test en schema FE.")
