@@ -125,10 +125,10 @@ class preproc_metadata():
         self.param_bucket = param_bucket
 
     def info(self):
-        return (self.name, self.extention, self.schema, self.action,
-                self.creator, self.machine, self.ip, self.creation_date,
-                self.size, self.location, self.status, self.param_year,
-                self.param_month, self.param_day, self.param_bucket)
+        return ([self.name, self.extention ,self.schema, self.action,
+                self.creator,self.machine,self.ip, self.creation_date,
+                self.size, self.location, self.status,self.param_year,
+                self.param_month, self.param_day, self.param_bucket])
 
 ###############################################################################
 
@@ -281,6 +281,59 @@ class Task_20_metaDownload(luigi.task.WrapperTask):
         conn.commit()
         cur.close()
         conn.close()
+
+
+from luigi.contrib.postgres import CopyToTable
+class Task_21_metaDownload(CopyToTable):
+    '''
+    Guardar los metadatos de la descarga de datos del schema RAW
+    Son guardados en la base de datos nyc311_metadata en la tabla raw.etl_execution
+    '''
+    # ==============================
+    # parametros:
+    # ==============================
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+    # ==============================
+    database = 'nyc311_metadata'
+    host = settings.get('host')
+    user = settings.get('usr')
+    password = settings.get('password')
+    table = 'raw.etl_execution'
+    columns = [("name","TEXT"), ("extention","TEXT") , ("schema","TEXT"),
+            ("action","TEXT") , ("creator","TEXT"), ("machine","TEXT"),
+            ("ip","TEXT"), ("creation_date","TEXT"), ("size","TEXT"),
+            ("location","TEXT"),("status","TEXT"), ("param_year","TEXT"),
+            ("param_month","TEXT"), ("param_day","TEXT"), ("param_bucket","TEXT")]
+
+    def requires(self):
+        return Task_10_download(year=self.year, month=self.month, day=self.day)
+
+    def rows(self):
+        cwd = os.getcwd()  # directorio actual
+        raw_meta = preproc_metadata()
+        raw_meta.name = f"data_{self.year}_{self.month}_{self.day}"
+        raw_meta.user = str(getpass.getuser())
+        raw_meta.machine = str(platform.platform())
+        raw_meta.ip = execv("curl ipecho.net/plain ; echo", cwd)
+        raw_meta.creation_date = str(datetime.datetime.now())
+        raw_meta.location = f"{path_raw}/{raw_meta.name}"
+        raw_meta.param_year = str(self.year)
+        raw_meta.param_month = str(self.month)
+        raw_meta.param_day = str(self.day)
+        raw_meta.param_bucket = str(self.bucket)
+
+        ubicacion_completa = f"{raw_meta.location}.json"
+        meta = raw_meta.info()  # extrae info de la clase
+        print("\n")
+        print("\n")
+        print(meta)
+        print("\n")
+        print("\n")
+        yield (meta)
+
 
 class Task_30_preproc(luigi.Task):
     '''
