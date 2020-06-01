@@ -175,6 +175,50 @@ class cleaned_metadata():
                 self.size, self.location, self.status, self.param_year,
                 self.param_month, self.param_day, self.param_bucket)
 
+
+# ========= metadatos unit test de cleaned =========#
+class cleaned_metadataUnitTest():
+    def __init__(self,
+                 name="",
+                 extention="parquet",
+                 schema="cleaned",
+                 action="unit test for clenead: test_for_closed_date_greater_than_created_date & test_for_years_out_of_range",
+                 creator="-",
+                 machine="",
+                 localhost="",
+                 ip="",
+                 creation_date="",
+                 size="-",
+                 location="",
+                 status="OK",
+                 param_year="",
+                 param_month="",
+                 param_day="",
+                 param_bucket=""):
+
+        # asignamos las características de los metadatos
+        self.name = name
+        self.extention = extention
+        self.schema = schema
+        self.action = action
+        self.creator = creator
+        self.machine = machine
+        self.ip = ip
+        self.creation_date = creation_date
+        self.size = size
+        self.location = location
+        self.status = status
+        self.param_year = param_year
+        self.param_month = param_month
+        self.param_day = param_day
+        self.param_bucket = param_bucket
+
+    def info(self):
+        return (self.name, self.extention, self.schema, self.action,
+                self.creator, self.machine, self.ip, self.creation_date,
+                self.size, self.location, self.status, self.param_year,
+                self.param_month, self.param_day, self.param_bucket)
+
 ###############################################################################
 
 path_raw = 's3://prueba-nyc311/raw'
@@ -319,7 +363,7 @@ class Task_41_metaPreproc(CopyToTable):
     host = settings.get('host')
     user = settings.get('usr')
     password = settings.get('password')
-    table = 'raw.etl_execution'
+    table = 'preprocessed.etl_execution'
     columns = [("name","TEXT"), ("extention","TEXT") , ("schema","TEXT"),
             ("action","TEXT") , ("creator","TEXT"), ("machine","TEXT"),
             ("ip","TEXT"), ("creation_date","TEXT"), ("size","TEXT"),
@@ -361,7 +405,7 @@ class Task_50_cleaned(luigi.Task):
     day = luigi.Parameter()
     # ==============================
     def requires(self):
-        return Task_40_metaPreproc(year=self.year, month=self.month, day=self.day)
+        return Task_41_metaPreproc(year=self.year, month=self.month, day=self.day)
 
     def output(self):
         # guarda los datos en s3://prueba-nyc311/raw/.3..
@@ -390,10 +434,10 @@ class Task_50_cleaned(luigi.Task):
         #pasa a formato parquet
         df.to_parquet(self.output().path, engine='auto', compression='snappy')
 
-class Task_51_metaClean(luigi.task.WrapperTask):
+class Task_51_metaClean(CopyToTable):
     '''
-    Guardar los metadatos de la descarga de datos del schema cleaned
-    Son guardados en la base de datos nyc311_metadata en la tabla clean.etl_execution
+    Guardar los metadatos de la descarga de datos del schema RAW
+    Son guardados en la base de datos nyc311_metadata en la tabla raw.etl_execution
     '''
     # ==============================
     # parametros:
@@ -403,12 +447,21 @@ class Task_51_metaClean(luigi.task.WrapperTask):
     month = luigi.Parameter()
     day = luigi.Parameter()
     # ==============================
+    database = 'nyc311_metadata'
+    host = settings.get('host')
+    user = settings.get('usr')
+    password = settings.get('password')
+    table = 'cleaned.etl_execution'
+    columns = [("name","TEXT"), ("extention","TEXT") , ("schema","TEXT"),
+            ("action","TEXT") , ("creator","TEXT"), ("machine","TEXT"),
+            ("ip","TEXT"), ("creation_date","TEXT"), ("size","TEXT"),
+            ("location","TEXT"),("status","TEXT"), ("param_year","TEXT"),
+            ("param_month","TEXT"), ("param_day","TEXT"), ("param_bucket","TEXT")]
 
     def requires(self):
         return Task_50_cleaned(year=self.year, month=self.month, day=self.day)
 
-    def run(self):
-        # se instancia la clase raw_metadata()
+    def rows(self):
         cwd = os.getcwd()  # directorio actual
         raw_prep = cleaned_metadata()
         raw_prep.name = f"data_{self.year}_{self.month}_{self.day}"
@@ -424,83 +477,7 @@ class Task_51_metaClean(luigi.task.WrapperTask):
 
         ubicacion_completa = f"{raw_prep.location}.json"
         meta = raw_prep.info()  # extraer información de la clase
-
-        print("=" * 100)
-        print(meta)
-        print("complete name: ", ubicacion_completa)
-        print("name: ", raw_prep.name)
-        print("extensión: ", raw_prep.extention)
-        print("tamaño: ", raw_prep.size)
-        print("action: ", raw_prep.action)
-        print("usuario: ", raw_prep.user)
-        print("maquina: ", raw_prep.machine)
-        print("ip: ", raw_prep.ip)
-        print("fecha de creación: ", raw_prep.creation_date)
-        print("ubicación: ", raw_prep.location)
-        print("param [year]: ", raw_prep.param_year)
-        print("param [month]: ", raw_prep.param_month)
-        print("param [day]: ", raw_prep.param_day)
-        print("param [bucket]: ", raw_prep.param_bucket)
-        print("=" * 100)
-
-        # conectarse a la base de datos y guardar a esquema raw.etl_execution
-        conn = ps.connect(host=settings.get('host'),
-                          port=settings.get('port'),
-                          database="nyc311_metadata",
-                          user=settings.get('usr'),
-                          password=settings.get('password'))
-        cur = conn.cursor()
-        columns = "(name, extention, schema, action, creator, machine, ip, creation_date, size, location,status, param_year, param_month, param_day, param_bucket)"
-        sql = "INSERT INTO cleaned.etl_execution" + columns + \
-            " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"
-
-        cur.execute(sql, meta)
-        conn.commit()
-        cur.close()
-        conn.close()
-
-# ========= metadatos unit test de cleaned =========#
-class cleaned_metadataUnitTest():
-    def __init__(self,
-                 name="",
-                 extention="parquet",
-                 schema="cleaned",
-                 action="unit test for clenead: test_for_closed_date_greater_than_created_date & test_for_years_out_of_range",
-                 creator="-",
-                 machine="",
-                 localhost="",
-                 ip="",
-                 creation_date="",
-                 size="-",
-                 location="",
-                 status="OK",
-                 param_year="",
-                 param_month="",
-                 param_day="",
-                 param_bucket=""):
-
-        # asignamos las características de los metadatos
-        self.name = name
-        self.extention = extention
-        self.schema = schema
-        self.action = action
-        self.creator = creator
-        self.machine = machine
-        self.ip = ip
-        self.creation_date = creation_date
-        self.size = size
-        self.location = location
-        self.status = status
-        self.param_year = param_year
-        self.param_month = param_month
-        self.param_day = param_day
-        self.param_bucket = param_bucket
-
-    def info(self):
-        return (self.name, self.extention, self.schema, self.action,
-                self.creator, self.machine, self.ip, self.creation_date,
-                self.size, self.location, self.status, self.param_year,
-                self.param_month, self.param_day, self.param_bucket)
+        yield (meta)
 
 class Task_52_cleaned_UnitTest(luigi.Task):
     bucket = luigi.Parameter(default="prueba-nyc311")
@@ -527,7 +504,6 @@ class Task_52_cleaned_UnitTest(luigi.Task):
             sys.tracebacklimit=0
             raise TypeError("\n Prueba Fallida \n")
 
-
         out=open('clean_test_output.txt','r').read()
         with self.output().open('w') as output_file:
             output_file.write(out)
@@ -539,10 +515,11 @@ def celebrate_success(task):
 def mourn_failure(task, exception):
     print(u'\u274C'*1, "UnitTest con Marbles para schema Cleaned Task fallido. No se guardan los metadatos.")
 
-class Task_53_metaCleanUT(luigi.task.WrapperTask):
+
+class Task_53_metaCleanUT(CopyToTable):
     '''
-    Guardar los metadatos de la descarga de datos del schema cleaned
-    Son guardados en la base de datos nyc311_metadata en la tabla clean.etl_execution
+    Guardar los metadatos de la descarga de datos del schema RAW
+    Son guardados en la base de datos nyc311_metadata en la tabla raw.etl_execution
     '''
     # ==============================
     # parametros:
@@ -552,12 +529,21 @@ class Task_53_metaCleanUT(luigi.task.WrapperTask):
     month = luigi.Parameter()
     day = luigi.Parameter()
     # ==============================
+    database = 'nyc311_metadata'
+    host = settings.get('host')
+    user = settings.get('usr')
+    password = settings.get('password')
+    table = 'cleaned.ut_execution'
+    columns = [("name","TEXT"), ("extention","TEXT") , ("schema","TEXT"),
+            ("action","TEXT") , ("creator","TEXT"), ("machine","TEXT"),
+            ("ip","TEXT"), ("creation_date","TEXT"), ("size","TEXT"),
+            ("location","TEXT"),("status","TEXT"), ("param_year","TEXT"),
+            ("param_month","TEXT"), ("param_day","TEXT"), ("param_bucket","TEXT")]
 
     def requires(self):
         return Task_52_cleaned_UnitTest(year=self.year, month=self.month, day=self.day)
 
-    def run(self):
-        # se instancia la clase raw_metadata()
+    def rows(self):
         cwd = os.getcwd()  # directorio actual
         cleanUT = cleaned_metadataUnitTest()
         cleanUT.name = f"data_{self.year}_{self.month}_{self.day}"
@@ -573,26 +559,10 @@ class Task_53_metaCleanUT(luigi.task.WrapperTask):
 
         ubicacion_completa = f"{cleanUT.location}.json"
         meta = cleanUT.info()  # extraer información de la clase
+        yield (meta)
 
-        # conectarse a la base de datos y guardar a esquema raw.etl_execution
-        conn = ps.connect(host=settings.get('host'),
-                          port=settings.get('port'),
-                          database="nyc311_metadata",
-                          user=settings.get('usr'),
-                          password=settings.get('password'))
-        cur = conn.cursor()
-        columns = "(name, extention, schema, action, creator, machine, ip, creation_date, size, location,status, param_year, param_month, param_day, param_bucket)"
-        sql = "INSERT INTO cleaned.ut_execution" + columns + \
-            " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"
-        cur.execute(sql, meta)
-        conn.commit()
-        cur.close()
-        conn.close()
-@Task_53_metaCleanUT.event_handler(luigi.Event.SUCCESS)
-def celebrate_success(task):
-    print(u'\u2705'*2)
 
-class Task_71_mlPreproc_firstTime(luigi.Task):
+class Task_72_mlPreproc(luigi.Task):
     '''
     Contar los registros por fecha y colapsar en una sola tabla que contendra las columnas de created_date y numero de registros
     '''
@@ -606,11 +576,15 @@ class Task_71_mlPreproc_firstTime(luigi.Task):
 
     # ==============================
     def requires(self):
-        return Task_51_metaClean(year=self.year, month=self.month, day=self.day)
+        return Task_53_metaCleanUT(year=self.year, month=self.month, day=self.day)
 
     def output(self):
+        output_path = f"s3://{self.bucket}/mlPreproc/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
+        return luigi.contrib.s3.S3Target(path=output_path)
+
+    def write(self,date):
         # guarda los datos en s3://prueba-nyc311/raw/.3..
-        output_path = f"s3://{self.bucket}/mlpreproc/mlPreproc.parquet"
+        output_path = f"s3://{self.bucket}/mlPreproc/{date.year}/{date.month}/{date.day}/data_{date.year}_{date.month}_{date.day}.parquet"
         return luigi.contrib.s3.S3Target(path=output_path)
 
     def run(self):
@@ -629,7 +603,7 @@ class Task_71_mlPreproc_firstTime(luigi.Task):
 
         flag=0
         count=0
-        while(date<end_date):
+        while(date<=end_date):
             date=date+timedelta(days=1)
 
             #lectura de datos
@@ -652,13 +626,14 @@ class Task_71_mlPreproc_firstTime(luigi.Task):
             df=df.loc[:,['created_date','counts','borough']]
             df=df.groupby(['created_date','borough'],as_index=False).count()
 
-            #create or append df
-            if(flag==0):
-                df2=df
-                flag=1
-            else:
-                #pegamos los dataframes
-                df2=df2.append(df)
+
+            df.drop_duplicates(inplace=True)
+            df=df.reset_index(drop=True)
+
+
+            df.to_parquet(self.write(date).path, engine='auto', compression='snappy')
+            if(date==end_date):
+                df.to_parquet(self.output().path, engine='auto', compression='snappy')
 
             del(df)
 
@@ -666,88 +641,11 @@ class Task_71_mlPreproc_firstTime(luigi.Task):
             count=count+1
             if(count%100==0):
                 print(count)
-            #aumentamos un dia
 
-            #print(date)
-
-        df2.drop_duplicates(inplace=True)
-        df2=df2.reset_index(drop=True)
-        #print(df2)
-        #pasa a formato parquet
-        df2.to_parquet(self.output().path, engine='auto', compression='snappy')
-
-
-# class Task_72_metaMlPreproc(luigi.task.WrapperTask):
-#     '''
-#     Guardar los metadatos de mlPreproc
-#     '''
-#     # ==============================
-#     # parametros:
-#     # ==============================
-#     bucket = luigi.Parameter(default="prueba-nyc311")
-#     year = luigi.Parameter()
-#     month = luigi.Parameter()
-#     day = luigi.Parameter()
-#     # ==============================
-#
-#     def requires(self):
-#         return Task_71_mlPreproc_firstTime(year=self.year, month=self.month, day=self.day)
-#
-#     def run(self):
-#         # se instancia la clase raw_metadata()
-#         cwd = os.getcwd()  # directorio actual
-#         raw_meta = mlPreproc_metadata()
-#         raw_meta.name = f"data_{self.year}_{self.month}_{self.day}"
-#         raw_meta.user = str(getpass.getuser())
-#         raw_meta.machine = str(platform.platform())
-#         raw_meta.ip = execv("curl ipecho.net/plain ; echo", cwd)
-#         raw_meta.creation_date = str(datetime.datetime.now())
-#         raw_meta.location = f"{path_raw}/{raw_meta.name}"
-#         raw_meta.param_year = str(self.year)
-#         raw_meta.param_month = str(self.month)
-#         raw_meta.param_day = str(self.day)
-#         raw_meta.param_bucket = str(self.bucket)
-#
-#         ubicacion_completa = f"{raw_meta.location}.json"
-#         meta = raw_meta.info()  # extrae info de la clase
-#
-#         print("=" * 100)
-#         print(meta)
-#         print("complete name: ", ubicacion_completa)
-#         print("name: ", raw_meta.name)
-#         print("extensión: ", raw_meta.extention)
-#         print("schema: ", raw_meta.schema)
-#         print("tamaño: ", raw_meta.size)
-#         print("action: ", raw_meta.action)
-#         print("usuario: ", raw_meta.user)
-#         print("maquina: ", raw_meta.machine)
-#         print("ip: ", raw_meta.ip)
-#         print("fecha de creación: ", raw_meta.creation_date)
-#         print("ubicación: ", raw_meta.location)
-#         print("param [year]: ", raw_meta.param_year)
-#         print("param [month]: ", raw_meta.param_month)
-#         print("param [day]: ", raw_meta.param_day)
-#         print("param [bucket]: ", raw_meta.param_bucket)
-#         print("=" * 100)
-#
-#         # conectarse a la base de datos y guardar a esquema raw.etl_execution
-#         conn = ps.connect(host=settings.get('host'),
-#                           port=settings.get('port'),
-#                           database="nyc311_metadata",
-#                           user=settings.get('usr'),
-#                           password=settings.get('password'))
-#         cur = conn.cursor()
-#         columns = "(name, extention, schema, action, creator, machine, ip, creation_date, size, location,status, param_year, param_month, param_day, param_bucket)"
-#         sql = "INSERT INTO mlpreproc.feature_engineering" + columns + \
-#             " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"
-#         cur.execute(sql, meta)
-#         conn.commit()
-#         cur.close()
-#         conn.close()
 
 class Task_81_ml(luigi.Task):
     '''
-    Contar los registros por fecha y colapsar en una sola tabla que contendra las columnas de created_date y numero de registros
+    Genera la matriz de machine learning
     '''
     # ==============================
     # parametros:
@@ -758,8 +656,10 @@ class Task_81_ml(luigi.Task):
     day = luigi.Parameter()
     mock=luigi.Parameter(default=1)
     # ==============================
+    #def requires(self):
+    #    return Task_71_mlPreproc_firstTime(year=self.year, month=self.month, day=self.day)
     def requires(self):
-        return Task_71_mlPreproc_firstTime(year=self.year, month=self.month, day=self.day)
+        return Task_51_metaClean(year=self.year, month=self.month, day=self.day)
 
     def output(self):
         # guarda los datos en s3://prueba-nyc311/raw/.3..
@@ -784,7 +684,6 @@ class Task_81_ml(luigi.Task):
         data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
         df = pd.read_parquet(data_parquet_object)
 
-        #print(df)
         # funcion de procesamiento de datos
         df_features=f1.create_feature_table(df)
         del(df)
@@ -873,7 +772,9 @@ def celebrate_success(task):
 def mourn_failure(task, exception):
     print(u'\u274C'*1, "UnitTest con Marbles para schema Feature Engineering Task fallido. No se guardan los metadatos.")
 
-class Task_83_metaFeatureEngUTM(luigi.task.WrapperTask):
+
+
+class Task_83_metaFeatureEngUTM(CopyToTable):
     '''
     Guardar los metadatos de la descarga de datos del schema FE con marbles
     Son guardados en la base de datos nyc311_metadata en la tabla mlpreproc.ut_execution
@@ -886,11 +787,21 @@ class Task_83_metaFeatureEngUTM(luigi.task.WrapperTask):
     month = luigi.Parameter()
     day = luigi.Parameter()
     # ==============================
+    database = 'nyc311_metadata'
+    host = settings.get('host')
+    user = settings.get('usr')
+    password = settings.get('password')
+    table = 'mlpreproc.ut_execution'
+    columns = [("name","TEXT"), ("extention","TEXT") , ("schema","TEXT"),
+            ("action","TEXT") , ("creator","TEXT"), ("machine","TEXT"),
+            ("ip","TEXT"), ("creation_date","TEXT"), ("size","TEXT"),
+            ("location","TEXT"),("status","TEXT"), ("param_year","TEXT"),
+            ("param_month","TEXT"), ("param_day","TEXT"), ("param_bucket","TEXT")]
 
     def requires(self):
         return Task_82_feature_UnitTest(year=self.year, month=self.month, day=self.day)
 
-    def run(self):
+    def rows(self):
         # se instancia la clase raw_metadata()
         cwd = os.getcwd()  # directorio actual
         feUT = FE_metadataUnitTest()
@@ -907,20 +818,7 @@ class Task_83_metaFeatureEngUTM(luigi.task.WrapperTask):
         ubicacion_completa = f"{feUT.location}.parquet"
         meta = feUT.info()  # extraer información de la clase
 
-        # conectarse a la base de datos y guardar a esquema raw.etl_execution
-        conn = ps.connect(host=settings.get('host'),
-                          port=settings.get('port'),
-                          database="nyc311_metadata",
-                          user=settings.get('usr'),
-                          password=settings.get('password'))
-        cur = conn.cursor()
-        columns = "(name, extention, schema, action, creator, machine, ip, creation_date, size, location,status, param_bucket)"
-        sql = "INSERT INTO mlpreproc.ut_execution" + columns + \
-            " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"
-        cur.execute(sql, meta)
-        conn.commit()
-        cur.close()
-        conn.close()
+        yield (meta)
 @Task_83_metaFeatureEngUTM.event_handler(luigi.Event.SUCCESS)
 def celebrate_success(task):
     print(u'\u2705'*2, "Se guardaron los metadatos para UT con marbles.")
@@ -1022,8 +920,7 @@ def celebrate_success(task):
 def mourn_failure(task, exception):
     print(u'\u274C'*1, "UnitTest con Pandas para schema Feature Engineering Task fallido. No se guardan los metadatos.")
 
-
-class Task_85_metaFeatureEngUTP(luigi.task.WrapperTask):
+class Task_85_metaFeatureEngUTP(CopyToTable):
     '''
     Guardar los metadatos de la descarga de datos del schema FE para unit testing con pandas
     Son guardados en la base de datos nyc311_metadata en la tabla mlpreproc.ut_execution
@@ -1036,11 +933,21 @@ class Task_85_metaFeatureEngUTP(luigi.task.WrapperTask):
     month = luigi.Parameter()
     day = luigi.Parameter()
     # ==============================
+    database = 'nyc311_metadata'
+    host = settings.get('host')
+    user = settings.get('usr')
+    password = settings.get('password')
+    table = 'mlpreproc.ut_execution'
+    columns = [("name","TEXT"), ("extention","TEXT") , ("schema","TEXT"),
+            ("action","TEXT") , ("creator","TEXT"), ("machine","TEXT"),
+            ("ip","TEXT"), ("creation_date","TEXT"), ("size","TEXT"),
+            ("location","TEXT"),("status","TEXT"), ("param_year","TEXT"),
+            ("param_month","TEXT"), ("param_day","TEXT"), ("param_bucket","TEXT")]
 
     def requires(self):
         return Task_84_feature_PandasTest(year=self.year, month=self.month, day=self.day)
 
-    def run(self):
+    def rows(self):
         # se instancia la clase raw_metadata()
         cwd = os.getcwd()  # directorio actual
         feUT = FE_metadataUnitTest()
@@ -1052,29 +959,15 @@ class Task_85_metaFeatureEngUTP(luigi.task.WrapperTask):
         feUT.location = "ml/ml.parquet"
         feUT.param_bucket = str(self.bucket)
         # las pruebas unitarias que se superaron
-        feUT.action = "unit test for feature engineering (pandas): prueba_casos_dia"
+        feUT.action = "unit test for feature engineering (marbles): test_created_date_year_vs_onehot & test_created_date_month_vs_onehot"
 
         ubicacion_completa = f"{feUT.location}.parquet"
         meta = feUT.info()  # extraer información de la clase
 
-        # conectarse a la base de datos y guardar a esquema raw.etl_execution
-        conn = ps.connect(host=settings.get('host'),
-                          port=settings.get('port'),
-                          database="nyc311_metadata",
-                          user=settings.get('usr'),
-                          password=settings.get('password'))
-        cur = conn.cursor()
-        columns = "(name, extention, schema, action, creator, machine, ip, creation_date, size, location,status, param_bucket)"
-        sql = "INSERT INTO mlpreproc.ut_execution" + columns + \
-            " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"
-        cur.execute(sql, meta)
-        conn.commit()
-        cur.close()
-        conn.close()
+        yield (meta)
 @Task_85_metaFeatureEngUTP.event_handler(luigi.Event.SUCCESS)
 def celebrate_success(task):
     print(u'\u2705'*2, "Se guardaron los metadatos para UT con pandas.")
-
 
 class Task_86_FE_allUT(luigi.Task):
     bucket = luigi.Parameter(default="prueba-nyc311")
@@ -1230,10 +1123,7 @@ class model_metadata():
                 self.status, self.max_depth, self.criterion, self.n_estimators,
                 self.score_train)
 
-
-
-
-class Task_110_metaModel(luigi.task.WrapperTask):
+class Task_110_metaModel(CopyToTable):
     '''
     Guardar los metadatos del entrenamiento de modelos
     '''
@@ -1241,21 +1131,26 @@ class Task_110_metaModel(luigi.task.WrapperTask):
     # parametros:
     # ==============================
     bucket = luigi.Parameter(default="prueba-nyc311")
-    nestimators =luigi.Parameter()
-    maxdepth= luigi.Parameter()
-    criterion=luigi.Parameter()
-    mock= luigi.Parameter(default=1)
-    #year = luigi.Parameter()
-    #month = luigi.Parameter()
-    #day = luigi.Parameter()
+    year = luigi.Parameter()
+    month = luigi.Parameter()
+    day = luigi.Parameter()
+    # ==============================
+    database = 'nyc311_metadata'
+    host = settings.get('host')
+    user = settings.get('usr')
+    password = settings.get('password')
+    table = 'modeling.ejecucion'
+    columns = [("name","TEXT"), ("extention","TEXT") , ("schema","TEXT"),
+            ("action","TEXT") , ("creator","TEXT"), ("machine","TEXT"),
+            ("ip","TEXT"), ("creation_date","TEXT"), ("size","TEXT"),
+            ("location","TEXT"),("status","TEXT"), ("param_year","TEXT"),
+            ("param_month","TEXT"), ("param_day","TEXT"), ("param_bucket","TEXT")]
 
 
     def requires(self):
         return Task_100_Train(nestimators=self.nestimators, maxdepth=self.maxdepth, criterion=self.criterion)
-        #return luigi.contrib.s3.exist(year=self.year, month=self.month, day=self.day)
-        #return luigi.S3Target(f"s3://{self.bucket}/ml/ml.parquet")
 
-    def run(self):
+    def rows(self):
         import os
     # ==============================
     # se instancia la clase raw_metadata()
@@ -1275,20 +1170,9 @@ class Task_110_metaModel(luigi.task.WrapperTask):
         ubicacion_completa = model_meta.location
         meta = model_meta.info()  # extrae info de la clas
 
-        # conectarse a la base de datos y guardar a esquema raw.etl_execution
-        conn = ps.connect(host=settings.get('host'),
-                          port=settings.get('port'),
-                          database="nyc311_metadata",
-                          user=settings.get('usr'),
-                          password=settings.get('password'))
-        cur = conn.cursor()
-        columns = "(model_name, model_type, schema, action, creator, machine, ip, date, location, status, max_depth, criterion, n_estimators, score_train)"
-        sql = "INSERT INTO modeling.ejecucion" + columns + \
-            " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);"
-        cur.execute(sql, meta)
-        conn.commit()
-        cur.close()
-        conn.close()
+        yield (meta)
+
+
 
 
 # =================================== Pendientes o descartadas
