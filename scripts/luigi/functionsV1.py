@@ -6,7 +6,8 @@ class NumberCases():
     def prueba_casos_dia(self,df):
         from pandas.testing import assert_frame_equal
         # Para calcular segun el distrito (descomentar las siguientes lineas)
-        distrito = ['distrito_0','distrito_1','distrito_2','distrito_3','distrito_4','distrito_5']
+        #distrito = ['distrito_0','distrito_1','distrito_2','distrito_3','distrito_4','distrito_5']
+        distrito=["bronx","brooklyn","manhattan","queens","staten island","undefined"]
         for j in distrito:
             self.df = df[df[j] == 1]
             #descomentar para que truene
@@ -35,6 +36,76 @@ class NumberCases():
                 print("\n")
                 #Error de la prueba
                 print(sys.exc_info()[1])
+
+def create_prediction_table(date,h=10):
+    '''
+    Esta funcion recibe una fecha y crea la tabla para hacer una prediccion.
+    '''
+    import datetime
+
+    #create df
+
+    d = {'created_date': [date,date,date,date,date,date],
+        'borough':["bronx","brooklyn","manhattan","queens","staten island","undefined"]}
+    df = pd.DataFrame(data=d)
+    # Created date (Obtenemos año, mes y dia)
+    df['created_date_year'] = pd.DatetimeIndex(df['created_date']).year
+    df['created_date_month'] = pd.DatetimeIndex(df['created_date']).month
+    df['created_date_day'] = pd.DatetimeIndex(df['created_date']).day
+
+    # Creamos la variable created_date_dow (numero del dia de la semana de la fecha created_date)
+    df['created_date_dow'] = pd.DatetimeIndex(df['created_date']).dayofweek
+
+    # Creamos la variable created_date_woy (numero de la semana del año de la fecha created_date)
+    df['created_date_woy'] = pd.DatetimeIndex(df['created_date']).week
+
+    # Creamos variable holiday
+    df["date_holiday"]=df["created_date"].apply(festivo)
+
+    distrito=df['borough'].unique()
+
+    for dist in distrito:
+        for h in range(1,10):
+            var_name = "number_cases_" + str(h) + "_days_ago"
+            if dist == "bronx":df[var_name] = 169
+            if dist == "brooklyn":df[var_name] = 236
+            if dist == "manhattan":df[var_name] = 225
+            if dist == "queens":df[var_name] = 143
+            if dist == "staten island":df[var_name] = 20
+            if dist == "undefined":df[var_name] = 4
+
+    #year
+    for h in range(11):
+        var_name = "created_date_year_" + str(h)
+        df[var_name] = 0
+        if h==10: df[var_name] = 1
+    #month
+    for h in range(12):
+        var_name = "created_date_month_" + str(h)
+        df[var_name] = 0
+        if h==date.month : df[var_name] = 1
+    #day
+    for h in range(31):
+        var_name = "created_date_day_" + str(h)
+        df[var_name] = 0
+        if h==date.day: df[var_name] = 1
+
+    for h in range(7):
+        var_name = "created_date_dow_" + str(h)
+        df[var_name] = 0
+        if h==date.weekday(): df[var_name] = 1
+
+    for h in range(53):
+        var_name = "created_date_woy_" + str(h)
+        df[var_name] = 0
+        if h==date.isocalendar()[1]: df[var_name] = 1
+
+    boroughs=["bronx","brooklyn","manhattan","queens","staten island","undefined"]
+    for i, h in enumerate(boroughs):
+        df[h] = 0
+        df[h].loc[i]=1
+    df=df.drop(columns=['borough','created_date_year','created_date_month','created_date_day','created_date_dow','created_date_woy','created_date'])
+    return df
 
 
 def create_feature_table(df,h=10):
@@ -98,6 +169,8 @@ def create_feature_table(df,h=10):
 def encoders(df):
     import pandas as pd
     from sklearn.preprocessing import LabelEncoder
+    boroughs=["bronx","brooklyn","manhattan","queens","staten island","undefined"]
+
     le_created_date_year = LabelEncoder()
     le_created_date_month = LabelEncoder()
     le_created_date_day = LabelEncoder()
@@ -137,11 +210,14 @@ def encoders(df):
     df = pd.concat([df, dfOneHot], axis=1)
     dfOneHot = pd.DataFrame(Xz, columns = ["created_date_woy_"+str(int(i)) for i in range(Xz.shape[1])])
     df = pd.concat([df, dfOneHot], axis=1)
-    dfOneHot = pd.DataFrame(Xb, columns = ["distrito_"+str(int(i)) for i in range(Xb.shape[1])])
+
+    dfOneHot = pd.DataFrame(Xb, columns = boroughs)
     df = pd.concat([df, dfOneHot], axis=1)
 
     # borrar columnas a las que se les hizo OHE
     df=df.drop(columns=['borough','created_date_year','created_date_month','created_date_day','created_date_dow','created_date_woy'])
+    df=df.drop(columns=['created_date_year_encoded','created_date_month_encoded', 'created_date_day_encoded',
+        'created_date_dow_encoded', 'created_date_woy_encoded'])
 
     return df
 

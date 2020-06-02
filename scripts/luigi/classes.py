@@ -315,10 +315,50 @@ class model_metadata():
         self.param_month = param_month
         self.param_day = param_day
         self.param_bucket = param_bucket
-        
+
     def info(self):
         return (self.model_name, self.model_type, self.schema, self.action,
                 self.creator, self.machine, self.ip, self.date, self.location,
                 self.status, self.max_depth, self.criterion, self.n_estimators,
                 self.score_train,self.param_year,self.param_day,self.param_month,
                 self.param_bucket)
+
+class predict_metadata():
+    def __init__(self,
+                 pred_date="",
+                 prediction="",
+                 borough="",
+                 pickle="",
+                 model_name="",
+                 model_type="sklearn model",
+                 schema="prediction",
+                 action="Make predictions",
+                 creator="-",
+                 machine="",
+                 ip="",
+                 date="",
+                 location="",
+                 status="sucess"):
+
+        # asignamos las características de los metadatos
+        self.pred_date=pred_date,
+        self.prediction=prediction,
+        self.pickle=pickle,
+        self.borough=borough,
+        self.model_name = model_name
+        self.model_type = model_type
+        self.schema = schema
+        self.action = action
+        self.creator = creator
+        self.machine = machine
+        self.ip = ip
+        self.date = date
+        self.location = location
+        self.status = status
+
+
+    def info(self):
+        return (self.pred_date, self.prediction,self.pickle, self.borough,
+                self.model_name, self.model_type, self.schema, self.action,
+                self.creator, self.machine, self.ip, self.date, self.location,
+                self.status)
