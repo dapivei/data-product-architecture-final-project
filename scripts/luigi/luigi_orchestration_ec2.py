@@ -829,9 +829,211 @@ class Task_61_metaModel(CopyToTable):
         meta = model_meta.info()  # extrae info de la clas
 
         yield (meta)
+class Task_70_biasFairness(luigi.Task):
+    '''
+    Genera métricas de aequitas para modelo pre-entrenado disponible en S3
+    '''
+    # ==============================
+    # parametros:
+    # ==============================
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    nestimators =luigi.Parameter(default=15)
+    maxdepth= luigi.Parameter(default=20)
+    criterion=luigi.Parameter(default='gini')
+    year = luigi.Parameter(default=2020)
+    month = luigi.Parameter(default=5)
+    day = luigi.Parameter(default=15)
+
+    def output(self):
+        output_path = f"s3://prueba-nyc311/BiasFairness/aequitas_metricas.csv"
+        return luigi.contrib.s3.S3Target(path=output_path)
+
+    def requires(self):
+        return Task_60_Train(nestimators=self.nestimators, maxdepth=self.maxdepth,
+                        criterion=self.criterion,year=self.year,month=self.month,day=self.day)
+    def run(self):
+
+        import functionsV1 as f1
+        import io
+        import numpy as np
+        from sklearn.model_selection import TimeSeriesSplit
+        from sklearn.ensemble import RandomForestClassifier
+        import datetime
+
+        import io
+        import aequitas
+        from aequitas.group import Group
+        # Autenticación en S3
+        ses = boto3.session.Session(profile_name='luigi_dpa', region_name='us-west-2')
+        s3_resource = ses.resource('s3')
+
+        #### matriz de datos
+        #lectura de datos
+        key = f"ml/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
+        parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
+        data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
+        df = pd.read_parquet(data_parquet_object)
+
+        # output variable
+        y=df["mean_flag"]
+        df2=df.drop(columns=["mean_flag","created_date","counts","month_mean"])
+
+        #separamos los primeros 70% de los datos para entrenar
+        X_train = df2[:int(df2.shape[0]*0.7)].values
+        X_test = df2[int(df2.shape[0]*0.7):].values
+        y_train = y[:int(df2.shape[0]*0.7)].values
+        y_test = y[int(df2.shape[0]*0.7):].values
+
+        #partimos los datos con temporal cv
+        tscv=TimeSeriesSplit(n_splits=5)
+        for tr_index, val_index in tscv.split(X_train):
+            X_tr, X_val=X_train[tr_index], X_train[val_index]
+            y_tr, y_val = y_train[tr_index], y_train[val_index]
+
+        #### modelo pre-entrenado
+        key = f"ml/modelos/{self.criterion}_depth_{self.maxdepth}_estimatros{self.nestimators}_{self.year}_{self.month}_{self.day}.pickle"
+        obj = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
+        pkl = obj.get()['Body'].read()
+        model=pickle.loads(pkl)
+        # inputs de aequitas
+        score=model.predict(X_test) # columna con predicciones
+        label_value=y_test # columna con etiquetas verdaderas
+        brooklyn=X_test[:,126]
+        # crea matriz conformato que requiere aequitas
+        aeq_mat = pd.DataFrame({'score': score, 'label_value':label_value, 'brooklyn':brooklyn})
+
+        # df1 = preprocess_input_df(aeq_mat)
+        g = Group()
+        xtab, _ = g.get_crosstabs(aeq_mat)
+        # guardar métricas obtenidas
+        xtab.to_csv(self.output().path, index=False, encoding='utf-8')
 
 
-class Task_70_Predict(luigi.Task):
+
+class Task_71_biasFairnessRDS(CopyToTable):
+    '''
+    Guarda la predicciones a RDS
+    '''
+    # ==============================
+    # parametros:
+    # ==============================
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    nestimators =luigi.Parameter(default=15)
+    maxdepth= luigi.Parameter(default=20)
+    criterion=luigi.Parameter(default='gini')
+    year = luigi.Parameter(default=2020)
+    month = luigi.Parameter(default=5)
+    day = luigi.Parameter(default=15)
+
+    database = 'nyc311_metadata'
+    host = settings.get('host')
+    user = settings.get('usr')
+    password = settings.get('password')
+    table = 'biasfairness.aequitas_ejecucion'
+    columns = [("model_name","TEXT"), ("model_id","TEXT") , ("score_threshold","TEXT"),
+            ("k","TEXT") , ("attribute_name","TEXT"), ("attribute_value","TEXT"),
+            ("tpr","TEXT"), ("tnr","TEXT"), ("fxr","TEXT"),
+            ("fdr","TEXT"), ("fpr","TEXT"), ("fnr","TEXT"),
+            ("npv","TEXT"), ("precision","TEXT"), ("pp","TEXT"),
+            ("pn","TEXT"),("ppr","TEXT"), ("pprev","TEXT"),
+            ("fp","TEXT"), ("fn","TEXT"), ("tn","TEXT"), ("tp","TEXT"),
+            ("group_label_pos","TEXT"),("group_label_neg","TEXT"),
+            ("group_size","TEXT"),("total_entities","TEXT"),
+            ("prev","TEXT")]
+
+    def requires(self):
+        return Task_70_biasFairness(nestimators=self.nestimators, maxdepth=self.maxdepth,
+                        criterion=self.criterion,year=self.year,month=self.month,day=self.day)
+
+    def rows(self):
+        import io
+        # Autenticación en S3
+        ses = boto3.session.Session(profile_name='luigi_dpa', region_name='us-west-2')
+        s3_resource = ses.resource('s3')
+
+        #### matriz de datos
+        #lectura de datos
+        key = f"BiasFairness/aequitas_metricas.csv"
+        parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
+        data_csv_object = io.BytesIO(parquet_object.get()['Body'].read())
+        sub_df = pd.read_csv(data_csv_object)
+
+        # se instancia la clase raw_metadata()
+        bfs_meta = biasFairness_mts()
+        bfs_meta.model_name =f"RandomForestClassifier_crit{self.criterion}_depth{self.maxdepth}_estims{self.nestimators}"
+        bfs_meta.model_id = sub_df.iloc[0]["model_id"]
+        bfs_meta.score_threshold =sub_df.iloc[0]["score_threshold"]
+        bfs_meta.k =sub_df.iloc[0]["k"]
+        bfs_meta.attribute_name =sub_df.iloc[0]["attribute_name"]
+        bfs_meta.attribute_value =sub_df.iloc[0]["attribute_value"]
+        bfs_meta.tpr =sub_df.iloc[0]["tpr"]
+        bfs_meta.tnr =sub_df.iloc[0]["tnr"]
+        bfs_meta.fxr =sub_df.iloc[0]["for"]
+        bfs_meta.fdr =sub_df.iloc[0]["fdr"]
+        bfs_meta.fpr =sub_df.iloc[0]["fpr"]
+        bfs_meta.fnr =sub_df.iloc[0]["fnr"]
+        bfs_meta.npv =sub_df.iloc[0]["npv"]
+        bfs_meta.precision =sub_df.iloc[0]["precision"]
+        bfs_meta.pp =sub_df.iloc[0]["pp"]
+        bfs_meta.pn =sub_df.iloc[0]["pn"]
+        bfs_meta.ppr =sub_df.iloc[0]["ppr"]
+        bfs_meta.pprev =sub_df.iloc[0]["pprev"]
+        bfs_meta.fp =sub_df.iloc[0]["fp"]
+        bfs_meta.fn =sub_df.iloc[0]["fn"]
+        bfs_meta.tn =sub_df.iloc[0]["tn"]
+        bfs_meta.tp =sub_df.iloc[0]["tp"]
+        bfs_meta.group_label_pos =sub_df.iloc[0]["group_label_pos"]
+        bfs_meta.group_label_neg =sub_df.iloc[0]["group_label_neg"]
+        bfs_meta.group_size =sub_df.iloc[0]["group_size"]
+        bfs_meta.total_entities =sub_df.iloc[0]["total_entities"]
+        bfs_meta.prev =sub_df.iloc[0]["prev"]
+
+        data = bfs_meta.info()
+        yield (data)
+
+class Task_72_metabiasFairness(CopyToTable):
+    '''
+    Guardar los metadatos de la generación de métricas de bias y fairness
+    Son guardados en la base de datos nyc311_metadata en la tabla raw.etl_execution
+    '''
+    # ==============================
+    # parametros:
+    # ==============================
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    nestimators =luigi.Parameter(default=15)
+    maxdepth= luigi.Parameter(default=20)
+    criterion=luigi.Parameter(default='gini')
+    year = luigi.Parameter(default=2020)
+    month = luigi.Parameter(default=5)
+    day = luigi.Parameter(default=15)
+    # ==============================
+    database = 'nyc311_metadata'
+    host = settings.get('host')
+    user = settings.get('usr')
+    password = settings.get('password')
+    table = 'biasfairness.aeq_metadata'
+    columns = [("name","TEXT"), ("extention","TEXT") , ("schema","TEXT"),
+            ("action","TEXT") , ("creator","TEXT"), ("machine","TEXT"),
+            ("ip","TEXT"), ("creation_date","TEXT"), ("size","TEXT"),
+            ("location","TEXT"), ("status","TEXT"), ("param_bucket","TEXT")]
+
+    def requires(self):
+        return Task_71_biasFairnessRDS(nestimators=self.nestimators, maxdepth=self.maxdepth,
+                        criterion=self.criterion,year=self.year,month=self.month,day=self.day)
+
+    def rows(self):
+        cwd = os.getcwd()  # directorio actual
+        BF_md = BF_metadata()
+        BF_md.user = str(getpass.getuser())
+        BF_md.machine = str(platform.platform())
+        BF_md.ip = execv("curl ipecho.net/plain ; echo", cwd)
+        BF_md.creation_date = str(datetime.datetime.now())
+        BF_md.param_bucket = str(self.bucket)
+
+        meta = BF_md.info()  # extraer información de la clase
+        yield (meta)
+
+class Task_80_Predict(luigi.Task):
     '''
     Hace predicciones para la fecha introducida
     '''
@@ -849,8 +1051,11 @@ class Task_70_Predict(luigi.Task):
 
     # ==============================
     def requires(self):
-        return Task_60_Train(nestimators=self.nestimators, maxdepth=self.maxdepth,
+        return [Task_61_metaModel(nestimators=self.nestimators, maxdepth=self.maxdepth,
+                        criterion=self.criterion,year=self.year,month=self.month,day=self.day),
+                Task_72_metabiasFairness(nestimators=self.nestimators, maxdepth=self.maxdepth,
                         criterion=self.criterion,year=self.year,month=self.month,day=self.day)
+               ]
 
     def output(self):
         y,m,d=self.predictDate.split("/")
