@@ -69,7 +69,7 @@ class Predict(Resource):
                           user=settings.get('usr'),
                           password=settings.get('password'))
         cur = conn.cursor()
-        sql = f"SELECT * FROM prediction.ejecucion WHERE pred_date='{anio}-{mes}-{dia}';"
+        sql = f"SELECT * FROM prediction.ejecucion WHERE pred_date='{anio}-{mes}-{dia} 00:00:00';"
         cur.execute(sql)
         data = cur.fetchall()
         conn.commit()
