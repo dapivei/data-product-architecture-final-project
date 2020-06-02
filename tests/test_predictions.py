@@ -41,7 +41,7 @@ class PredictionsTestCase(marbles.core.TestCase):
 
         '''
         unique_boroughs = 5
-        self.assertTrue((len(self.df['borough'].unique())<=unique_boroughs) , note='Las predicciones arrojadas por el modelo tendrían que ser o 0 o 1, cualquier otro tipo de predicción es un error que debe ser subsanado a la brevedad posible.')
+        self.assertTrue((len(self.df['borough'].unique())<=unique_boroughs) , note='Las predicciones arrojadas por el modelo tendrían que ser para únicamente cinco distritos, si salen más de cinco distritos únicos, habría que revisar el modelo.')
 
 if __name__ == '__main__':
     marbles.core.main(argv=['first-arg-is-ignored'], exit=False)
