@@ -948,24 +948,15 @@ class Task_71_metaPredict(CopyToTable):
         print(df)
         for index, row in df.iterrows():
             model_meta.pred_date = row['pred_date']
-            #print(row['pred_date'])
             model_meta.prediction = row['prediction']
-            #print(row[1])
             model_meta.borough = row['borough']
-            #print(row[0])
             model_meta.model_name = row['model_name']
-            #print(row['prediction'])
             model_meta.creator = str(getpass.getuser())
             model_meta.machine = str(platform.platform())
             model_meta.ip = execv("curl ipecho.net/plain ; echo", cwd)
             model_meta.date = str(datetime.datetime.now())
             model_meta.location = f"s3://{self.bucket}/ml/modelos/depth{self.maxdepth}_{self.criterion}_estimatros{self.nestimators}.pickle"
-            #model_meta.max_depth = str(self.maxdepth)
-            #model_meta.criterion = str(self.criterion)
-            #model_meta.n_estimators = str(self.nestimators)
-
 
             ubicacion_completa = model_meta.location
             meta = model_meta.info()  # extrae info de la clas
-            #print(meta)
             yield (meta)
