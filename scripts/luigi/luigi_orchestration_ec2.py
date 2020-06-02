@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# some_file.py
+#import sys
+#sys.path.insert(0, '/tasks')
+#from tasks import Task_70
+#import tasks.Task_70
 
 import json
 import boto3
@@ -410,7 +415,7 @@ class Task_40_mlPreproc(luigi.Task):
         date=start_date
 
         #para que solamente baje los datos de la fecha indicada
-        date=end_date
+        date=end_date-timedelta(days=1)
 
         flag=0
         count=0
@@ -697,9 +702,9 @@ class Task_60_Train(luigi.Task):
     # parametros:
     # ==============================
     bucket = luigi.Parameter(default="prueba-nyc311")
-    nestimators =luigi.Parameter()
-    maxdepth= luigi.Parameter()
-    criterion=luigi.Parameter()
+    nestimators =luigi.Parameter(default=15)
+    maxdepth= luigi.Parameter(default=20)
+    criterion=luigi.Parameter(default='gini')
     year = luigi.Parameter()
     month = luigi.Parameter()
     day = luigi.Parameter()
@@ -737,7 +742,7 @@ class Task_60_Train(luigi.Task):
 
         # output variable
         y=df["mean_flag"]
-        df2=df.drop(columns=["mean_flag","created_date","counts"])
+        df2=df.drop(columns=["mean_flag","created_date","counts","month_mean"])
 
         #separamos los primeros 70% de los datos para entrenar
         X_train = df2[:int(df2.shape[0]*0.7)].values
@@ -773,9 +778,9 @@ class Task_61_metaModel(CopyToTable):
     # parametros:
     # ==============================
     bucket = luigi.Parameter(default="prueba-nyc311")
-    nestimators =luigi.Parameter()
-    maxdepth= luigi.Parameter()
-    criterion=luigi.Parameter()
+    nestimators =luigi.Parameter(default=15)
+    maxdepth= luigi.Parameter(default=20)
+    criterion=luigi.Parameter(default='gini')
     year = luigi.Parameter()
     month = luigi.Parameter()
     day = luigi.Parameter()
@@ -825,6 +830,7 @@ class Task_61_metaModel(CopyToTable):
 
         yield (meta)
 
+
 class Task_70_Predict(luigi.Task):
     '''
     Hace predicciones para la fecha introducida
@@ -833,23 +839,22 @@ class Task_70_Predict(luigi.Task):
     # parametros:
     # ==============================
     bucket = luigi.Parameter(default="prueba-nyc311")
-    nestimators =luigi.Parameter()
-    maxdepth= luigi.Parameter()
-    criterion=luigi.Parameter()
-    year = luigi.Parameter()
-    month = luigi.Parameter()
-    day = luigi.Parameter()
-
+    nestimators =luigi.Parameter(default=15)
+    maxdepth= luigi.Parameter(default=20)
+    criterion=luigi.Parameter(default='gini')
+    year = luigi.Parameter(default=2020)
+    month = luigi.Parameter(default=4)
+    day = luigi.Parameter(default=15)
+    predictDate = luigi.Parameter()
 
     # ==============================
     def requires(self):
-        return [
-            Task_52_metaFeatureEngUTM(year=self.year, month=self.month, day=self.day),
-            Task_54_metaFeatureEngUTP(year=self.year, month=self.month, day=self.day)
-        ]
+        return Task_60_Train(nestimators=self.nestimators, maxdepth=self.maxdepth,
+                        criterion=self.criterion,year=self.year,month=self.month,day=self.day)
 
     def output(self):
-        output_path = f"s3://{self.bucket}/ml/modelos/{self.criterion}_depth_{self.maxdepth}_estimatros{self.nestimators}_{self.year}_{self.month}_{self.day}.pickle"
+        y,m,d=self.predictDate.split("/")
+        output_path = f"s3://{self.bucket}/predictions/{y}_{m}_{d}.parquet"
         return luigi.contrib.s3.S3Target(path=output_path)
 
     def run(self):
@@ -858,49 +863,30 @@ class Task_70_Predict(luigi.Task):
         import numpy as np
         from sklearn.model_selection import TimeSeriesSplit
         from sklearn.ensemble import RandomForestClassifier
+        import datetime
+
+        #lectura de datos
+        date= datetime.datetime.strptime(self.predictDate, '%Y/%m/%d')
+        df=f1.create_prediction_table(date)
+        #print(df)
 
         # Autenticación en S3
         ses = boto3.session.Session(profile_name='luigi_dpa', region_name='us-west-2')
-        buffer=io.BytesIO()
         s3_resource = ses.resource('s3')
-        obj = s3_resource.Bucket(name=self.bucket)
 
-        #lectura de datos
-        key = f"ml/ml.parquet"
-        parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
-        data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
-        df = pd.read_parquet(data_parquet_object)
-
-        # output variable
-        y=df["mean_flag"]
-        df2=df.drop(columns=["mean_flag","created_date","counts"])
-
-        #separamos los primeros 70% de los datos para entrenar
-        X_train = df2[:int(df2.shape[0]*0.7)].values
-        X_test = df2[int(df2.shape[0]*0.7):].values
-        y_train = y[:int(df2.shape[0]*0.7)].values
-        y_test = y[int(df2.shape[0]*0.7):].values
-
-        #partimos los datos con temporal cv
-        tscv=TimeSeriesSplit(n_splits=5)
-        for tr_index, val_index in tscv.split(X_train):
-            X_tr, X_val=X_train[tr_index], X_train[val_index]
-            y_tr, y_val = y_train[tr_index], y_train[val_index]
-
-        #Define y entrena el modelo
-        model=RandomForestClassifier(max_depth=int(self.maxdepth),criterion=self.criterion,n_estimators=int(self.nestimators),n_jobs=-1)
-        model.fit(X_tr,y_tr)
-
-        from sklearn.metrics import accuracy_score
+        key = f"ml/modelos/{self.criterion}_depth_{self.maxdepth}_estimatros{self.nestimators}_{self.year}_{self.month}_{self.day}.pickle"
+        obj = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
+        pkl = obj.get()['Body'].read()
+        model=pickle.loads(pkl)
         print(u'\u2B50'*1)
-        y_new= model.predict(X_val)
-        print("precisión del modelo validacion", accuracy_score(y_val, y_new))
-        print("\n")
-        #genera el pickle
-        pick=open('nombre.pickle','wb')
-        pickle.dump(model,pick)
-        pick.close()
-
-        #llama a output
-        with self.output().open('w') as output_file:
-           output_file.write("nombre.pickle")
+        print("pickle load correctly")
+        X = df.values
+        preds=model.predict(X)
+        print(u'\u2B50'*1)
+        boroughs=["bronx","brooklyn","manhattan","queens","staten island","undefined"]
+        model_name=f"{self.criterion}_depth_{self.maxdepth}_estimatros{self.nestimators}_{self.year}_{self.month}_{self.day}.pickle"
+        print(preds)
+        d = {'borough': boroughs,'prediction': preds, 'pred_date':np.repeat(date,6),'model_name':np.repeat(model_name,6)}
+        df = pd.DataFrame(data=d)
+        print(df)
+        df.to_parquet(self.output().path, engine='auto', compression='snappy')
