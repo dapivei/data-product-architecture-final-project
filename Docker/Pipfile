@@ -19,6 +19,7 @@ requests = "*"
 psycopg2 = "==2.7.5"
 postgres = "*"
 psycopg2-binary = "*"
+flask = "*"
 
 [requires]
 python_version = "3.7"

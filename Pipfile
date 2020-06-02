@@ -21,6 +21,8 @@ s3fs = "*"
 marbles = "*"
 pyscopg = "==2.7.5"
 sklearn = "*"
+flask = "*"
+flask-restplus = "*"
 
 [requires]
 python_version = "3.7"
