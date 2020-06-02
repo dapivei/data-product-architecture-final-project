@@ -11,7 +11,7 @@ create table biasfairness.aequitas_ejecucion (
   "attribute_value" TEXT,
   "tpr" TEXT,
   "tnr" TEXT,
-  "for" TEXT,
+  "fxr" TEXT,
   "fdr" TEXT,
   "fpr" TEXT,
   "fnr" TEXT,
