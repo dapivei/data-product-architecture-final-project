@@ -168,8 +168,9 @@ def create_feature_table(df,h=10):
 
 def encoders(df):
     import pandas as pd
+    import numpy as np
     from sklearn.preprocessing import LabelEncoder
-    boroughs=["bronx","brooklyn","manhattan","queens","staten island","undefined"]
+
 
     le_created_date_year = LabelEncoder()
     le_created_date_month = LabelEncoder()
@@ -186,12 +187,12 @@ def encoders(df):
     #df['created_date_distrito_encoded'] = le_created_date_woy.fit_transform(df.borough)
 
     from sklearn.preprocessing import OneHotEncoder
-    created_date_year_ohe = OneHotEncoder()
-    created_date_month_ohe = OneHotEncoder()
-    created_date_day_ohe = OneHotEncoder()
-    created_date_dow_ohe = OneHotEncoder()
-    created_date_woy_ohe = OneHotEncoder()
-    borough_ohe = OneHotEncoder()
+    created_date_year_ohe = OneHotEncoder(categories=[np.arange(11)])
+    created_date_month_ohe = OneHotEncoder(categories=[np.arange(12)])
+    created_date_day_ohe = OneHotEncoder(categories=[np.arange(31)])
+    created_date_dow_ohe = OneHotEncoder(categories=[np.arange(7)])
+    created_date_woy_ohe = OneHotEncoder(categories=[np.arange(53)])
+    borough_ohe = OneHotEncoder(categories=[["bronx","brooklyn","manhattan","queens","staten island","undefined"]])
     X = created_date_year_ohe.fit_transform(df.created_date_year_encoded.values.reshape(-1,1)).toarray()
     Xm = created_date_month_ohe.fit_transform(df.created_date_month_encoded.values.reshape(-1,1)).toarray()
     Xo = created_date_day_ohe.fit_transform(df.created_date_day_encoded.values.reshape(-1,1)).toarray()
@@ -211,7 +212,7 @@ def encoders(df):
     dfOneHot = pd.DataFrame(Xz, columns = ["created_date_woy_"+str(int(i)) for i in range(Xz.shape[1])])
     df = pd.concat([df, dfOneHot], axis=1)
 
-    dfOneHot = pd.DataFrame(Xb, columns = boroughs)
+    dfOneHot = pd.DataFrame(Xb, columns = ["bronx","brooklyn","manhattan","queens","staten island","undefined"])
     df = pd.concat([df, dfOneHot], axis=1)
 
     # borrar columnas a las que se les hizo OHE
