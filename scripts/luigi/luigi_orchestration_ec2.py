@@ -830,6 +830,8 @@ class Task_61_metaModel(CopyToTable):
         meta = model_meta.info()  # extrae info de la clas
 
         yield (meta)
+
+#
 class Task_70_biasFairness(luigi.Task):
     '''
     Genera métricas de aequitas para modelo pre-entrenado disponible en S3
@@ -842,11 +844,12 @@ class Task_70_biasFairness(luigi.Task):
     maxdepth= luigi.Parameter(default=20)
     criterion=luigi.Parameter(default='gini')
     year = luigi.Parameter(default=2020)
-    month = luigi.Parameter(default=5)
+    month = luigi.Parameter(default=4)
     day = luigi.Parameter(default=15)
 
     def output(self):
-        output_path = f"s3://prueba-nyc311/BiasFairness/aequitas_metricas.csv"
+        #output_path = f"s3://prueba-nyc311/BiasFairness/aequitas_metricas.csv"
+        output_path = f"s3://prueba-nyc311/BiasFairness/aequitas_metricas_RFC_{self.criterion}_depth_{self.maxdepth}_estimatros{self.nestimators}.csv"
         return luigi.contrib.s3.S3Target(path=output_path)
 
     def requires(self):
@@ -864,11 +867,12 @@ class Task_70_biasFairness(luigi.Task):
         import io
         import aequitas
         from aequitas.group import Group
+        from aequitas.preprocessing import preprocess_input_df
         # Autenticación en S3
         ses = boto3.session.Session(profile_name='luigi_dpa', region_name='us-west-2')
         s3_resource = ses.resource('s3')
 
-        #### matriz de datos
+
         #lectura de datos
         key = f"ml/{self.year}/{self.month}/{self.day}/data_{self.year}_{self.month}_{self.day}.parquet"
         parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
@@ -899,16 +903,29 @@ class Task_70_biasFairness(luigi.Task):
         # inputs de aequitas
         score=model.predict(X_test) # columna con predicciones
         label_value=y_test # columna con etiquetas verdaderas
-        brooklyn=X_test[:,126]
-        # crea matriz conformato que requiere aequitas
-        aeq_mat = pd.DataFrame({'score': score, 'label_value':label_value, 'brooklyn':brooklyn})
 
-        # df1 = preprocess_input_df(aeq_mat)
+        pd.set_option('display.max_columns', None)
+        pd.set_option('display.max_rows', None)
+        # "bronx","brooklyn","manhattan","queens","staten island","undefined"
+        bronx_vec =  X_test[:,124]*1
+        brooklyn_vec=X_test[:,125]*2
+        manhattan_vec=X_test[:,126]*3
+        queens_vec =X_test[:,127]*4
+        staten_vec =X_test[:,128]*5
+        undefined_vec=X_test[:,129]*6
+        # se agrega en un solo vector de distrito
+        distrito = bronx_vec + brooklyn_vec + manhattan_vec+ queens_vec +staten_vec + undefined_vec
+        # crea matriz conformato que requiere aequitas
+        aeq_mat = pd.DataFrame({'score': score,
+                                'label_value':label_value,
+                                'distrito':distrito})
+        # crea matriz conformato que requiere aequitas
+        preprocess_input_df(aeq_mat)
         g = Group()
         xtab, _ = g.get_crosstabs(aeq_mat)
+        #print(xtab)
         # guardar métricas obtenidas
         xtab.to_csv(self.output().path, index=False, encoding='utf-8')
-
 
 
 class Task_71_biasFairnessRDS(CopyToTable):
@@ -954,7 +971,8 @@ class Task_71_biasFairnessRDS(CopyToTable):
 
         #### matriz de datos
         #lectura de datos
-        key = f"BiasFairness/aequitas_metricas.csv"
+        #key = f"BiasFairness/aequitas_metricas.csv"
+        key = f"BiasFairness/aequitas_metricas_RFC_{self.criterion}_depth_{self.maxdepth}_estimatros{self.nestimators}.csv"
         parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
         data_csv_object = io.BytesIO(parquet_object.get()['Body'].read())
         sub_df = pd.read_csv(data_csv_object)
@@ -1002,7 +1020,7 @@ class Task_72_metabiasFairness(CopyToTable):
     # ==============================
     bucket = luigi.Parameter(default="prueba-nyc311")
     nestimators =luigi.Parameter(default=15)
-    maxdepth= luigi.Parameter(default=20)
+    maxdepth= luigi.Parameter(default=22)
     criterion=luigi.Parameter(default='gini')
     year = luigi.Parameter(default=2020)
     month = luigi.Parameter(default=5)
@@ -1033,6 +1051,7 @@ class Task_72_metabiasFairness(CopyToTable):
 
         meta = BF_md.info()  # extraer información de la clase
         yield (meta)
+
 
 class Task_80_Predict(luigi.Task):
     '''
