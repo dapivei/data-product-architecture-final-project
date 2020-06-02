@@ -1169,7 +1169,7 @@ class Task_81_metaPredict(CopyToTable):
 
         cwd = os.getcwd()  # directorio actual
         model_meta = predict_metadata()
-        print(df)
+
         for index, row in df.iterrows():
             model_meta.pred_date = row['pred_date']
             model_meta.prediction = row['prediction']
@@ -1184,3 +1184,100 @@ class Task_81_metaPredict(CopyToTable):
             ubicacion_completa = model_meta.location
             meta = model_meta.info()  # extrae info de la clas
             yield (meta)
+
+
+
+class Task_82_testPrediction(luigi.task.WrapperTask):
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    nestimators =luigi.Parameter(default=15)
+    maxdepth= luigi.Parameter(default=20)
+    criterion=luigi.Parameter(default='gini')
+    year = luigi.Parameter(default=2020)
+    month = luigi.Parameter(default=4)
+    day = luigi.Parameter(default=15)
+    predictDate = luigi.Parameter()
+
+    def requires(self):
+        return Task_81_metaPredict(nestimators=self.nestimators, maxdepth=self.maxdepth,
+                    criterion=self.criterion,year=self.year,month=self.month,day=self.day,predictDate=self.predictDate)
+
+    def run(self):
+        import subprocess
+        import datetime
+        date= datetime.datetime.strptime(self.predictDate, '%Y/%m/%d')
+        y,m,d=self.predictDate.split("/")
+        args = list(map(str, ["./unit_test/run_prediction_test.sh",d,m,y,self.bucket]))
+        proc = subprocess.Popen(args)
+        proc.wait()
+
+# En caso de éxito guarda metadatos, de otra forma no.
+@Task_82_testPrediction.event_handler(luigi.Event.SUCCESS)
+def celebrate_success(task):
+    print(u'\u2705'*1, "UnitTest con Marbles para Predictions Task completado. Se procede a guardar los metadatos.")
+@Task_82_testPrediction.event_handler(luigi.Event.FAILURE)
+def mourn_failure(task, exception):
+    print(u'\u274C'*1, "UnitTest con Marbles para Predictions Task fallido. No se guardan los metadatos.")
+
+class Task_83_metaTestPredictions(CopyToTable):
+    '''
+    Guardar los metadatos de la descarga de datos del schema FE para unit testing con pandas
+    Son guardados en la base de datos nyc311_metadata en la tabla mlpreproc.ut_execution
+    '''
+    # ==============================
+    # parametros:
+    # ==============================
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    nestimators =luigi.Parameter(default=15)
+    maxdepth= luigi.Parameter(default=20)
+    criterion=luigi.Parameter(default='gini')
+    year = luigi.Parameter(default=2020)
+    month = luigi.Parameter(default=4)
+    day = luigi.Parameter(default=15)
+    predictDate = luigi.Parameter()
+    # ==============================
+    database = 'nyc311_metadata'
+    host = settings.get('host')
+    user = settings.get('usr')
+    password = settings.get('password')
+    table = 'prediction.ut_execution'
+    columns = [("name","TEXT"), ("extention","TEXT") , ("schema","TEXT"),
+            ("action","TEXT") , ("creator","TEXT"), ("machine","TEXT"),
+            ("ip","TEXT"), ("creation_date","TEXT"), ("size","TEXT"),
+            ("location","TEXT"),("status","TEXT"), ("param_year","TEXT"),
+            ("param_month","TEXT"),("param_day","TEXT"),("param_bucket","TEXT"),
+            ("model_name","TEXT"),("uuid","TEXT"),("prediction_date","TEXT")]
+
+    def requires(self):
+        return Task_82_testPrediction(nestimators=self.nestimators, maxdepth=self.maxdepth,
+                    criterion=self.criterion,year=self.year,month=self.month,day=self.day,predictDate=self.predictDate)
+
+    def rows(self):
+        import datetime
+        date= datetime.datetime.strptime(self.predictDate, '%Y/%m/%d')
+        y,m,d=self.predictDate.split("/")
+        # se instancia la clase raw_metadata()
+        cwd = os.getcwd()  # directorio actual
+        pUT = prediction_metadataUnitTest()
+        pUT.name = f"{y}_{m}_{d}.parquet"
+        pUT.user = str(getpass.getuser())
+        pUT.machine = str(platform.platform())
+        pUT.ip = execv("curl ipecho.net/plain ; echo", cwd)
+        pUT.creation_date = str(datetime.datetime.now())
+        pUT.location = f"s3://{self.bucket}/predictions"
+        pUT.param_bucket = str(self.bucket)
+        # las pruebas unitarias que se superaron
+        pUT.action = "unit test for predictions (marbles)"
+        pUT.model_name = f"depth{self.maxdepth}_{self.criterion}_estimatros{self.nestimators}_{self.year}_{self.month}_{self.day}.pickle"
+        ubicacion_completa = ""
+        pUT.uuid=""
+        pUT.param_month=self.month
+        pUT.param_day=self.day
+        pUT.param_year=self.year
+        pUT.prediction_date=date
+        meta = pUT.info()  # extraer información de la clase
+        print(meta)
+        yield (meta)
+
+@Task_82_testPrediction.event_handler(luigi.Event.SUCCESS)
+def celebrate_success(task):
+    print(u'\u2705'*2, "Se guardaron los metadatos para UT para predicciones")

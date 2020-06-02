@@ -360,7 +360,7 @@ class predict_metadata():
                 self.model_name, self.model_type, self.schema, self.action,
                 self.creator, self.machine, self.ip, self.date, self.location,
                 self.status)
-    
+
 ###############################################################################
 
 
@@ -473,3 +473,51 @@ class BF_metadata():
         return (self.name, self.extention, self.schema, self.action,
                 self.creator, self.machine, self.ip, self.creation_date,
                 self.size, self.location, self.status, self.param_bucket)
+
+class prediction_metadataUnitTest():
+    def __init__(self,
+                 name="",
+                 extention="parquet",
+                 schema="prediction",
+                 action="unit test for Predictions",
+                 creator="-",
+                 machine="",
+                 ip="",
+                 creation_date="",
+                 size="-",
+                 location="",
+                 status="OK",
+                 param_year="",
+                 param_month="",
+                 param_day="",
+                 param_bucket="",
+                 model_name="",
+                 uuid="",
+                 prediction_date=""):
+
+        # asignamos las características de los metadatos
+        self.name = name
+        self.extention = extention
+        self.schema = schema
+        self.action = action
+        self.creator = creator
+        self.machine = machine
+        self.ip = ip
+        self.creation_date = creation_date
+        self.size = size
+        self.location = location
+        self.status = status
+        self.param_year = param_year
+        self.param_month = param_month
+        self.param_day = param_day
+        self.param_bucket = param_bucket
+        self.model_name=model_name
+        self.uuid=uuid
+        self.prediction_date=prediction_date
+
+    def info(self):
+        return (self.name, self.extention, self.schema, self.action,
+                self.creator, self.machine, self.ip, self.creation_date,
+                self.size, self.location, self.status, self.param_year,
+                self.param_month, self.param_day, self.param_bucket,
+                self.model_name, self.uuid, self.prediction_date)
