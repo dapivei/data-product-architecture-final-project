@@ -23,14 +23,16 @@
     ├── eda
     ├── images                     # imágenes asociados al proyecto
     ├── libs                       # documentos asociados el boowdown al proyecto
+    ├── notebooks                  # notebooks de jupyter asociados al proyecto
     ├── reporte.                   # settings para echar andar el bookdown del proyecto
     ├── scripts
+    |   ├── API                    # scripts relativos al levantamiento del api
     |   ├── clean.                 # scripts relativos a la limpieza de la base de datos
     |   ├── conf-AWS               # comandos empleados para la configuración de la infraestructura en AWS
     |   ├── luigi                  # scripts y tasks orquestados por luigi
     |   ├── model                  # scripts relativos a la parte del modelado
     |   ├── prepro_ml              # scripts relativos a la parte del preprocesamiento
-    ├── tests.                     # unit tests
+    ├── tests.                     # unit tests con unittest, marbles y pandas
     └── ...                        # otros documentos
 
 
