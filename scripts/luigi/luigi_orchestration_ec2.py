@@ -1097,7 +1097,7 @@ class Task_80_Predict(luigi.Task):
         print(df)
         df.to_parquet(self.output().path, engine='auto', compression='snappy')
 
-class Task_71_metaPredict(CopyToTable):
+class Task_81_metaPredict(CopyToTable):
     '''
     Guardar los metadatos de las predicciones
     '''
@@ -1126,7 +1126,7 @@ class Task_71_metaPredict(CopyToTable):
             ("status","TEXT")]
 
     def requires(self):
-        return Task_70_Predict(nestimators=self.nestimators, maxdepth=self.maxdepth,
+        return Task_80_Predict(nestimators=self.nestimators, maxdepth=self.maxdepth,
                     criterion=self.criterion,year=self.year,month=self.month,day=self.day,predictDate=self.predictDate)
 
     def rows(self):

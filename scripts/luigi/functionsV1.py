@@ -6,8 +6,8 @@ class NumberCases():
     def prueba_casos_dia(self,df):
         from pandas.testing import assert_frame_equal
         # Para calcular segun el distrito (descomentar las siguientes lineas)
-        #distrito = ['distrito_0','distrito_1','distrito_2','distrito_3','distrito_4','distrito_5']
-        distrito=["bronx","brooklyn","manhattan","queens","staten island","undefined"]
+        distrito = ['distrito_0','distrito_1','distrito_2','distrito_3','distrito_4','distrito_5']
+        #distrito=["bronx","brooklyn","manhattan","queens","staten island","undefined"]
         for j in distrito:
             self.df = df[df[j] == 1]
             #descomentar para que truene
@@ -202,17 +202,27 @@ def encoders(df):
 
 
     dfOneHot = pd.DataFrame(X, columns = ["created_date_year_"+str(int(i)) for i in range(X.shape[1])])
-    df = pd.concat([df, dfOneHot], axis=1)
-    dfOneHot = pd.DataFrame(Xm, columns = ["created_date_month_"+str(int(i)) for i in range(Xm.shape[1])])
-    df = pd.concat([df, dfOneHot], axis=1)
-    dfOneHot = pd.DataFrame(Xo, columns = ["created_date_day_"+str(int(i)) for i in range(Xo.shape[1])])
-    df = pd.concat([df, dfOneHot], axis=1)
-    dfOneHot = pd.DataFrame(Xt, columns = ["created_date_dow_"+str(int(i)) for i in range(Xt.shape[1])])
-    df = pd.concat([df, dfOneHot], axis=1)
-    dfOneHot = pd.DataFrame(Xz, columns = ["created_date_woy_"+str(int(i)) for i in range(Xz.shape[1])])
+    dfOneHot=complete_cols(dfOneHot,11,"created_date_year_")
     df = pd.concat([df, dfOneHot], axis=1)
 
-    dfOneHot = pd.DataFrame(Xb, columns = ["distrito_"+str(int(i)) for i in range(Xz.shape[1])])
+    dfOneHot = pd.DataFrame(Xm, columns = ["created_date_month_"+str(int(i)) for i in range(Xm.shape[1])])
+    dfOneHot=complete_cols(dfOneHot,12,"created_date_month_")
+    df = pd.concat([df, dfOneHot], axis=1)
+
+    dfOneHot = pd.DataFrame(Xo, columns = ["created_date_day_"+str(int(i)) for i in range(Xo.shape[1])])
+    dfOneHot=complete_cols(dfOneHot,31,"created_date_day_")
+    df = pd.concat([df, dfOneHot], axis=1)
+
+    dfOneHot = pd.DataFrame(Xt, columns = ["created_date_dow_"+str(int(i)) for i in range(Xt.shape[1])])
+    dfOneHot=complete_cols(dfOneHot,7,"created_date_dow_")
+    df = pd.concat([df, dfOneHot], axis=1)
+
+    dfOneHot = pd.DataFrame(Xz, columns = ["created_date_woy_"+str(int(i)) for i in range(Xz.shape[1])])
+    dfOneHot=complete_cols(dfOneHot,53,"created_date_woy_")
+    df = pd.concat([df, dfOneHot], axis=1)
+
+    dfOneHot = pd.DataFrame(Xb, columns = ["distrito_"+str(int(i)) for i in range(Xb.shape[1])])
+    dfOneHot=complete_cols(dfOneHot,6,"distrito_")
     df = pd.concat([df, dfOneHot], axis=1)
 
     # borrar columnas a las que se les hizo OHE
@@ -220,6 +230,14 @@ def encoders(df):
     df=df.drop(columns=['created_date_year_encoded','created_date_month_encoded', 'created_date_day_encoded',
         'created_date_dow_encoded', 'created_date_woy_encoded'])
 
+    return df
+
+def complete_cols(df,col_target,name):
+    cols=df.shape[1]
+    while(cols<col_target):
+        col_name=name+str(cols)
+        df[col_name]=0
+        cols=df.shape[1]
     return df
 
 
