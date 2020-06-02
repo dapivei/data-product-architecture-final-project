@@ -15,6 +15,7 @@ import luigi
 import luigi.contrib.s3
 
 import os
+import io
 import pandas as pd
 import platform
 import psycopg2 as ps
@@ -1095,3 +1096,72 @@ class Task_80_Predict(luigi.Task):
         df = pd.DataFrame(data=d)
         print(df)
         df.to_parquet(self.output().path, engine='auto', compression='snappy')
+
+class Task_71_metaPredict(CopyToTable):
+    '''
+    Guardar los metadatos de las predicciones
+    '''
+    # ==============================
+    # parametros:
+    # ==============================
+    bucket = luigi.Parameter(default="prueba-nyc311")
+    nestimators =luigi.Parameter(default=15)
+    maxdepth= luigi.Parameter(default=20)
+    criterion=luigi.Parameter(default='gini')
+    year = luigi.Parameter(default=2020)
+    month = luigi.Parameter(default=4)
+    day = luigi.Parameter(default=15)
+    predictDate = luigi.Parameter()
+
+    # ==============================
+    database = 'nyc311_metadata'
+    host = settings.get('host')
+    user = settings.get('usr')
+    password = settings.get('password')
+    table = 'prediction.ejecucion'
+    columns = [("pred_date","TEXT"), ("prediction","TEXT") , ("borough","TEXT"),
+            ("model_name","TEXT"), ("model_type","TEXT") , ("schema","TEXT"),
+            ("action","TEXT") , ("creator","TEXT"), ("machine","TEXT"),
+            ("ip","TEXT"), ("date","TEXT"), ("location","TEXT"),
+            ("status","TEXT")]
+
+    def requires(self):
+        return Task_70_Predict(nestimators=self.nestimators, maxdepth=self.maxdepth,
+                    criterion=self.criterion,year=self.year,month=self.month,day=self.day,predictDate=self.predictDate)
+
+    def rows(self):
+        import os
+        import pandas as pd
+
+    # ==============================
+    # se instancia la clase raw_metadata()
+        # Autenticación en S3
+        ses = boto3.session.Session(profile_name='luigi_dpa', region_name='us-west-2')
+        #buffer=io.BytesIO()
+        s3_resource = ses.resource('s3')
+        obj = s3_resource.Bucket(name=self.bucket)
+
+        #lectura de datos
+        y,m,d=self.predictDate.split("/")
+        key = f"predictions/{y}_{m}_{d}.parquet"
+        parquet_object = s3_resource.Object(bucket_name=self.bucket, key=key) # objeto
+        data_parquet_object = io.BytesIO(parquet_object.get()['Body'].read())
+        df = pd.read_parquet(data_parquet_object)
+
+        cwd = os.getcwd()  # directorio actual
+        model_meta = predict_metadata()
+        print(df)
+        for index, row in df.iterrows():
+            model_meta.pred_date = row['pred_date']
+            model_meta.prediction = row['prediction']
+            model_meta.borough = row['borough']
+            model_meta.model_name = row['model_name']
+            model_meta.creator = str(getpass.getuser())
+            model_meta.machine = str(platform.platform())
+            model_meta.ip = execv("curl ipecho.net/plain ; echo", cwd)
+            model_meta.date = str(datetime.datetime.now())
+            model_meta.location = f"s3://{self.bucket}/ml/modelos/depth{self.maxdepth}_{self.criterion}_estimatros{self.nestimators}.pickle"
+
+            ubicacion_completa = model_meta.location
+            meta = model_meta.info()  # extrae info de la clas
+            yield (meta)

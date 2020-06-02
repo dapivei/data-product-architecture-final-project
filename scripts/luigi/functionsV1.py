@@ -168,8 +168,9 @@ def create_feature_table(df,h=10):
 
 def encoders(df):
     import pandas as pd
+    import numpy as np
     from sklearn.preprocessing import LabelEncoder
-    boroughs=["bronx","brooklyn","manhattan","queens","staten island","undefined"]
+
 
     le_created_date_year = LabelEncoder()
     le_created_date_month = LabelEncoder()
@@ -211,7 +212,7 @@ def encoders(df):
     dfOneHot = pd.DataFrame(Xz, columns = ["created_date_woy_"+str(int(i)) for i in range(Xz.shape[1])])
     df = pd.concat([df, dfOneHot], axis=1)
 
-    dfOneHot = pd.DataFrame(Xb, columns = boroughs)
+    dfOneHot = pd.DataFrame(Xb, columns = ["distrito_"+str(int(i)) for i in range(Xz.shape[1])])
     df = pd.concat([df, dfOneHot], axis=1)
 
     # borrar columnas a las que se les hizo OHE
