@@ -37,6 +37,7 @@ class Modelo(Resource):
                           password=settings.get('password'))
         cur = conn.cursor()
         sql = f"SELECT * FROM modeling.ejecucion WHERE param_year='{anio}' and param_month='{mes}' and param_day='{dia}';"
+        print(sql)
         cur.execute(sql)
         data = cur.fetchall()
         conn.commit()
@@ -52,9 +53,9 @@ class Predict(Resource):
     Y aquí debe ir el tercer renglón
     """
     parser = ns.parser()
-    parser.add_argument('anio', required=True, type=int, help='Año de la predicción', nullable=True)
-    parser.add_argument('mes', required=True, type=int, help='Mes de la predicción', choices=(1,2,3,4,5,6,7,8,9,10,11,12), default=1, nullable=True)
-    parser.add_argument('dia', required=True, type=int, help='Día de la predicción', nullable=True)
+    parser.add_argument('anio', required=True, type=str, help='Año de la predicción', nullable=True)
+    parser.add_argument('mes', required=True, type=str, help='Mes de la predicción', choices=('01','02','03','04','05','06','07','08','09','10','11','12'), default='01', nullable=True)
+    parser.add_argument('dia', required=True, type=str, help='Día de la predicción', nullable=True)
 
 
     @ns.expect(parser, validate=False)
