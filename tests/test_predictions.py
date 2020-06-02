@@ -8,10 +8,13 @@ import pandas as pd
 
 
 # load data from path_cleaned = 's3://prueba-nyc311/cleaned'
-file = './predictions.csv'
+file = './2021_12_24.parquet'
+
 #df = pd.read_parquet(file)
 
-df = pd.read_csv(file)
+df = pd.read_parquet(file)
+
+df
 
 class PredictionsTestCase(marbles.core.TestCase):
 
@@ -40,8 +43,8 @@ class PredictionsTestCase(marbles.core.TestCase):
         Función para evaluar que sólo hay cinco valores únicos o menos en la columna de borough
 
         '''
-        unique_boroughs = 5
-        self.assertTrue((len(self.df['borough'].unique())<=unique_boroughs) , note='Las predicciones arrojadas por el modelo tendrían que ser para únicamente cinco distritos, si salen más de cinco distritos únicos, habría que revisar el modelo.')
+        unique_boroughs = 6
+        self.assertTrue((len(self.df['borough'].unique())<=unique_boroughs) , note='Las predicciones arrojadas por el modelo tendrían que ser o 0 o 1, cualquier otro tipo de predicción es un error que debe ser subsanado a la brevedad posible.')
 
 if __name__ == '__main__':
     marbles.core.main(argv=['first-arg-is-ignored'], exit=False)
