@@ -328,7 +328,6 @@ class predict_metadata():
                  pred_date="",
                  prediction="",
                  borough="",
-                 pickle="",
                  model_name="",
                  model_type="sklearn model",
                  schema="prediction",
@@ -343,7 +342,6 @@ class predict_metadata():
         # asignamos las características de los metadatos
         self.pred_date=pred_date,
         self.prediction=prediction,
-        self.pickle=pickle,
         self.borough=borough,
         self.model_name = model_name
         self.model_type = model_type
@@ -358,7 +356,7 @@ class predict_metadata():
 
 
     def info(self):
-        return (self.pred_date, self.prediction,self.pickle, self.borough,
+        return (self.pred_date, self.prediction, self.borough,
                 self.model_name, self.model_type, self.schema, self.action,
                 self.creator, self.machine, self.ip, self.date, self.location,
                 self.status)

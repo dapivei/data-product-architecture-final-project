@@ -415,7 +415,7 @@ class Task_40_mlPreproc(luigi.Task):
         date=start_date
 
         #para que solamente baje los datos de la fecha indicada
-        date=end_date
+        date=end_date-timedelta(days=1)
 
         flag=0
         count=0
@@ -843,8 +843,8 @@ class Task_70_Predict(luigi.Task):
     maxdepth= luigi.Parameter(default=20)
     criterion=luigi.Parameter(default='gini')
     year = luigi.Parameter(default=2020)
-    month = luigi.Parameter(default=5)
-    day = luigi.Parameter(default=1)
+    month = luigi.Parameter(default=4)
+    day = luigi.Parameter(default=15)
     predictDate = luigi.Parameter()
 
     # ==============================
@@ -853,9 +853,9 @@ class Task_70_Predict(luigi.Task):
                         criterion=self.criterion,year=self.year,month=self.month,day=self.day)
 
     def output(self):
-        #output_path = f"s3://{self.bucket}/ml/modelos/{self.criterion}_depth_{self.maxdepth}_estimatros{self.nestimators}_{self.year}_{self.month}_{self.day}.pickle"
-        #return luigi.contrib.s3.S3Target(path=output_path)
-        return None
+        y,m,d=self.predictDate.split("/")
+        output_path = f"s3://{self.bucket}/predictions/{y}_{m}_{d}.parquet"
+        return luigi.contrib.s3.S3Target(path=output_path)
 
     def run(self):
         import functionsV1 as f1
@@ -884,4 +884,9 @@ class Task_70_Predict(luigi.Task):
         preds=model.predict(X)
         print(u'\u2B50'*1)
         boroughs=["bronx","brooklyn","manhattan","queens","staten island","undefined"]
+        model_name=f"{self.criterion}_depth_{self.maxdepth}_estimatros{self.nestimators}_{self.year}_{self.month}_{self.day}.pickle"
         print(preds)
+        d = {'borough': boroughs,'prediction': preds, 'pred_date':np.repeat(date,6),'model_name':np.repeat(model_name,6)}
+        df = pd.DataFrame(data=d)
+        print(df)
+        df.to_parquet(self.output().path, engine='auto', compression='snappy')

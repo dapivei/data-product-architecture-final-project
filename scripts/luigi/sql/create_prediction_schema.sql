@@ -6,7 +6,6 @@ create table prediction.ejecucion (
   "pred_date" TEXT,
   "prediction" TEXT,
   "borough" TEXT,
-  "pickle" TEXT,
   "model_name" TEXT,
   "model_type" TEXT,
   "schema" TEXT,
