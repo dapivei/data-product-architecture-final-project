@@ -40,7 +40,7 @@ Pillow==7.1.2
 psycopg2==2.7.5
 pyarrow==0.17.1
 pyparsing==2.4.7
-PyPDF2==1.26.0
+PyPDF2==1.27.5
 pyrsistent==0.16.0
 python-box==3.4.6
 python-daemon==2.2.4
